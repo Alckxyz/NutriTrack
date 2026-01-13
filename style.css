@@ -101,8 +101,8 @@ button {
 
 main {
     max-width: 1000px;
-    margin: 1rem auto;
-    padding: 0 0.75rem;
+    margin: 0.5rem auto;
+    padding: 0 0.5rem;
 }
 
 .summary-card {
@@ -161,12 +161,12 @@ main {
 .meals-list {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .meal-card {
     background: var(--card-bg);
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: var(--shadow);
     overflow: hidden;
     border: 1px solid var(--border);
@@ -174,13 +174,13 @@ main {
 
 .meal-header {
     background: #252525;
-    padding: 0.75rem;
+    padding: 0.5rem 0.75rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border);
-    gap: 8px;
+    gap: 6px;
 }
 
 .meal-header h3 {
@@ -191,10 +191,21 @@ main {
     font-size: 1rem;
 }
 
-.meal-header .drag-handle {
-    color: #555;
+.drag-handle, .item-drag-handle {
+    color: #666;
     cursor: grab;
     font-size: 1.2rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.drag-handle:hover, .item-drag-handle:hover {
+    color: var(--primary);
 }
 
 .meal-summary-mini {
@@ -203,19 +214,19 @@ main {
 }
 
 .meal-items {
-    min-height: 50px;
-    padding: 0.5rem;
+    min-height: 40px;
+    padding: 0.25rem 0.5rem;
 }
 
 .meal-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.75rem;
     border-bottom: 1px solid var(--border);
     background: #1e1e1e;
-    cursor: move;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    min-height: 48px;
 }
 
 .meal-item:last-child {
@@ -235,18 +246,27 @@ main {
     color: var(--text-light);
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0px;
 }
 
 .item-nutrients-mini {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     opacity: 0.8;
 }
 
 .item-actions {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
+}
+
+.item-actions .delete-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .delete-btn {
@@ -279,7 +299,7 @@ main {
 }
 
 .meal-footer {
-    padding: 1rem;
+    padding: 0.6rem 0.75rem;
     border-top: 1px solid var(--border);
 }
 
@@ -572,16 +592,16 @@ main {
 /* Meal-specific Nutrient Badges */
 .meal-nutrients-grid {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     flex-wrap: wrap;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .nutrient-badge {
-    font-size: 0.75rem;
-    padding: 2px 6px;
+    font-size: 0.7rem;
+    padding: 1px 5px;
     background: #333;
-    border-radius: 4px;
+    border-radius: 3px;
     color: var(--text-light);
     border: 1px solid #444;
 }
@@ -685,16 +705,16 @@ main {
 
 @media (max-width: 600px) {
     body {
-        font-size: 13px;
+        font-size: 12px;
     }
     header {
         position: relative; /* Disables sticky behavior on mobile */
         top: auto;
-        padding: 0.5rem;
+        padding: 0.4rem;
         display: grid;
         grid-template-columns: 1fr auto 1fr; /* 3 cols for balanced logo center */
         grid-template-rows: auto auto;
-        gap: 8px;
+        gap: 4px;
         align-items: center;
     }
     .header-left {
@@ -751,34 +771,73 @@ main {
 
     .header-actions button:not(#login-btn) {
         width: 100%;
-        padding: 6px 2px !important;
-        font-size: 0.65rem !important;
-        height: 38px;
+        padding: 4px 2px !important;
+        font-size: 0.6rem !important;
+        height: 34px;
         display: flex;
         align-items: center;
         justify-content: center;
         white-space: normal;
-        line-height: 1.1;
+        line-height: 1.0;
+    }
+    .summary-card {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
     }
     .stats-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        gap: 4px;
     }
     .stat-item {
-        padding: 6px 4px;
+        padding: 4px 2px;
     }
     .stat-item .value {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
     .stat-item .label {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
+    }
+    .meals-list {
+        gap: 0.75rem;
     }
     .meal-header {
-        padding: 0.5rem;
+        padding: 0.4rem 0.6rem;
+    }
+    .meal-header h3 {
+        font-size: 0.9rem;
     }
     .meal-header-actions button {
         padding: 4px 6px;
+        font-size: 0.8rem;
+        min-height: 38px;
+        min-width: 32px;
+    }
+    .meal-items {
+        padding: 0.25rem;
+    }
+    .meal-item {
+        padding: 0.4rem 0.6rem;
+        min-height: 50px;
+    }
+    .item-name {
         font-size: 0.85rem;
+    }
+    .item-meta {
+        font-size: 0.7rem;
+    }
+    .nutrient-badge {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+    .meal-footer {
+        padding: 0.6rem;
+    }
+    .meal-header-actions {
+        align-items: center;
+        flex: 1;
+    }
+    .meal-header-actions .drag-handle {
+        margin-left: auto;
     }
     .modal-content {
         padding: 1.25rem;

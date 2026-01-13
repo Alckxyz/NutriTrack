@@ -33,7 +33,7 @@ export function renderMeals(options = {}) {
         mealCard.innerHTML = `
             <div class="meal-header">
                 <div class="meal-title-group">
-                    <h3><span class="drag-handle">☰</span> ${meal.name}</h3>
+                    <h3>${meal.name}</h3>
                     <div class="meal-nutrients-grid">
                         <span class="nutrient-badge kcal">${Math.round(mealSummary.calories)} kcal</span>
                         <span class="nutrient-badge">P: ${mealSummary.protein.toFixed(1)}g</span>
@@ -47,6 +47,7 @@ export function renderMeals(options = {}) {
                     <button class="edit-btn-mini copy-meal-trigger" title="${t('copy_btn', state.language)}">📋</button>
                     <button class="edit-btn-mini paste-meal-trigger ${!state.clipboard ? 'hidden' : ''}" title="${t('paste_btn', state.language)}">📥</button>
                     <button class="delete-btn delete-meal-trigger" title="${t('delete_btn', state.language)}">🗑️</button>
+                    <span class="drag-handle" title="Drag to reorder meals">☰</span>
                 </div>
             </div>
             <div class="meal-items" data-meal-id="${meal.id}">
@@ -80,6 +81,7 @@ export function renderMeals(options = {}) {
                             </div>
                             <div class="item-actions">
                                 <button class="delete-btn remove-item-trigger" data-meal-id="${meal.id}" data-index="${idx}" title="Remove item">×</button>
+                                <span class="item-drag-handle">☰</span>
                             </div>
                         </div>
                     `;
@@ -109,6 +111,7 @@ export function renderMeals(options = {}) {
         new Sortable(mealCard.querySelector('.meal-items'), {
             group: 'foods',
             animation: 150,
+            handle: '.item-drag-handle',
             onAdd: (evt) => {
                 const sourceMealId = evt.from.dataset.mealId;
                 const targetMealId = evt.to.dataset.mealId;
