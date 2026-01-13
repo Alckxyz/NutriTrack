@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriTrack - Calories & Nutrients Counter</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+          "imports": {
+            "sortablejs": "https://esm.sh/sortablejs@1.15.2",
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
+          }
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="logo-container">
+                <img src="icon_logo.png" alt="NutriTrack Logo" class="logo">
+                <h1>NutriTrack</h1>
+            </div>
+
+        </div>
+        <div class="header-actions">
+            <div id="user-profile" class="hidden">
+                <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; vertical-align: middle;">
+                <button id="logout-btn" class="secondary-btn" style="padding: 4px 8px; font-size: 0.7rem;">Logout</button>
+            </div>
+            <button id="login-btn" class="primary-btn">Login with Google</button>
+            <button id="manage-db-btn" class="secondary-btn" data-t="manage_db">🍎 Food List</button>
+            <button id="manage-recipes-btn" class="secondary-btn" data-t="manage_recipes">📖 Recipes</button>
+            <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
+            <input type="file" id="file-input" style="display: none;">
+        </div>
+    </header>
+
+    <main>
+        <section class="summary-card">
+            <h2 data-t="daily_summary">Daily Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="label" data-t="calories">Calories</span>
+                    <span id="total-calories" class="value">0</span>
+                    <span class="unit">kcal</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label" data-t="protein">Protein</span>
+                    <span id="total-protein" class="value">0</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label" data-t="carbs">Carbs</span>
+                    <span id="total-carbs" class="value">0</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label" data-t="fat">Fat</span>
+                    <span id="total-fat" class="value">0</span>
+                    <span class="unit">g</span>
+                </div>
+            </div>
+            <div class="micros-summary" id="total-micros">
+                <!-- Vitamins and minerals totals here -->
+            </div>
+        </section>
+
+        <section class="planner-container">
+            <div class="section-header">
+                <div class="planner-title-area">
+                    <h2 id="planner-title" data-t="meals">Meals</h2>
+                    <div id="date-picker-container" class="date-picker-container hidden">
+                        <div class="date-picker-controls">
+                            <button id="prev-day-btn" class="secondary-btn" title="Previous Day">&larr;</button>
+                            <input type="date" id="plan-date-picker">
+                            <button id="next-day-btn" class="secondary-btn" title="Next Day">&rarr;</button>
+                        </div>
+                        <span id="day-name-display"></span>
+                    </div>
+                </div>
+                <button id="add-meal-btn" class="add-btn" data-t="add_meal">+ Add Meal</button>
+            </div>
+            <div id="meals-list" class="meals-list">
+                <!-- Meals will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for adding food to meal -->
+    <div id="food-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title" data-t="modal_add_food_title">Add Food to Meal</h2>
+            <div id="food-search-section" class="food-selector">
+                <input type="text" id="food-search" placeholder="Search food database..." data-t-placeholder="search_placeholder">
+                <div id="food-results" class="food-results"></div>
+            </div>
+            <div id="food-details-form" class="hidden">
+                <p id="selected-food-display"><span data-t="selected_food">Selected:</span> <strong id="selected-food-name"></strong></p>
+                <div class="form-group">
+                    <label for="food-amount" data-t="amount_label">Amount (g or ml):</label>
+                    <input type="number" id="food-amount" value="100" min="1">
+                </div>
+                <button id="confirm-add-food" class="primary-btn" style="width:100%" data-t="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing food in Food List -->
+    <div id="db-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="db-modal-title" data-t="db_modal_title_add">Add New Food to List</h2>
+            <form id="new-food-form">
+                <input type="hidden" id="db-edit-id">
+                <div class="form-group">
+                    <label data-t="name_label">Name*</label>
+                    <input type="text" id="db-name" required>
+                </div>
+                <div class="stats-form-grid">
+                    <div class="form-group">
+                        <label><span data-t="protein">Protein</span> (g)*</label>
+                        <input type="number" id="db-protein" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label><span data-t="carbs">Carbs</span> (g)*</label>
+                        <input type="number" id="db-carbs" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label><span data-t="fat">Fat</span> (g)*</label>
+                        <input type="number" id="db-fat" step="0.1" required>
+                    </div>
+                </div>
+                <div class="dynamic-nutrients-section">
+                    <div class="section-header-mini">
+                        <h3 data-t="vitamins">Vitamins</h3>
+                        <button type="button" class="add-mini-btn" id="add-vitamin-btn" data-t="add_btn">+ Add</button>
+                    </div>
+                    <div id="db-vitamins-container" class="nutrients-input-list"></div>
+
+                    <div class="section-header-mini">
+                        <h3 data-t="minerals">Minerals</h3>
+                        <button type="button" class="add-mini-btn" id="add-mineral-btn" data-t="add_btn">+ Add</button>
+                    </div>
+                    <div id="db-minerals-container" class="nutrients-input-list"></div>
+                </div>
+
+                <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%; margin-top: 20px;" data-t="save_to_list">Save to Food List</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for pasting food text -->
+    <div id="paste-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Paste Food Data</h2>
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem;">
+                Paste text generated by an AI or from a database. Use the format below for best results:
+            </p>
+            <pre style="background: #000; padding: 10px; border-radius: 4px; font-size: 0.75rem; margin-bottom: 1rem; color: #81c784;">
+Food Name
+Protein: 10
+Carbs: 20
+Fat: 5
+Vitamins
+Vit D: 1.2
+Minerals
+Calcium: 100
+Magnesium: 25
+Potassium: 300</pre>
+            <textarea id="paste-area" placeholder="Paste here..." style="width: 100%; height: 200px; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 1rem; font-family: monospace;"></textarea>
+            <button id="confirm-paste-btn" class="primary-btn" style="width: 100%;">Import Food</button>
+        </div>
+    </div>
+
+    <!-- Modal for managing recipes -->
+    <div id="recipe-library-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="recipe_library_title">Recipe Manager</h2>
+            <div class="library-controls">
+                <input type="text" id="recipe-library-search" placeholder="Search recipes..." data-t-placeholder="search_recipes_placeholder" style="flex: 1; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);">
+                <button id="create-new-recipe-btn" class="primary-btn" data-t="create_recipe">+ Create Recipe</button>
+            </div>
+            <div id="recipe-library-list" class="library-list">
+                <!-- Recipe items will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for editing a specific recipe -->
+    <div id="recipe-editor-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-btn">&times;</span>
+            <h2 id="recipe-editor-title" data-t="recipe_editor_title">Edit Recipe</h2>
+            <div class="stats-form-grid">
+                <div class="form-group">
+                    <label data-t="recipe_name_label">Recipe Name</label>
+                    <input type="text" id="recipe-name-input" placeholder="e.g. Grandma's Lasagna">
+                </div>
+                <div class="form-group">
+                    <label data-t="recipe_portions_label">Portions</label>
+                    <input type="number" id="recipe-portions-input" value="1" min="1" step="1">
+                </div>
+            </div>
+            <div class="section-header-mini">
+                <h3 data-t="recipe_ingredients">Ingredients</h3>
+                <button id="recipe-add-ingredient-btn" class="add-mini-btn" data-t="add_food_btn">+ Add Food</button>
+            </div>
+            <div id="recipe-ingredients-list" class="meal-items" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+                <!-- Ingredients list -->
+            </div>
+            <div id="recipe-summary-preview" class="meal-nutrients-grid" style="margin-bottom: 1.5rem; padding: 10px; background: #252525; border-radius: 6px;">
+                <!-- Dynamic preview of recipe totals -->
+            </div>
+            <button id="save-recipe-btn" class="primary-btn" style="width: 100%;" data-t="save_recipe">Save Recipe</button>
+        </div>
+    </div>
+
+    <!-- Modal for managing the food list -->
+    <div id="library-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="library_title">Food List Manager</h2>
+            <div class="library-controls">
+                <input type="text" id="library-search-input" placeholder="Search your food list..." data-t-placeholder="search_library_placeholder" style="flex: 1; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);">
+                <select id="library-sort-select" style="padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); cursor:pointer;">
+                    <option value="name" data-t="sort_name">A-Z Name</option>
+                    <option value="newest" data-t="sort_newest">Newest Added</option>
+                    <option value="edited" data-t="sort_edited">Last Edited</option>
+                </select>
+            </div>
+            <div id="library-list" class="library-list">
+                <!-- Library items will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Settings (Import/Export/Language/Mode) -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="settings_title">Settings & Tools</h2>
+            
+            <div class="settings-section">
+                <h3 data-t="settings_preferences">Preferences</h3>
+                <div class="form-group">
+                    <label data-t="language_label">Language</label>
+                    <select id="lang-selector" class="settings-select">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-t="mode_label">Planner Mode</label>
+                    <select id="mode-selector" class="settings-select">
+                        <option value="standard" data-t="mode_standard">Standard Mode</option>
+                        <option value="daily" data-t="mode_daily">Daily Mode</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 data-t="settings_data_management">Data Management</h3>
+                <div class="settings-grid">
+                    <button id="export-db-btn" class="secondary-btn" data-t="export_db">Export Food List</button>
+                    <button id="import-db-btn" class="secondary-btn" data-t="import_db">Import Food List</button>
+                    <button id="paste-food-btn" class="secondary-btn" data-t="paste_food" style="grid-column: span 2;">Paste Food from Text</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 data-t="settings_plans">Plan Import/Export</h3>
+                <div class="settings-grid">
+                    <button id="export-plan-btn" class="primary-btn" data-t="export_plan">Export Plan</button>
+                    <button id="import-plan-btn" class="primary-btn" data-t="import_plan">Import Plan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <button id="open-db-modal" class="fab" title="Add Food to List">+</button>
+    </div>
+
+    <!-- Datalist for micronutrient name suggestions -->
+    <datalist id="nutrient-suggestions"></datalist>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
