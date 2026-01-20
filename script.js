@@ -1,3 +1,4 @@
+import { modalsHtml } from './modals-html.js';
 import { state, saveState, getCurrentMeals, setCurrentMeals, loadUserData, loadDailyPlanForDate } from './state.js';
 import * as Utils from './utils.js';
 import * as UI from './ui.js';
@@ -6,12 +7,18 @@ import { dom } from './dom-elements.js';
 import * as MealsLogic from './meals-logic.js';
 import * as RecipesLogic from './recipes-logic.js';
 import * as DatabaseLogic from './database-logic.js';
+import * as GoalsLogic from './goals-logic.js';
 
 // --- State Management ---
 // Logic moved to state.js
 
 // --- DOM Elements ---
 // Moved to dom-elements.js
+
+// Inject Modals into DOM first so all element references exist before listeners are attached
+if (dom.modalsOutlet) {
+    dom.modalsOutlet.innerHTML = modalsHtml;
+}
 
 let currentImportMode = '';
 
@@ -29,8 +36,10 @@ const uiOptions = {
 const refreshUI = () => {
     // Ensure UI language matches state
     Utils.updateUILanguage(state.language);
-    dom.langSelector.value = state.language;
-    dom.modeSelector.value = state.mode;
+    
+    // Safety checks for modal elements that might not be injected yet
+    if (dom.langSelector) dom.langSelector.value = state.language;
+    if (dom.modeSelector) dom.modeSelector.value = state.mode;
 
     updateDayName();
     updateModeVisibility();
@@ -44,6 +53,12 @@ const refreshUI = () => {
 
     UI.renderAll(uiOptions);
     updateAuthUI();
+
+    // If "Add Food to Meal" modal is active, update its units
+    if (dom.foodModal && dom.foodModal.style.display === 'block' && MealsLogic.currentSelectedFoodId) {
+        const food = state.foodList.find(f => f.id === MealsLogic.currentSelectedFoodId);
+        if (food) MealsLogic.renderUnitSelector(food);
+    }
 };
 
 function updateAuthUI() {
@@ -101,16 +116,15 @@ function updateDayName() {
 
 // --- Event Listeners ---
 
-document.getElementById('login-btn').onclick = async () => {
+dom.loginBtn.onclick = async () => {
     try {
         await FB.signInWithPopup(FB.auth, FB.provider);
-        // loadUserData is handled by the onAuthStateChanged listener to ensure single write
     } catch (error) {
         console.error("Login failed:", error);
     }
 };
 
-document.getElementById('logout-btn').onclick = async () => {
+dom.logoutBtn.onclick = async () => {
     await FB.signOut(FB.auth);
     state.user = null;
     refreshUI();
@@ -125,7 +139,7 @@ FB.onAuthStateChanged(FB.auth, (user) => {
     }
 });
 
-dom.foodSearch.oninput = (e) => UI.renderFoodResults(dom.foodResults, e.target.value, MealsLogic.selectFoodForMeal);
+dom.foodSearch.oninput = (e) => UI.renderFoodResults(dom.foodResults, e.target.value, MealsLogic.activeAddTab, MealsLogic.selectFoodForMeal);
 
 dom.foodAmountInput.onkeydown = (e) => {
     if (e.key === 'Enter') dom.confirmAddFoodBtn.click();
@@ -141,7 +155,7 @@ dom.confirmAddFoodBtn.onclick = () => {
     }
 };
 
-document.getElementById('add-meal-btn').onclick = () => {
+dom.addMealBtn.onclick = () => {
     const name = prompt(Utils.t('prompt_new_meal', state.language));
     if (name) {
         const meals = getCurrentMeals();
@@ -150,17 +164,16 @@ document.getElementById('add-meal-btn').onclick = () => {
     }
 };
 
-document.getElementById('open-db-modal').onclick = () => DatabaseLogic.openDbModalForAdd();
-document.getElementById('manage-recipes-btn').onclick = () => {
+dom.openDbModalBtn.onclick = () => DatabaseLogic.openDbModalForAdd();
+dom.manageRecipesBtn.onclick = () => {
     dom.recipeLibraryModal.style.display = 'block';
     RecipesLogic.refreshRecipeLibrary();
 };
-dom.createNewRecipeBtn = document.getElementById('create-new-recipe-btn');
 dom.createNewRecipeBtn.onclick = () => RecipesLogic.openRecipeEditor();
 dom.recipeLibrarySearch.oninput = () => RecipesLogic.refreshRecipeLibrary();
 dom.recipePortionsInput.oninput = () => RecipesLogic.updateRecipePreview();
-document.getElementById('recipe-add-ingredient-btn').onclick = () => RecipesLogic.addIngredientToRecipeContext();
-document.getElementById('save-recipe-btn').onclick = () => RecipesLogic.saveRecipe(refreshUI);
+dom.recipeAddIngredientBtn.onclick = () => RecipesLogic.addIngredientToRecipeContext();
+dom.saveRecipeBtn.onclick = () => RecipesLogic.saveRecipe(refreshUI);
 
 document.querySelectorAll('.close-btn').forEach(btn => {
     btn.onclick = () => {
@@ -177,17 +190,28 @@ document.querySelectorAll('.modal').forEach(modal => {
 
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.settingsModal].forEach(m => m.style.display = 'none');
+        [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.settingsModal, dom.wizardModal].forEach(m => m.style.display = 'none');
     }
 });
 
-document.getElementById('add-vitamin-btn').onclick = () => Utils.addNutrientRowToContainer('db-vitamins-container');
-document.getElementById('add-mineral-btn').onclick = () => Utils.addNutrientRowToContainer('db-minerals-container');
+dom.addVitaminBtn.onclick = () => Utils.addNutrientRowToContainer('db-vitamins-container');
+dom.addMineralBtn.onclick = () => Utils.addNutrientRowToContainer('db-minerals-container');
 
 dom.newFoodForm.onsubmit = (e) => DatabaseLogic.handleNewFoodSubmit(e, refreshUI);
 
+// Update base amount default when unit changes in food creation
+document.getElementById('db-default-unit').addEventListener('change', (e) => {
+    const unit = e.target.value;
+    if (unit === 'g' || unit === 'ml') {
+        dom.dbBaseAmount.value = 100;
+    } else {
+        dom.dbBaseAmount.value = 1;
+    }
+});
+
 dom.settingsBtn.onclick = () => {
     dom.settingsModal.style.display = 'block';
+    GoalsLogic.initGoalsUI(refreshUI);
 };
 
 document.getElementById('manage-db-btn').onclick = () => {
@@ -198,13 +222,13 @@ document.getElementById('manage-db-btn').onclick = () => {
     DatabaseLogic.refreshLibrary();
 };
 
-document.getElementById('paste-food-btn').onclick = () => {
+dom.pasteFoodBtn.onclick = () => {
     dom.pasteArea.value = '';
     dom.pasteModal.style.display = 'block';
     setTimeout(() => { dom.pasteArea.focus(); dom.pasteArea.select(); }, 10);
 };
 
-document.getElementById('confirm-paste-btn').onclick = () => DatabaseLogic.handlePasteFood(refreshUI);
+dom.confirmPasteBtn.onclick = () => DatabaseLogic.handlePasteFood(refreshUI);
 
 dom.librarySearchInput.oninput = () => DatabaseLogic.refreshLibrary();
 dom.librarySortSelect.onchange = (e) => {
@@ -212,7 +236,7 @@ dom.librarySortSelect.onchange = (e) => {
     DatabaseLogic.refreshLibrary();
 };
 
-document.getElementById('export-db-btn').onclick = () => Utils.downloadJSON(state.foodList, 'nutritrack-food-list.json');
+dom.exportDbBtn.onclick = () => Utils.downloadJSON(state.foodList, 'nutritrack-food-list.json');
 
 dom.exportPlanBtn.onclick = () => {
     if (state.mode === 'daily') {
@@ -222,7 +246,7 @@ dom.exportPlanBtn.onclick = () => {
     }
 };
 
-document.getElementById('import-db-btn').onclick = () => { currentImportMode = 'food-list'; dom.fileInput.multiple = false; dom.fileInput.click(); };
+dom.importDbBtn.onclick = () => { currentImportMode = 'food-list'; dom.fileInput.multiple = false; dom.fileInput.click(); };
 
 dom.importPlanBtn.onclick = () => {
     currentImportMode = 'plan-auto';

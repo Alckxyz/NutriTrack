@@ -1,0 +1,196 @@
+/* Planner and Meal Card Styles */
+
+.planner-container {
+    margin-top: 1rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.planner-title-area {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.meals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.meal-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.meal-header {
+    background: #252525;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    gap: 6px;
+}
+
+.meal-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+}
+
+.meal-nutrients-grid {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.meal-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.drag-handle, .item-drag-handle {
+    color: #666;
+    cursor: grab;
+    font-size: 1.2rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.drag-handle:hover, .item-drag-handle:hover {
+    color: var(--primary);
+}
+
+.meal-items {
+    min-height: 40px;
+    padding: 0.25rem 0.5rem;
+}
+
+.meal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: #1e1e1e;
+    font-size: 0.85rem;
+    min-height: 48px;
+}
+
+.meal-item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 500;
+}
+
+.item-meta {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+}
+
+.item-nutrients-mini {
+    font-size: 0.68rem;
+    opacity: 0.8;
+}
+
+.item-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.delete-btn {
+    background: #422;
+    color: #ff8a80;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+.delete-btn:hover {
+    background: #522;
+}
+
+.edit-btn-mini {
+    background: #333;
+    color: var(--secondary);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border: 1px solid var(--secondary);
+}
+
+.edit-btn-mini:hover {
+    background: var(--secondary);
+    color: white;
+}
+
+.meal-footer {
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.editable-amount {
+    cursor: pointer;
+    border-bottom: 1px dashed var(--primary);
+    padding: 0 4px;
+    font-weight: bold;
+    color: var(--primary);
+    display: inline-block;
+    min-width: 20px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.editable-amount:hover {
+    background: rgba(129, 199, 132, 0.1);
+}
+
+.inline-amount-input {
+    width: 65px;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-right: 2px;
+    outline: none;
+}
+
+/* Sortable visual helpers */
+.sortable-ghost {
+    opacity: 0.3;
+    background: var(--secondary);
+}
+
+.sortable-drag {
+    opacity: 0.9;
+}

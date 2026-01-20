@@ -5,32 +5,75 @@ import { dom } from './dom-elements.js';
 
 export let currentActiveMealId = null;
 export let currentSelectedFoodId = null;
+export let activeAddTab = 'food'; // 'food' or 'recipes'
 
 export function openAddFoodModal(mealId, refreshCallback) {
     currentActiveMealId = mealId;
     currentSelectedFoodId = null;
-    document.getElementById('modal-title').textContent = Utils.t('modal_add_food_title', state.language);
+    activeAddTab = 'food'; // Default tab
+    
+    const modalTitle = document.getElementById('modal-title');
+    if (modalTitle) modalTitle.textContent = Utils.t('modal_add_food_title', state.language);
+    
     dom.confirmAddFoodBtn.textContent = Utils.t('confirm', state.language);
-    document.getElementById('food-search-section').classList.remove('hidden');
+    
+    const searchSection = document.getElementById('food-search-section');
+    if (searchSection) searchSection.classList.remove('hidden');
+    
     dom.foodDetailsForm.classList.add('hidden');
     dom.foodModal.style.display = 'block';
+    
+    // Setup tab listeners
+    const foodTab = document.getElementById('tab-btn-food');
+    const recipeTab = document.getElementById('tab-btn-recipes');
+    
+    const updateTabsUI = () => {
+        foodTab.classList.toggle('active', activeAddTab === 'food');
+        recipeTab.classList.toggle('active', activeAddTab === 'recipes');
+        UI.renderFoodResults(dom.foodResults, dom.foodSearch.value, activeAddTab, (food) => selectFoodForMeal(food));
+    };
+
+    if (foodTab && recipeTab) {
+        foodTab.onclick = () => { activeAddTab = 'food'; updateTabsUI(); };
+        recipeTab.onclick = () => { activeAddTab = 'recipes'; updateTabsUI(); };
+        updateTabsUI();
+    }
+
     setTimeout(() => dom.foodSearch.focus(), 10);
     dom.foodSearch.value = '';
-    UI.renderFoodResults(dom.foodResults, '', (food) => selectFoodForMeal(food));
+    UI.renderFoodResults(dom.foodResults, '', activeAddTab, (food) => selectFoodForMeal(food));
     dom.foodAmountInput.value = 100;
+}
+
+export function renderUnitSelector(food) {
+    if (!food) return;
+    const isRecipe = food.type === 'recipe';
+    const unitDisplay = document.getElementById('food-unit-display');
+    const unitHidden = document.getElementById('food-unit');
+    
+    let unitCode = food.defaultUnit || (isRecipe ? 'unit' : 'g');
+
+    const unitLabel = isRecipe && unitCode === 'unit' 
+        ? Utils.t('portions_unit', state.language) 
+        : Utils.t('unit_' + unitCode, state.language);
+    
+    if (unitDisplay) unitDisplay.textContent = unitLabel;
+    if (unitHidden) unitHidden.value = unitCode;
 }
 
 export function selectFoodForMeal(food) {
     currentSelectedFoodId = food.id;
     const isRecipe = food.type === 'recipe';
-    const label = document.querySelector('label[for="food-amount"]');
     dom.selectedFoodName.textContent = food.name;
     
+    // Hint no longer needed as conversions are removed
+    dom.defaultConvHint.classList.add('hidden');
+
+    renderUnitSelector(food);
+
     if (isRecipe) {
-        label.textContent = Utils.t('recipe_portions_label', state.language);
         dom.foodAmountInput.value = 1;
     } else {
-        label.textContent = Utils.t('amount_label', state.language);
         dom.foodAmountInput.value = 100;
     }
     
@@ -43,9 +86,10 @@ export function selectFoodForMeal(food) {
 
 export function confirmAddFood(refreshCallback) {
     const amount = parseFloat(dom.foodAmountInput.value);
-    if (!amount || amount <= 0) return alert('Enter a valid amount');
+    if (isNaN(amount) || amount < 0) return alert('Enter a valid amount');
     if (!currentSelectedFoodId) return alert('Please select a food');
     
+    const unit = dom.foodUnitSelector.value;
     const meals = getCurrentMeals();
     const meal = meals.find(m => m && m.id === currentActiveMealId);
     
@@ -55,7 +99,11 @@ export function confirmAddFood(refreshCallback) {
     }
 
     if (!meal.items) meal.items = [];
-    meal.items.push({ foodId: currentSelectedFoodId, amount });
+    meal.items.push({ 
+        foodId: currentSelectedFoodId, 
+        amount, 
+        unit 
+    });
     dom.foodModal.style.display = 'none';
     saveState(refreshCallback);
 }
@@ -71,10 +119,11 @@ export function startInlineEdit(event, mealId, itemIdx, refreshCallback) {
     
     const save = () => {
         const newVal = parseFloat(input.value);
-        if (!isNaN(newVal) && newVal > 0) {
+        if (!isNaN(newVal) && newVal >= 0) {
             const meals = getCurrentMeals();
             const meal = meals.find(m => m && m.id === mealId);
-            meal.items[itemIdx].amount = newVal;
+            const item = meal.items[itemIdx];
+            item.amount = newVal;
             saveState(refreshCallback);
         } else {
             refreshCallback();

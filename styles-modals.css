@@ -1,0 +1,182 @@
+/* Modals and Forms Styles */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    overflow-y: auto;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--text);
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+.close-btn {
+    position: absolute;
+    right: 1.5rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+.stats-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.section-header-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 5px;
+}
+
+.section-header-mini h3 {
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+/* Library & Results Lists */
+.library-list, .food-results {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+}
+
+.library-item, .food-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.library-item:last-child, .food-result-item:last-child {
+    border-bottom: none;
+}
+
+.library-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Settings Sections */
+.settings-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-section h3 {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Activity Wizards */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activity-option {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: #252525;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: flex-start;
+}
+
+.activity-option:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(129, 199, 132, 0.05);
+}
+
+.activity-option .option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.option-content strong {
+    font-size: 0.85rem;
+}
+
+.option-content span {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+/* Modal Tabs */
+.modal-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--border);
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+.tab-btn.active {
+    background: var(--secondary);
+    color: white;
+    border-color: var(--secondary);
+}

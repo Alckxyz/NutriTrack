@@ -1,0 +1,221 @@
+/* Shared UI Components: Buttons, Badges, Progress Bars, and Common Stats */
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.primary-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.primary-btn:hover {
+    background: var(--primary-dark);
+}
+
+.secondary-btn {
+    background: #333;
+    color: var(--text);
+}
+
+.secondary-btn:hover {
+    background: #444;
+}
+
+.add-btn {
+    background: var(--secondary);
+    color: white;
+}
+
+.add-mini-btn {
+    background: #333;
+    color: var(--primary);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border: 1px solid var(--primary);
+}
+
+.add-mini-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Floating Action Button */
+.fab-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+}
+
+.fab {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+}
+
+/* Badges and Indicators */
+.nutrient-badge {
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    background: #333;
+    border-radius: 3px;
+    color: var(--text-light);
+    border: 1px solid #444;
+}
+
+.nutrient-badge.kcal { border-color: var(--primary); color: var(--primary); }
+.nutrient-badge.micro { border-color: #555; color: var(--text-light); }
+
+.micro-text {
+    color: #81c784;
+    font-size: 0.7rem;
+    font-style: italic;
+}
+
+.progress-container {
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Stats and Summaries */
+.summary-card {
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.summary-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 0.6rem 0.5rem;
+    background: #252525;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#stat-calories {
+    grid-column: 1 / -1;
+    padding: 1.25rem 1rem;
+    background: rgba(129, 199, 132, 0.05);
+    border: 1px solid rgba(129, 199, 132, 0.3);
+}
+
+#stat-calories .value {
+    font-size: 2.2rem;
+    line-height: 1.1;
+    margin: 4px 0;
+}
+
+#stat-calories .label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+}
+
+.stat-item .label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 2px;
+}
+
+.stat-item .value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--primary);
+    transition: color 0.3s ease;
+}
+
+.stat-item .unit {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.goal-info {
+    font-size: 0.65rem;
+    color: var(--text-light);
+    margin-top: 2px;
+    display: block;
+}
+
+.micros-summary {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.micro-badge-large {
+    background: #252525;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+.micro-badge-large .label {
+    font-size: 0.7rem;
+    color: var(--text-light);
+}
+
+.micro-badge-large .value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--primary);
+}

@@ -10,6 +10,8 @@ export function openDbModalForAdd() {
     dom.dbSaveBtn.textContent = Utils.t('save_to_list', state.language);
     dom.dbEditId.value = '';
     dom.newFoodForm.reset();
+    dom.dbBaseAmount.value = 100;
+    document.getElementById('db-default-unit').value = 'g';
     dom.dbVitaminsContainer.innerHTML = '';
     dom.dbMineralsContainer.innerHTML = '';
     dom.dbModal.style.display = 'block';
@@ -24,9 +26,12 @@ export function openDbModalForEdit(foodId) {
     dom.dbSaveBtn.textContent = Utils.t('update_food', state.language);
     dom.dbEditId.value = food.id;
     dom.dbName.value = food.name;
+    dom.dbBaseAmount.value = food.baseAmount || ((food.defaultUnit === 'g' || food.defaultUnit === 'ml') ? 100 : 1);
     dom.dbProtein.value = food.protein;
     dom.dbCarbs.value = food.carbs;
     dom.dbFat.value = food.fat;
+    document.getElementById('db-default-unit').value = food.defaultUnit || 'g';
+
     dom.dbVitaminsContainer.innerHTML = '';
     dom.dbMineralsContainer.innerHTML = '';
     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => Utils.addNutrientRowToContainer('db-vitamins-container', n, v));
@@ -66,9 +71,11 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
     const editId = dom.dbEditId.value;
     const foodData = {
         name: dom.dbName.value,
+        baseAmount: parseFloat(dom.dbBaseAmount.value) || 100,
         protein: parseFloat(dom.dbProtein.value),
         carbs: parseFloat(dom.dbCarbs.value),
         fat: parseFloat(dom.dbFat.value),
+        defaultUnit: document.getElementById('db-default-unit').value || 'g',
         vitamins: Utils.getDynamicNutrientsFromContainer('db-vitamins-container'),
         minerals: Utils.getDynamicNutrientsFromContainer('db-minerals-container'),
         updated_at: Date.now()

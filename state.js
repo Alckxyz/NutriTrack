@@ -18,7 +18,14 @@ export const state = {
     ],
     dailyPlans: {}, // Format: { "YYYY-MM-DD": [meals...] }
     librarySort: 'name',
-    clipboard: null
+    clipboard: null,
+    goals: {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        mode: 'manual'
+    }
 };
 
 let userDataListener = null;
@@ -63,7 +70,8 @@ export const saveState = async (callback) => {
         mode: state.mode,
         language: state.language,
         meals: state.meals,
-        dailyPlans: state.dailyPlans
+        dailyPlans: state.dailyPlans,
+        goals: state.goals
     };
 
     try {
@@ -115,6 +123,10 @@ export async function loadUserData(user, refreshUI) {
             if (data.dailyPlans) {
                 state.dailyPlans = data.dailyPlans;
             }
+
+            if (data.goals) {
+                state.goals = data.goals;
+            }
             
             if (refreshUI) refreshUI();
         }
@@ -149,10 +161,13 @@ export function calculateMealNutrients(meal) {
         if (!food) return;
         
         // If it's a recipe, nutrients are stored per portion.
-        // item.amount for a recipe represents the number of portions.
+        // For standard foods, ratio depends on the unit and its reference baseAmount:
+        // By default g/ml are per 100, others per 1, unless defined otherwise in food.baseAmount
         const isRecipe = food.type === 'recipe';
-        const amt = item.amount || 0;
-        const ratio = isRecipe ? amt : (amt / 100);
+        const unit = item.unit || food.defaultUnit || 'g';
+        const defaultBase = (unit === 'g' || unit === 'ml') ? 100 : 1;
+        const baseAmount = food.baseAmount || defaultBase;
+        const ratio = isRecipe ? (item.amount || 0) : (item.amount / baseAmount);
         const foodKcal = calculateCalories(food);
         
         summary.calories += (foodKcal * ratio);

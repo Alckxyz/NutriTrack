@@ -46,24 +46,6 @@ export function downloadJSON(data, filename) {
     URL.revokeObjectURL(url);
 }
 
-export function updateNutrientSuggestions() {
-    const suggestionsList = document.getElementById('nutrient-suggestions');
-    if (!suggestionsList) return;
-
-    const nutrientNames = new Set();
-    state.foodList.forEach(food => {
-        if (food.vitamins) Object.keys(food.vitamins).forEach(n => nutrientNames.add(n));
-        if (food.minerals) Object.keys(food.minerals).forEach(n => nutrientNames.add(n));
-    });
-
-    suggestionsList.innerHTML = '';
-    Array.from(nutrientNames).sort().forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        suggestionsList.appendChild(option);
-    });
-}
-
 export function getDynamicNutrientsFromContainer(containerId) {
     const container = document.getElementById(containerId);
     const rows = container.querySelectorAll('.nutrient-input-row');
@@ -121,7 +103,7 @@ const translations = {
         paste_btn: "Paste",
         delete_btn: "Delete",
         edit_btn: "Edit",
-        add_food_btn: "+ Add Food",
+        add_food_btn: "+ Add",
         prompt_new_meal: "Meal name (e.g. Afternoon Snack):",
         prompt_rename_meal: "Enter new meal name:",
         confirm_delete_meal: "Delete this meal?",
@@ -152,9 +134,70 @@ const translations = {
         recipe_badge: "RECIPE",
         recipe_portions_label: "Portions",
         portions_unit: "portion(s)",
+        unit_g: "grams (g)",
+        unit_ml: "milliliters (ml)",
+        unit_cup: "cups",
+        unit_tbsp: "tablespoons",
+        unit_tsp: "teaspoons",
+        unit_unit: "units",
+        unit_oz: "ounces",
         amount_label_generic: "Amount:",
         export_plan: "Export Plan",
-        import_plan: "Import Plan"
+        import_plan: "Import Plan",
+        daily_goals_title: "Daily Goals (Calories & Macros)",
+        save_goals: "Save Goals",
+        calculate_auto: "Calculate Automatically",
+        wizard_title: "Goal Calculator",
+        sex_label: "Sex",
+        sex_male: "Male",
+        sex_female: "Female",
+        age_label: "Age (years)",
+        height_label: "Height (cm)",
+        weight_label: "Weight (kg)",
+        activity_label: "Activity Level",
+        act_sedentary: "Sedentary (no exercise)",
+        act_light: "Light (1-3 days/week)",
+        act_moderate: "Moderate (3-5 days/week)",
+        act_active: "Active (6-7 days/week)",
+        act_very_active: "Very Active (physical job)",
+        goal_label: "Your Goal",
+        goal_lose: "Lose Weight",
+        goal_maintain: "Maintain Weight",
+        goal_gain: "Gain Muscle",
+        speed_label: "Speed",
+        speed_slow: "Slow",
+        speed_normal: "Normal",
+        speed_fast: "Fast",
+        calculate_apply: "Calculate & Apply",
+        set_goals_hint: "Set your goals in Settings",
+        remaining: "Remaining",
+        wiz_activity_prompt: "Choose the option that best matches your average week.",
+        act_sedentary_desc: "Desk job almost all day, little walking, no training. (e.g., office + almost no exercise)",
+        act_light_desc: "Walking somewhat during the day + light exercise 1–3 days/week. (e.g., 30 min walks, light gym)",
+        act_moderate_desc: "Moderate exercise 3–5 days/week. (e.g., normal gym sessions, light running, recreational sports)",
+        act_active_desc: "Strong exercise 6–7 days/week. (e.g., intense training, demanding sports, high daily activity)",
+        act_very_active_desc: "Very strong training + physical job or double sessions. (e.g., athlete, construction, bike delivery)",
+        wizard_training_label: "Training Type",
+        train_light_cardio: "Light cardio",
+        train_light_cardio_desc: "Walk / easy cycling. Low pulse, easy breathing.",
+        train_intense_cardio: "Intense cardio",
+        train_intense_cardio_desc: "Running / HIIT. High demand for glycogen.",
+        train_strength: "Strength training",
+        train_strength_desc: "Gym / weights. Hypertrophy or strength focus.",
+        train_mixed: "Mixed (Strength + Cardio)",
+        train_mixed_desc: "Combined focus. Balanced macro demand.",
+        train_performance: "Sport / Performance",
+        train_performance_desc: "Soccer, CrossFit, Boxing. High explosive demand.",
+        conversions_title: "Conversions (Optional)",
+        g_per_unit: "g / unit",
+        g_per_cup: "g / cup",
+        g_per_tbsp: "g / tbsp",
+        g_per_tsp: "g / tsp",
+        default_unit_label: "Default Unit",
+        unit_label: "Unit",
+        base_amount_label: "Ref. Amount",
+        tab_food: "Foods",
+        tab_recipes: "Recipes"
     },
     es: {
         mode_standard: "Modo Estándar",
@@ -198,7 +241,7 @@ const translations = {
         paste_btn: "Pegar",
         delete_btn: "Borrar",
         edit_btn: "Editar",
-        add_food_btn: "+ Añadir Alimento",
+        add_food_btn: "+ Añadir",
         prompt_new_meal: "Nombre de la comida (ej: Merienda):",
         prompt_rename_meal: "Nuevo nombre para la comida:",
         confirm_delete_meal: "¿Borrar esta comida?",
@@ -229,11 +272,90 @@ const translations = {
         recipe_badge: "RECETA",
         recipe_portions_label: "Porciones",
         portions_unit: "porción(es)",
+        unit_g: "gramos (g)",
+        unit_ml: "mililitros (ml)",
+        unit_cup: "tazas",
+        unit_tbsp: "cucharadas",
+        unit_tsp: "cucharaditas",
+        unit_unit: "unidades",
+        unit_oz: "onzas",
         amount_label_generic: "Cantidad:",
         export_plan: "Exportar Plan",
-        import_plan: "Importar Plan"
+        import_plan: "Importar Plan",
+        daily_goals_title: "Objetivos Diarios (Calorías y Macros)",
+        save_goals: "Guardar Objetivos",
+        calculate_auto: "Calcular Automáticamente",
+        wizard_title: "Calculadora de Objetivos",
+        sex_label: "Sexo",
+        sex_male: "Hombre",
+        sex_female: "Mujer",
+        age_label: "Edad (años)",
+        height_label: "Altura (cm)",
+        weight_label: "Peso (kg)",
+        activity_label: "Nivel de Actividad",
+        act_sedentary: "Sedentario (sin ejercicio)",
+        act_light: "Ligero (1-3 días/sem)",
+        act_moderate: "Moderado (3-5 días/sem)",
+        act_active: "Activo (6-7 días/sem)",
+        act_very_active: "Muy Activo (trabajo físico)",
+        goal_label: "Tu Objetivo",
+        goal_lose: "Perder Peso",
+        goal_maintain: "Mantener Peso",
+        goal_gain: "Ganar Músculo",
+        speed_label: "Ritmo",
+        speed_slow: "Lento",
+        speed_normal: "Normal",
+        speed_fast: "Rápido",
+        calculate_apply: "Calcular y Aplicar",
+        set_goals_hint: "Configura tus metas en Ajustes",
+        remaining: "Restante",
+        wiz_activity_prompt: "Elige la opción que mejor se adapte a tu semana promedio.",
+        act_sedentary_desc: "Trabajo sentado casi todo el día, poco caminar, no entrenas. (Ej: oficina + casi nada de ejercicio)",
+        act_light_desc: "Caminas algo durante el día + ejercicio ligero 1–3 días/semana. (Ej: caminar 30 min algunos días, gym suave)",
+        act_moderate_desc: "Ejercicio moderado 3–5 días/semana. (Ej: gym normal, correr suave, deportes recreativos)",
+        act_active_desc: "Ejercicio fuerte 6–7 días/semana. (Ej: entrenamientos intensos, deportes exigentes, mucha actividad diaria)",
+        act_very_active_desc: "Entrenas muy fuerte + trabajo físico o doble sesión. (Ej: atleta, construcción, repartidor en bici)",
+        wizard_training_label: "Tipo de Entrenamiento",
+        train_light_cardio: "Cardio ligero",
+        train_light_cardio_desc: "Caminar / bici suave. Pulso bajo, respiración fácil.",
+        train_intense_cardio: "Cardio intenso",
+        train_intense_cardio_desc: "Correr / HIIT. Alta demanda de glucógeno.",
+        train_strength: "Entrenamiento de fuerza",
+        train_strength_desc: "Gym / pesas. Foco en hipertrofia o fuerza.",
+        train_mixed: "Mixto (Fuerza + Cardio)",
+        train_mixed_desc: "Foco combinado. Demanda equilibrada.",
+        train_performance: "Deporte / Rendimiento",
+        train_performance_desc: "Fútbol, CrossFit, Boxeo. Alta demanda explosiva.",
+        conversions_title: "Conversiones (Opcional)",
+        g_per_unit: "g / unidad",
+        g_per_cup: "g / taza",
+        g_per_tbsp: "g / cucharada",
+        g_per_tsp: "g / cucharadita",
+        default_unit_label: "Unidad por Defecto",
+        unit_label: "Unidad",
+        base_amount_label: "Cant. Ref.",
+        tab_food: "Alimentos",
+        tab_recipes: "Recetas"
     }
 };
+
+export function updateNutrientSuggestions() {
+    const suggestionsList = document.getElementById('nutrient-suggestions');
+    if (!suggestionsList) return;
+
+    const nutrientNames = new Set();
+    state.foodList.forEach(food => {
+        if (food.vitamins) Object.keys(food.vitamins).forEach(n => nutrientNames.add(n));
+        if (food.minerals) Object.keys(food.minerals).forEach(n => nutrientNames.add(n));
+    });
+
+    suggestionsList.innerHTML = '';
+    Array.from(nutrientNames).sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        suggestionsList.appendChild(option);
+    });
+}
 
 export function t(key, lang = 'en') {
     return translations[lang][key] || key;
@@ -248,6 +370,24 @@ export function updateUILanguage(lang) {
         const key = el.getAttribute('data-t-placeholder');
         el.placeholder = t(key, lang);
     });
+}
+
+export const UNIT_TYPES = {
+    G: 'g',
+    ML: 'ml',
+    CUP: 'cup',
+    TBSP: 'tbsp',
+    TSP: 'tsp',
+    UNIT: 'unit',
+    OZ: 'oz'
+};
+
+// Helper to calculate grams from oz if needed, 
+// though we now use a single measurement unit approach.
+export function calculateGramsFromUnit(food, amount, unit) {
+    if (unit === UNIT_TYPES.G || unit === UNIT_TYPES.ML) return amount;
+    if (unit === UNIT_TYPES.OZ) return amount * 28.35;
+    return amount; // Fallback
 }
 
 export function addNutrientRowToContainer(containerId, name = '', value = '') {

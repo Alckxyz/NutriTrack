@@ -1,0 +1,137 @@
+:root {
+    --primary: #81c784;
+    --primary-dark: #66bb6a;
+    --secondary: #64b5f6;
+    --bg: #121212;
+    --card-bg: #1e1e1e;
+    --text: #e0e0e0;
+    --text-light: #a0a0a0;
+    --border: #333333;
+    --shadow: 0 4px 12px rgba(0,0,0,0.5);
+    --input-bg: #2d2d2d;
+    --font-main: 'Segoe UI', Roboto, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-main);
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    padding-bottom: 80px;
+    font-size: 14px; /* Reduced base font size */
+}
+
+header {
+    background: var(--card-bg);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo-container h1 {
+    font-size: 1.2rem;
+}
+
+.logo {
+    width: 28px;
+    height: 28px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Base Layout, Resets, and Globals */
+
+main {
+    max-width: 1000px;
+    margin: 0.5rem auto;
+    padding: 0 0.5rem;
+}
+
+.set-goals-prompt {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 10px;
+    background: rgba(129, 199, 132, 0.1);
+    border: 1px dashed var(--primary);
+    border-radius: 8px;
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.date-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+}
+
+.date-picker-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#plan-date-picker {
+    padding: 5px;
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+#prev-day-btn, #next-day-btn {
+    padding: 5px 10px;
+}
+
+#day-name-display {
+    font-weight: bold;
+    color: var(--primary);
+    margin-left: 5px;
+    font-size: 0.9rem;
+    text-transform: capitalize;
+}
+
+/* Tombstone markers for refactored sections */
+/* removed buttons and shared UI components - moved to styles-ui.css */
+/* removed summary card and stats grid - moved to styles-ui.css */
+/* removed floating action button - moved to styles-ui.css */
+/* removed nutrient badges and indicators - moved to styles-ui.css */
+/* removed planner and meal card styles - moved to styles-meals.css */
+/* removed meal items and actions - moved to styles-meals.css */
+/* removed inline editors and dragging helpers - moved to styles-meals.css */
+/* removed modal base and content styles - moved to styles-modals.css */
+/* removed form groups and grids - moved to styles-modals.css */
+/* removed library list and food results - moved to styles-modals.css */
+/* removed activity wizard lists and options - moved to styles-modals.css */
+/* removed mobile media queries - moved to styles-responsive.css */
