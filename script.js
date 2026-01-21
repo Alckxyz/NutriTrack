@@ -8,6 +8,7 @@ import * as MealsLogic from './meals-logic.js';
 import * as RecipesLogic from './recipes-logic.js';
 import * as DatabaseLogic from './database-logic.js';
 import * as GoalsLogic from './goals-logic.js';
+import * as WeightLogic from './weight-logic.js';
 import { t, updateUILanguage } from './i18n.js';
 import * as Nutrients from './nutrient-utils.js';
 
@@ -37,10 +38,9 @@ const uiOptions = {
 
 const refreshUI = () => {
     // Ensure UI language matches state
-    updateUILanguage(state.language);
+    updateUILanguage('es');
     
     // Safety checks for modal elements that might not be injected yet
-    if (dom.langSelector) dom.langSelector.value = state.language;
     if (dom.modeSelector) dom.modeSelector.value = state.mode;
 
     updateDayName();
@@ -55,6 +55,7 @@ const refreshUI = () => {
 
     UI.renderAll(uiOptions);
     updateAuthUI();
+    WeightLogic.refreshWeightUI();
 
     // If "Add Food to Meal" modal is active, update its units
     if (dom.foodModal && dom.foodModal.style.display === 'block' && MealsLogic.currentSelectedFoodId) {
@@ -171,6 +172,19 @@ dom.manageRecipesBtn.onclick = () => {
     dom.recipeLibraryModal.style.display = 'block';
     RecipesLogic.refreshRecipeLibrary();
 };
+
+dom.weightBtn.onclick = () => {
+    dom.weightModal.style.display = 'block';
+    WeightLogic.refreshWeightUI();
+};
+
+dom.reminderWeightBtn.onclick = () => {
+    dom.weightBtn.click();
+};
+
+dom.saveWeightBtn.onclick = () => {
+    WeightLogic.saveWeightEntry();
+};
 dom.createNewRecipeBtn.onclick = () => RecipesLogic.openRecipeEditor();
 dom.recipeLibrarySearch.oninput = () => RecipesLogic.refreshRecipeLibrary();
 dom.recipePortionsInput.oninput = () => RecipesLogic.updateRecipePreview();
@@ -192,7 +206,7 @@ document.querySelectorAll('.modal').forEach(modal => {
 
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.settingsModal, dom.wizardModal].forEach(m => m.style.display = 'none');
+        [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.settingsModal, dom.wizardModal, dom.weightModal].forEach(m => m.style.display = 'none');
     }
 });
 
@@ -355,11 +369,6 @@ dom.fileInput.onchange = async (e) => {
     
     // Reset input so same file can be selected again
     dom.fileInput.value = '';
-};
-
-dom.langSelector.onchange = (e) => {
-    state.language = e.target.value;
-    saveState(refreshUI);
 };
 
 dom.modeSelector.onchange = (e) => {

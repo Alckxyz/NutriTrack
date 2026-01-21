@@ -27,13 +27,21 @@ export function openRecipeEditor() {
 export function renderRecipeEditorItems() {
     dom.recipeIngredientsList.innerHTML = '';
     tempRecipeItems.forEach((item, idx) => {
-        const food = state.foodList.find(f => f.id === item.foodId);
-        if (!food) return;
+        let food = state.foodList.find(f => f.id === item.foodId);
+        let isDeleted = false;
+        if (!food) {
+            if (item.snapshot) {
+                food = item.snapshot;
+                isDeleted = true;
+            } else {
+                return;
+            }
+        }
         const div = document.createElement('div');
         div.className = 'meal-item';
         div.innerHTML = `
             <div class="item-info">
-                <div class="item-name">${food.name}</div>
+                <div class="item-name">${isDeleted ? `<span style="color:var(--delete-btn-bg); font-weight:bold;">[${t('deleted_badge', state.language)}]</span> ` : ''}${food.name}</div>
                 <div class="item-meta">
                     <span><span class="editable-amount-recipe" data-index="${idx}">${item.amount}</span>g</span>
                 </div>
@@ -70,8 +78,11 @@ export function updateRecipePreview() {
     const portions = parseFloat(dom.recipePortionsInput.value) || 1;
     tempRecipeItems.forEach(item => {
         if (!item) return;
-        const food = state.foodList.find(f => f && f.id === item.foodId);
-        if (!food) return;
+        let food = state.foodList.find(f => f && f.id === item.foodId);
+        if (!food) {
+            if (item.snapshot) food = item.snapshot;
+            else return;
+        }
         const isRecipe = food.type === 'recipe';
         const ratio = isRecipe ? (item.amount || 0) : ((item.amount || 0) / 100);
         totals.protein += (food.protein || 0) * ratio;
@@ -128,8 +139,11 @@ export async function saveRecipe(refreshCallback) {
     const totals = { protein: 0, carbs: 0, fat: 0, weight: 0, vitamins: {}, minerals: {} };
     tempRecipeItems.forEach(item => {
         if (!item) return;
-        const food = state.foodList.find(f => f && f.id === item.foodId);
-        if (!food) return;
+        let food = state.foodList.find(f => f && f.id === item.foodId);
+        if (!food) {
+            if (item.snapshot) food = item.snapshot;
+            else return;
+        }
         const isRecipe = food.type === 'recipe';
         const ratio = isRecipe ? (item.amount || 0) : ((item.amount || 0) / 100);
         totals.protein += (food.protein || 0) * ratio;
@@ -175,7 +189,22 @@ export function addIngredientToRecipeContext() {
 }
 
 export function handleIngredientSelection(foodId, amount) {
-    tempRecipeItems.push({ foodId, amount });
+    const food = state.foodList.find(f => f.id === foodId);
+    if (food) {
+        const snapshot = {
+            name: food.name,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            vitamins: food.vitamins || {},
+            minerals: food.minerals || {},
+            baseAmount: food.baseAmount || (food.defaultUnit === 'g' || food.defaultUnit === 'ml' ? 100 : 1),
+            defaultUnit: food.defaultUnit || 'g',
+            type: food.type || 'standard',
+            conversions: food.conversions || []
+        };
+        tempRecipeItems.push({ foodId, amount, snapshot });
+    }
     dom.foodModal.style.display = 'none';
     renderRecipeEditorItems();
 }

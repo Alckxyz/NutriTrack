@@ -1,6 +1,6 @@
 export function parsePastedFood(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-    let name = "New Food";
+    let name = "Nuevo Alimento";
     let protein = 0, carbs = 0, fat = 0;
     let baseAmount = 100;
     let defaultUnit = 'g';

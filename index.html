@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriTrack - Calories & Nutrients Counter</title>
+    <title>NutriTrack - Contador de Calorías y Nutrientes</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="styles-ui.css">
     <link rel="stylesheet" href="styles-meals.css">
@@ -13,6 +13,7 @@
         {
           "imports": {
             "sortablejs": "https://esm.sh/sortablejs@1.15.2",
+            "chart.js": "https://esm.sh/chart.js@4.4.1",
             "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
             "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
             "firebase/database": "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
@@ -37,6 +38,7 @@
             <button id="login-btn" class="primary-btn">Login with Google</button>
             <button id="manage-db-btn" class="secondary-btn" data-t="manage_db">🍎 Food List</button>
             <button id="manage-recipes-btn" class="secondary-btn" data-t="manage_recipes">📖 Recipes</button>
+            <button id="weight-btn" class="secondary-btn" data-t="weight_btn">⚖️ Peso</button>
             <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
             <input type="file" id="file-input" style="display: none;">
         </div>
@@ -44,6 +46,10 @@
 
     <main>
         <section class="summary-card">
+            <div id="weight-reminder" class="hidden" style="background: rgba(100, 181, 246, 0.1); border: 1px solid var(--secondary); padding: 8px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                <span data-t="weight_reminder_text">¿Quieres actualizar tu peso? Han pasado más de 7 días.</span>
+                <button id="reminder-weight-btn" class="add-mini-btn" style="border-color: var(--secondary); color: var(--secondary);">+ Registrar</button>
+            </div>
             <h2 data-t="daily_summary">Daily Summary</h2>
             <div class="stats-grid">
                 <div class="stat-item" id="stat-calories">

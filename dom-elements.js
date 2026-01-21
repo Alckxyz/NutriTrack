@@ -33,7 +33,6 @@ export const dom = {
     get fileInput() { return document.getElementById('file-input'); },
     get settingsBtn() { return document.getElementById('settings-btn'); },
     get settingsModal() { return document.getElementById('settings-modal'); },
-    get langSelector() { return document.getElementById('lang-selector'); },
     get modeSelector() { return document.getElementById('mode-selector'); },
     get datePickerContainer() { return document.getElementById('date-picker-container'); },
     get planDatePicker() { return document.getElementById('plan-date-picker'); },
@@ -87,5 +86,17 @@ export const dom = {
     get confirmPasteBtn() { return document.getElementById('confirm-paste-btn'); },
     get exportDbBtn() { return document.getElementById('export-db-btn'); },
     get importDbBtn() { return document.getElementById('import-db-btn'); },
-    get copyPromptBtn() { return document.getElementById('copy-prompt-btn'); }
+    get copyPromptBtn() { return document.getElementById('copy-prompt-btn'); },
+    // Weight elements
+    get weightBtn() { return document.getElementById('weight-btn'); },
+    get weightModal() { return document.getElementById('weight-modal'); },
+    get weightInput() { return document.getElementById('weight-input'); },
+    get weightUnitSelect() { return document.getElementById('weight-unit-select'); },
+    get saveWeightBtn() { return document.getElementById('save-weight-btn'); },
+    get weightHistoryList() { return document.getElementById('weight-history-list'); },
+    get weightChartCanvas() { return document.getElementById('weight-chart'); },
+    get weightAnalysisPanel() { return document.getElementById('weight-analysis-panel'); },
+    get reminderWeightBtn() { return document.getElementById('reminder-weight-btn'); },
+    get weightReminder() { return document.getElementById('weight-reminder'); },
+    get weightNote() { return document.getElementById('weight-note'); }
 };

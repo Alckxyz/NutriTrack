@@ -8,8 +8,7 @@ function updateCalculatedCalories() {
     const kcal = Math.round((p * 4) + (c * 4) + (f * 9));
     dom.goalCalories.value = kcal;
     
-    const prefix = state.language === 'es' ? 'Calorías calculadas' : 'Calculated Calories';
-    dom.goalCaloriesDisplay.textContent = `${prefix}: ${kcal} kcal`;
+    dom.goalCaloriesDisplay.textContent = `Calorías calculadas: ${kcal} kcal`;
 }
 
 export function initGoalsUI(refreshCallback) {

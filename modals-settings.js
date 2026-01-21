@@ -11,13 +11,6 @@ export const settingsModals = `
             <div class="settings-section">
                 <h3 data-t="settings_preferences">${t('settings_preferences', state.language)}</h3>
                 <div class="form-group">
-                    <label data-t="language_label">${t('language_label', state.language)}</label>
-                    <select id="lang-selector" class="settings-select">
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label data-t="mode_label">${t('mode_label', state.language)}</label>
                     <select id="mode-selector" class="settings-select">
                         <option value="standard" data-t="mode_standard">${t('mode_standard', state.language)}</option>

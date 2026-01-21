@@ -35,7 +35,12 @@
     /* Grid-based Tools row */
     #manage-db-btn { grid-column: 1; grid-row: 2; }
     #manage-recipes-btn { grid-column: 2; grid-row: 2; }
+    #weight-btn { grid-column: 1; grid-row: 3; }
     #settings-btn { grid-column: 3; grid-row: 2; }
+
+    .weight-dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
 
     .header-actions button:not(#login-btn) {
         width: 100%;

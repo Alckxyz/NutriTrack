@@ -41,7 +41,15 @@ export function renderMeals(options = {}) {
             <div class="meal-items" data-meal-id="${meal.id}">
                 ${(meal.items || []).map((item, idx) => {
                     let food = state.foodList.find(f => f && f.id === item.foodId);
-                    if (!food) return '';
+                    let isDeleted = false;
+                    if (!food) {
+                        if (item.snapshot) {
+                            food = item.snapshot;
+                            isDeleted = true;
+                        } else {
+                            return '';
+                        }
+                    }
                     const isRecipe = food.type === 'recipe';
                     const unitCode = item.unit || (isRecipe ? 'unit' : 'g');
                     
@@ -68,7 +76,11 @@ export function renderMeals(options = {}) {
                     return `
                         <div class="meal-item" data-index="${idx}">
                             <div class="item-info">
-                                <div class="item-name">${food.name} ${isRecipe ? `<small style="color:var(--secondary); font-size:0.6rem; border:1px solid var(--secondary); padding:0 2px; border-radius:2px;">${t('recipe_badge', state.language)}</small>` : ''}</div>
+                                <div class="item-name">
+                                    ${isDeleted ? `<span style="color:#ff8a80; font-weight:bold; font-size:0.7rem;">[${t('deleted_badge', state.language)}]</span> ` : ''}
+                                    ${food.name} 
+                                    ${isRecipe ? `<small style="color:var(--secondary); font-size:0.6rem; border:1px solid var(--secondary); padding:0 2px; border-radius:2px;">${t('recipe_badge', state.language)}</small>` : ''}
+                                </div>
                                 <div class="item-meta">
                                     <span>
                                         <span class="editable-amount" data-meal-id="${meal.id}" data-index="${idx}">${item.amount}</span> ${unitLabel}

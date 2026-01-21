@@ -43,7 +43,13 @@ export function openDbModalForEdit(foodId) {
 
     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-vitamins-container', n, v));
     if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-minerals-container', n, v));
-    if (food.conversions) food.conversions.forEach(c => Nutrients.addConversionRow('db-conversions-container', c.name, c.grams));
+    if (food.conversions) {
+        food.conversions.forEach(c => {
+            // Recalculate original quantity if missing (backward compatibility)
+            const qty = c.originalQty || (food.baseAmount / c.grams);
+            Nutrients.addConversionRow('db-conversions-container', c.name, qty);
+        });
+    }
 
     dom.dbModal.style.display = 'block';
     setTimeout(() => dom.dbName.focus(), 10);
@@ -87,7 +93,7 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
         defaultUnit: document.getElementById('db-default-unit').value || 'g',
         vitamins: Nutrients.getDynamicNutrientsFromContainer('db-vitamins-container'),
         minerals: Nutrients.getDynamicNutrientsFromContainer('db-minerals-container'),
-        conversions: Nutrients.getConversionsFromContainer('db-conversions-container'),
+        conversions: Nutrients.getConversionsFromContainer('db-conversions-container', parseFloat(dom.dbBaseAmount.value) || 100),
         updated_at: Date.now()
     };
 

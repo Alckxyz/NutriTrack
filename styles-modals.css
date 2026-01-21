@@ -12,7 +12,7 @@
     overflow-y: auto;
 }
 
-#food-modal, #paste-modal, #wizard-modal, #db-modal {
+#food-modal, #paste-modal, #wizard-modal, #db-modal, #weight-modal {
     z-index: 1100;
 }
 

@@ -40,10 +40,29 @@ export function openAddFoodModal(mealId, refreshCallback) {
         updateTabsUI();
     }
 
+    const unitSelector = document.getElementById('food-unit-selector');
+    if (unitSelector) {
+        unitSelector.onchange = () => {
+            const food = state.foodList.find(f => f.id === currentSelectedFoodId);
+            if (!food) return;
+            const val = unitSelector.value;
+            const amountLabel = document.getElementById('food-amount-label');
+            if (val === 'g' || val === 'ml') {
+                dom.foodAmountInput.value = 100;
+                if (amountLabel) amountLabel.textContent = t('amount_label', state.language);
+            } else {
+                dom.foodAmountInput.value = 1;
+                if (amountLabel) amountLabel.textContent = t('amount_label_generic', state.language);
+            }
+        };
+    }
+
     setTimeout(() => dom.foodSearch.focus(), 10);
     dom.foodSearch.value = '';
     UI.renderFoodResults(dom.foodResults, '', activeAddTab, (food) => selectFoodForMeal(food));
     dom.foodAmountInput.value = 100;
+    const amountLabel = document.getElementById('food-amount-label');
+    if (amountLabel) amountLabel.textContent = t('amount_label', state.language);
 }
 
 export function renderUnitSelector(food) {
@@ -110,11 +129,33 @@ export function confirmAddFood(refreshCallback) {
         return;
     }
 
+    const food = state.foodList.find(f => f.id === currentSelectedFoodId);
+    if (!food) {
+        dom.foodModal.style.display = 'none';
+        return;
+    }
+
     if (!meal.items) meal.items = [];
+    
+    // Create a snapshot of the food data to preserve nutrients even if the food is deleted from library
+    const snapshot = {
+        name: food.name,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        vitamins: food.vitamins || {},
+        minerals: food.minerals || {},
+        baseAmount: food.baseAmount || (food.defaultUnit === 'g' || food.defaultUnit === 'ml' ? 100 : 1),
+        defaultUnit: food.defaultUnit || 'g',
+        type: food.type || 'standard',
+        conversions: food.conversions || []
+    };
+
     meal.items.push({ 
         foodId: currentSelectedFoodId, 
         amount, 
-        unit 
+        unit,
+        snapshot
     });
     dom.foodModal.style.display = 'none';
     saveState(refreshCallback);

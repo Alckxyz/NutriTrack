@@ -1,11 +1,11 @@
 import { translations } from './translations.js';
 
-export function t(key, lang = 'en') {
-    return (translations[lang] && translations[lang][key]) || key;
+export function t(key, lang = 'es') {
+    return (translations['es'] && translations['es'][key]) || key;
 }
 
-export function tUnit(unitCode, lang = 'en', isRecipe = false) {
-    if (isRecipe && unitCode === 'unit') return t('portions_unit', lang);
+export function tUnit(unitCode, lang = 'es', isRecipe = false) {
+    if (isRecipe && unitCode === 'unit') return t('portions_unit', 'es');
     const key = 'unit_' + unitCode;
     const translated = t(key, lang);
     // If translation key is returned, it means no translation was found, so use the raw unitCode

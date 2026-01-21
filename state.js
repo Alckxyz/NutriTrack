@@ -4,7 +4,7 @@ import * as FB from './firebase-config.js';
 export const state = {
     user: null,
     mode: 'standard', // 'standard' or 'daily'
-    language: 'es', // 'en' or 'es'
+    language: 'es',
     currentDate: new Date().toISOString().split('T')[0],
     foodList: defaultFoods.map(f => ({
         ...f,
@@ -12,13 +12,14 @@ export const state = {
         updated_at: f.updated_at || Date.now()
     })),
     meals: [
-        { id: 'm1', name: 'Breakfast', items: [] },
-        { id: 'm2', name: 'Lunch', items: [] },
-        { id: 'm3', name: 'Dinner', items: [] }
+        { id: 'm1', name: 'Desayuno', items: [] },
+        { id: 'm2', name: 'Almuerzo', items: [] },
+        { id: 'm3', name: 'Cena', items: [] }
     ],
     dailyPlans: {}, // Format: { "YYYY-MM-DD": [meals...] }
     librarySort: 'name',
     clipboard: null,
+    weightEntries: [],
     goals: {
         calories: 0,
         protein: 0,
@@ -30,6 +31,7 @@ export const state = {
 
 let userDataListener = null;
 let sharedFoodListener = null;
+let weightEntriesListener = null;
 
 export function getCurrentMeals() {
     if (state.mode === 'standard') {
@@ -37,14 +39,10 @@ export function getCurrentMeals() {
     } else {
         const date = state.currentDate;
         if (!state.dailyPlans[date]) {
-            const breakfast = state.language === 'es' ? 'Desayuno' : 'Breakfast';
-            const lunch = state.language === 'es' ? 'Almuerzo' : 'Lunch';
-            const dinner = state.language === 'es' ? 'Cena' : 'Dinner';
-            
             state.dailyPlans[date] = [
-                { id: 'm1-' + date, name: breakfast, items: [] },
-                { id: 'm2-' + date, name: lunch, items: [] },
-                { id: 'm3-' + date, name: dinner, items: [] }
+                { id: 'm1-' + date, name: 'Desayuno', items: [] },
+                { id: 'm2-' + date, name: 'Almuerzo', items: [] },
+                { id: 'm3-' + date, name: 'Cena', items: [] }
             ];
         }
         return state.dailyPlans[date];
@@ -103,8 +101,12 @@ export async function loadUserData(user, refreshUI) {
     state.user = user;
     if (!user) {
         if (userDataListener) {
-            userDataListener(); // Unsubscribe from Firestore snapshot
+            userDataListener();
             userDataListener = null;
+        }
+        if (weightEntriesListener) {
+            weightEntriesListener();
+            weightEntriesListener = null;
         }
         return;
     }
@@ -130,6 +132,15 @@ export async function loadUserData(user, refreshUI) {
             
             if (refreshUI) refreshUI();
         }
+    });
+
+    // Subscribirse a entradas de peso en la subcolección privada del usuario
+    const weightCol = FB.collection(FB.db, 'users', user.uid, 'weightEntries');
+    const weightQuery = FB.query(weightCol, FB.orderBy('createdAt', 'desc'));
+    
+    weightEntriesListener = FB.onSnapshot(weightQuery, (snapshot) => {
+        state.weightEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (refreshUI) refreshUI();
     });
 }
 
@@ -158,7 +169,15 @@ export function calculateMealNutrients(meal) {
     meal.items.forEach(item => {
         if (!item || !item.foodId) return;
         let food = state.foodList.find(f => f && f.id === item.foodId);
-        if (!food) return;
+        
+        // Fallback to snapshot if food was deleted from global list
+        if (!food) {
+            if (item.snapshot) {
+                food = item.snapshot;
+            } else {
+                return;
+            }
+        }
         
         // If it's a recipe, nutrients are stored per portion.
         // For standard foods, ratio depends on the unit and its reference baseAmount:
