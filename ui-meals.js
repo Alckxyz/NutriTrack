@@ -1,6 +1,6 @@
 import Sortable from 'sortablejs';
 import { state, calculateCalories, calculateMealNutrients, saveState, getCurrentMeals } from './state.js';
-import { t } from './utils.js';
+import { t, tUnit } from './i18n.js';
 
 export function renderMeals(options = {}) {
     const mealsListEl = document.getElementById('meals-list');
@@ -44,12 +44,23 @@ export function renderMeals(options = {}) {
                     if (!food) return '';
                     const isRecipe = food.type === 'recipe';
                     const unitCode = item.unit || (isRecipe ? 'unit' : 'g');
-                    const unitLabel = isRecipe && unitCode === 'unit' 
-                        ? t('portions_unit', state.language) 
-                        : t('unit_' + unitCode, state.language);
                     
-                    const isPer100 = (unitCode === 'g' || unitCode === 'ml');
-                    const ratio = isRecipe ? (item.amount || 0) : (isPer100 ? (item.amount / 100) : item.amount);
+                    let unitLabel = '';
+                    let ratio = 0;
+
+                    if (unitCode.startsWith('custom:')) {
+                        const [_, grams, label] = unitCode.split(':');
+                        unitLabel = label;
+                        const weightPerUnit = parseFloat(grams) || 0;
+                        const defaultBase = (food.defaultUnit === 'g' || food.defaultUnit === 'ml') ? 100 : 1;
+                        const baseAmount = food.baseAmount || defaultBase;
+                        ratio = (item.amount * weightPerUnit) / baseAmount;
+                    } else {
+                        unitLabel = tUnit(unitCode, state.language, isRecipe);
+                        const isPer100 = (unitCode === 'g' || unitCode === 'ml');
+                        const baseAmount = food.baseAmount || (isPer100 ? 100 : 1);
+                        ratio = isRecipe ? (item.amount || 0) : (item.amount / baseAmount);
+                    }
                     const foodKcal = calculateCalories(food);
                     let foodMicros = [];
                     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`));

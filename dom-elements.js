@@ -86,5 +86,6 @@ export const dom = {
     get pasteFoodBtn() { return document.getElementById('paste-food-btn'); },
     get confirmPasteBtn() { return document.getElementById('confirm-paste-btn'); },
     get exportDbBtn() { return document.getElementById('export-db-btn'); },
-    get importDbBtn() { return document.getElementById('import-db-btn'); }
+    get importDbBtn() { return document.getElementById('import-db-btn'); },
+    get copyPromptBtn() { return document.getElementById('copy-prompt-btn'); }
 };

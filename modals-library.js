@@ -1,4 +1,4 @@
-import { t } from './utils.js';
+import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const libraryModals = `
@@ -20,15 +20,16 @@ export const libraryModals = `
                     </div>
                     <div class="form-group">
                         <label data-t="default_unit_label">${t('default_unit_label', state.language)}</label>
-                        <select id="db-default-unit" class="settings-select">
-                            <option value="g" data-t="unit_g">${t('unit_g', state.language)}</option>
-                            <option value="ml" data-t="unit_ml">${t('unit_ml', state.language)}</option>
-                            <option value="unit" data-t="unit_unit">${t('unit_unit', state.language)}</option>
-                            <option value="cup" data-t="unit_cup">${t('unit_cup', state.language)}</option>
-                            <option value="tbsp" data-t="unit_tbsp">${t('unit_tbsp', state.language)}</option>
-                            <option value="tsp" data-t="unit_tsp">${t('unit_tsp', state.language)}</option>
-                            <option value="oz" data-t="unit_oz">${t('unit_oz', state.language)}</option>
-                        </select>
+                        <input type="text" id="db-default-unit" class="settings-select" list="default-units-list" placeholder="e.g. g, ml, cup, glass...">
+                        <datalist id="default-units-list">
+                            <option value="g">
+                            <option value="ml">
+                            <option value="unit">
+                            <option value="cup">
+                            <option value="tbsp">
+                            <option value="tsp">
+                            <option value="oz">
+                        </datalist>
                     </div>
                 </div>
                 <div class="stats-form-grid">
@@ -59,6 +60,15 @@ export const libraryModals = `
                     </div>
                     <div id="db-minerals-container" class="nutrients-input-list"></div>
                 </div>
+
+                <div class="conversions-section">
+                    <div class="section-header-mini">
+                        <h3 data-t="conversions_title">${t('conversions_title', state.language)}</h3>
+                        <button type="button" class="add-mini-btn" id="add-conversion-btn" data-t="add_unit_conversion">${t('add_unit_conversion', state.language)}</button>
+                    </div>
+                    <div id="db-conversions-container" class="nutrients-input-list"></div>
+                </div>
+
                 <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%; margin-top: 20px;" data-t="save_to_list">${t('save_to_list', state.language)}</button>
             </form>
         </div>

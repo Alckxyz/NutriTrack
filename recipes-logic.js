@@ -1,5 +1,6 @@
 import { state, saveState, calculateCalories } from './state.js';
 import * as Utils from './utils.js';
+import { t } from './i18n.js';
 import * as UI from './ui.js';
 import { dom } from './dom-elements.js';
 import { openAddFoodModal, setCurrentActiveMealId } from './meals-logic.js';
@@ -12,21 +13,12 @@ export function refreshRecipeLibrary() {
     UI.renderRecipeLibraryList(dom.recipeLibraryList, dom.recipeLibrarySearch.value, openRecipeEditor, deleteRecipe);
 }
 
-export function openRecipeEditor(recipeId = null) {
-    currentEditingRecipeId = recipeId;
+export function openRecipeEditor() {
+    currentEditingRecipeId = null;
     dom.recipeIngredientsList.innerHTML = '';
     dom.recipeNameInput.value = '';
     dom.recipePortionsInput.value = 1;
     tempRecipeItems = [];
-
-    if (recipeId) {
-        const recipe = state.foodList.find(f => f.id === recipeId && f.type === 'recipe');
-        if (recipe) {
-            dom.recipeNameInput.value = recipe.name;
-            dom.recipePortionsInput.value = recipe.portions || 1;
-            tempRecipeItems = JSON.parse(JSON.stringify(recipe.items || []));
-        }
-    }
 
     renderRecipeEditorItems();
     dom.recipeEditorModal.style.display = 'block';
@@ -94,7 +86,7 @@ export function updateRecipePreview() {
         const fPortion = totals.fat / portions;
         const kcalPortion = (pPortion * 4) + (cPortion * 4) + (fPortion * 9);
         dom.recipeSummaryPreview.innerHTML = `
-            <span class="nutrient-badge kcal">${Math.round(kcalPortion)} kcal / ${Utils.t('portions_unit', state.language)}</span>
+            <span class="nutrient-badge kcal">${Math.round(kcalPortion)} kcal / ${t('portions_unit', state.language)}</span>
             <span class="nutrient-badge">P: ${pPortion.toFixed(1)}g</span>
             <span class="nutrient-badge">C: ${cPortion.toFixed(1)}g</span>
             <span class="nutrient-badge">F: ${fPortion.toFixed(1)}g</span>
@@ -167,19 +159,9 @@ export async function saveRecipe(refreshCallback) {
     if (!state.user) return alert("Login to save.");
 
     try {
-        if (currentEditingRecipeId) {
-            const existing = state.foodList.find(f => f.id === currentEditingRecipeId);
-            if (existing && existing.ownerId === state.user.uid) {
-                const docRef = FB.doc(FB.db, 'foodList', currentEditingRecipeId);
-                // When updating, we don't strictly need to re-send ownerId, but it's safe as it's the same
-                await FB.updateDoc(docRef, recipeData);
-            } else {
-                return alert("No permission to edit this recipe.");
-            }
-        } else {
-            const colRef = FB.collection(FB.db, 'foodList');
-            await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
-        }
+        const colRef = FB.collection(FB.db, 'foodList');
+        await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
+        
         dom.recipeEditorModal.style.display = 'none';
         if (refreshCallback) refreshCallback();
     } catch (e) {

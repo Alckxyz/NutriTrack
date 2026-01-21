@@ -8,6 +8,8 @@ import * as MealsLogic from './meals-logic.js';
 import * as RecipesLogic from './recipes-logic.js';
 import * as DatabaseLogic from './database-logic.js';
 import * as GoalsLogic from './goals-logic.js';
+import { t, updateUILanguage } from './i18n.js';
+import * as Nutrients from './nutrient-utils.js';
 
 // --- State Management ---
 // Logic moved to state.js
@@ -35,7 +37,7 @@ const uiOptions = {
 
 const refreshUI = () => {
     // Ensure UI language matches state
-    Utils.updateUILanguage(state.language);
+    updateUILanguage(state.language);
     
     // Safety checks for modal elements that might not be injected yet
     if (dom.langSelector) dom.langSelector.value = state.language;
@@ -46,9 +48,9 @@ const refreshUI = () => {
     
     // Update dynamic titles that change with mode & language
     if (state.mode === 'daily') {
-        dom.plannerTitle.textContent = Utils.t('daily_title', state.language);
+        dom.plannerTitle.textContent = t('daily_title', state.language);
     } else {
-        dom.plannerTitle.textContent = Utils.t('standard_title', state.language);
+        dom.plannerTitle.textContent = t('standard_title', state.language);
     }
 
     UI.renderAll(uiOptions);
@@ -156,7 +158,7 @@ dom.confirmAddFoodBtn.onclick = () => {
 };
 
 dom.addMealBtn.onclick = () => {
-    const name = prompt(Utils.t('prompt_new_meal', state.language));
+    const name = prompt(t('prompt_new_meal', state.language));
     if (name) {
         const meals = getCurrentMeals();
         meals.push({ id: 'm' + Date.now(), name, items: [] });
@@ -194,17 +196,21 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-dom.addVitaminBtn.onclick = () => Utils.addNutrientRowToContainer('db-vitamins-container');
-dom.addMineralBtn.onclick = () => Utils.addNutrientRowToContainer('db-minerals-container');
+dom.addVitaminBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-vitamins-container');
+dom.addMineralBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-minerals-container');
+const addConvBtn = document.getElementById('add-conversion-btn');
+if (addConvBtn) addConvBtn.onclick = () => Nutrients.addConversionRow('db-conversions-container');
 
 dom.newFoodForm.onsubmit = (e) => DatabaseLogic.handleNewFoodSubmit(e, refreshUI);
 
 // Update base amount default when unit changes in food creation
-document.getElementById('db-default-unit').addEventListener('change', (e) => {
-    const unit = e.target.value;
+document.getElementById('db-default-unit').addEventListener('input', (e) => {
+    const unit = e.target.value.toLowerCase();
     if (unit === 'g' || unit === 'ml') {
         dom.dbBaseAmount.value = 100;
-    } else {
+    } else if (unit) {
+        // Only reset to 1 if user actually typed something and it's not g/ml
+        // This avoids resetting if user is clearing the field
         dom.dbBaseAmount.value = 1;
     }
 });
@@ -229,6 +235,22 @@ dom.pasteFoodBtn.onclick = () => {
 };
 
 dom.confirmPasteBtn.onclick = () => DatabaseLogic.handlePasteFood(refreshUI);
+
+dom.copyPromptBtn.onclick = () => {
+    const aiPrompt = `Vas a ayudarme a sacar nutrientes promedio de alimentos. Primero responde solo con: Estoy listo Después de eso, cuando yo te mande un alimento, dame los nutrientes promedio con este formato exacto (sin agregar nada extra, sin explicaciones, sin emojis, sin corchetes, sin comillas, sin paréntesis, y sin unidades en los valores: solo números). Los valores deben ser un promedio. ✅ Regla del nombre (primera línea): La primera línea debe ser solo el nombre del alimento, sin cantidad, sin peso y sin empaque. NO escribas “bolsa”, “paquete”, “porción”, “unidad”, “gramos”, etc. ✅ Regla de Units: Si mi descripción contiene empaque o cantidad, agrega esa unidad con valor 1. “una bolsa” → Bolsa: 1 “un paquete” → Paquete: 1 “una porción” → Porción: 1 “una unidad” → Unidad: 1 “una lata” → Lata: 1 “una botella” → Botella: 1 Si menciono peso o volumen, agrégalo también: “X gramos” → Gramos: X “X ml” → Mililitros: X Si NO menciono gramos o mililitros, igual debes agregar un aproximado en Units: Gramos: X Formato obligatorio: Nombre del alimento Protein: X Carbs: X Fat: X Units: Unidad1: X Unidad2: X Vitamins: Vit X: X Minerals: Mineral X: X Reglas: Protein, Carbs y Fat son obligatorios. Units debe aparecer siempre. Vitamins y Minerals son opcionales. Usa solo números (decimales permitidos). No pongas “g”, “mg”, “kcal”, etc.`;
+    
+    navigator.clipboard.writeText(aiPrompt).then(() => {
+        const originalText = dom.copyPromptBtn.textContent;
+        dom.copyPromptBtn.textContent = t('prompt_copied', state.language);
+        dom.copyPromptBtn.style.background = 'rgba(129, 199, 132, 0.2)';
+        setTimeout(() => {
+            dom.copyPromptBtn.textContent = originalText;
+            dom.copyPromptBtn.style.background = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+};
 
 dom.librarySearchInput.oninput = () => DatabaseLogic.refreshLibrary();
 dom.librarySortSelect.onchange = (e) => {
@@ -369,5 +391,5 @@ import { initSharedFoodSync } from './state.js';
 
 // Initial Render
 refreshUI();
-Utils.updateNutrientSuggestions();
+Nutrients.updateNutrientSuggestions();
 initSharedFoodSync(refreshUI);

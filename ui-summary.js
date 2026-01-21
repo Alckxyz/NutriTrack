@@ -1,5 +1,5 @@
 import { state, calculateMealNutrients } from './state.js';
-import { t } from './utils.js';
+import { t } from './i18n.js';
 
 const statContainers = {
     get calories() { return document.getElementById('stat-calories'); },

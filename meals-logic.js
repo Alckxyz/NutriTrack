@@ -1,6 +1,7 @@
 import { state, saveState, getCurrentMeals } from './state.js';
 import * as Utils from './utils.js';
 import * as UI from './ui.js';
+import { t, tUnit } from './i18n.js';
 import { dom } from './dom-elements.js';
 
 export let currentActiveMealId = null;
@@ -13,9 +14,9 @@ export function openAddFoodModal(mealId, refreshCallback) {
     activeAddTab = 'food'; // Default tab
     
     const modalTitle = document.getElementById('modal-title');
-    if (modalTitle) modalTitle.textContent = Utils.t('modal_add_food_title', state.language);
+    if (modalTitle) modalTitle.textContent = t('modal_add_food_title', state.language);
     
-    dom.confirmAddFoodBtn.textContent = Utils.t('confirm', state.language);
+    dom.confirmAddFoodBtn.textContent = t('confirm', state.language);
     
     const searchSection = document.getElementById('food-search-section');
     if (searchSection) searchSection.classList.remove('hidden');
@@ -47,18 +48,28 @@ export function openAddFoodModal(mealId, refreshCallback) {
 
 export function renderUnitSelector(food) {
     if (!food) return;
-    const isRecipe = food.type === 'recipe';
-    const unitDisplay = document.getElementById('food-unit-display');
-    const unitHidden = document.getElementById('food-unit');
-    
-    let unitCode = food.defaultUnit || (isRecipe ? 'unit' : 'g');
+    const selector = document.getElementById('food-unit-selector');
+    if (!selector) return;
 
-    const unitLabel = isRecipe && unitCode === 'unit' 
-        ? Utils.t('portions_unit', state.language) 
-        : Utils.t('unit_' + unitCode, state.language);
+    selector.innerHTML = '';
+    const isRecipe = food.type === 'recipe';
     
-    if (unitDisplay) unitDisplay.textContent = unitLabel;
-    if (unitHidden) unitHidden.value = unitCode;
+    // Add default unit
+    const defaultUnitCode = food.defaultUnit || (isRecipe ? 'unit' : 'g');
+    const defaultOption = document.createElement('option');
+    defaultOption.value = defaultUnitCode;
+    defaultOption.textContent = tUnit(defaultUnitCode, state.language, isRecipe);
+    selector.appendChild(defaultOption);
+
+    // Add custom conversions if any
+    if (food.conversions && Array.isArray(food.conversions)) {
+        food.conversions.forEach(conv => {
+            const opt = document.createElement('option');
+            opt.value = `custom:${conv.grams}:${conv.name}`;
+            opt.textContent = conv.name;
+            selector.appendChild(opt);
+        });
+    }
 }
 
 export function selectFoodForMeal(food) {
@@ -89,7 +100,8 @@ export function confirmAddFood(refreshCallback) {
     if (isNaN(amount) || amount < 0) return alert('Enter a valid amount');
     if (!currentSelectedFoodId) return alert('Please select a food');
     
-    const unit = dom.foodUnitSelector.value;
+    const selector = document.getElementById('food-unit-selector');
+    const unit = selector ? selector.value : 'g';
     const meals = getCurrentMeals();
     const meal = meals.find(m => m && m.id === currentActiveMealId);
     
@@ -152,7 +164,7 @@ export function removeItemFromMeal(mealId, index, refreshCallback) {
 }
 
 export function deleteMeal(mealId, refreshCallback) {
-    if (confirm(Utils.t('confirm_delete_meal', state.language))) {
+    if (confirm(t('confirm_delete_meal', state.language))) {
         const meals = getCurrentMeals();
         const updatedMeals = meals.filter(m => m.id !== mealId);
         import('./state.js').then(m => {
@@ -166,7 +178,7 @@ export function renameMeal(mealId, refreshCallback) {
     const meals = getCurrentMeals();
     const meal = meals.find(m => m && m.id === mealId);
     if (!meal) return;
-    const newName = prompt(Utils.t('prompt_rename_meal', state.language), meal.name);
+    const newName = prompt(t('prompt_rename_meal', state.language), meal.name);
     if (newName && newName.trim() !== '') {
         meal.name = newName.trim();
         saveState(refreshCallback);

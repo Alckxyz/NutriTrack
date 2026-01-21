@@ -1,4 +1,4 @@
-import { t } from './utils.js';
+import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const settingsModals = `

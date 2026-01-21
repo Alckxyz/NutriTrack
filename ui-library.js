@@ -1,5 +1,5 @@
 import { state, calculateCalories } from './state.js';
-import { t } from './utils.js';
+import { t } from './i18n.js';
 
 export function renderLibraryList(container, searchInput, sortSelect, onEdit, onDelete) {
     if (!container) return;
@@ -80,11 +80,9 @@ export function renderRecipeLibraryList(container, query, onEdit, onDelete) {
                 <small>${kcal} kcal/${t('portions_unit', state.language)} | P: ${recipe.protein.toFixed(1)}g | C: ${recipe.carbs.toFixed(1)}g | F: ${recipe.fat.toFixed(1)}g</small>
             </div>
             <div class="library-item-actions ${isOwner ? '' : 'hidden'}">
-                <button class="edit-btn">${t('edit_btn', state.language)}</button>
                 <button class="delete-btn">${t('delete_btn', state.language)}</button>
             </div>
         `;
-        item.querySelector('.edit-btn').onclick = () => onEdit(recipe.id);
         item.querySelector('.delete-btn').onclick = () => onDelete(recipe.id);
         container.appendChild(item);
     });

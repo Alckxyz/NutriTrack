@@ -165,9 +165,21 @@ export function calculateMealNutrients(meal) {
         // By default g/ml are per 100, others per 1, unless defined otherwise in food.baseAmount
         const isRecipe = food.type === 'recipe';
         const unit = item.unit || food.defaultUnit || 'g';
-        const defaultBase = (unit === 'g' || unit === 'ml') ? 100 : 1;
-        const baseAmount = food.baseAmount || defaultBase;
-        const ratio = isRecipe ? (item.amount || 0) : (item.amount / baseAmount);
+        
+        let ratio;
+        if (unit.startsWith('custom:')) {
+            const [_, grams, label] = unit.split(':');
+            const weightPerUnit = parseFloat(grams) || 0;
+            // For custom units, amount is "how many units"
+            // We need to calculate how many grams that is, then divide by the food's baseAmount
+            const defaultBase = (food.defaultUnit === 'g' || food.defaultUnit === 'ml') ? 100 : 1;
+            const baseAmount = food.baseAmount || defaultBase;
+            ratio = (item.amount * weightPerUnit) / baseAmount;
+        } else {
+            const defaultBase = (unit === 'g' || unit === 'ml') ? 100 : 1;
+            const baseAmount = food.baseAmount || defaultBase;
+            ratio = isRecipe ? (item.amount || 0) : (item.amount / baseAmount);
+        }
         const foodKcal = calculateCalories(food);
         
         summary.calories += (foodKcal * ratio);
