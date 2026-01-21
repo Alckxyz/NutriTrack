@@ -98,5 +98,7 @@ export const dom = {
     get weightAnalysisPanel() { return document.getElementById('weight-analysis-panel'); },
     get reminderWeightBtn() { return document.getElementById('reminder-weight-btn'); },
     get weightReminder() { return document.getElementById('weight-reminder'); },
-    get weightNote() { return document.getElementById('weight-note'); }
+    get weightNote() { return document.getElementById('weight-note'); },
+    get displayNameInput() { return document.getElementById('display-name-input'); },
+    get saveProfileBtn() { return document.getElementById('save-profile-btn'); }
 };

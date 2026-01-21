@@ -7,11 +7,11 @@ import { t } from './i18n.js';
 import * as Nutrients from './nutrient-utils.js';
 
 export function openDbModalForAdd() {
-    dom.dbModalTitle = document.getElementById('db-modal-title'); // Re-selecting for direct access if needed
-    dom.dbModalTitle.textContent = t('db_modal_title_add', state.language);
+    const dbModalTitleEl = document.getElementById('db-modal-title');
+    if (dbModalTitleEl) dbModalTitleEl.textContent = t('db_modal_title_add', state.language);
     dom.dbSaveBtn.textContent = t('save_to_list', state.language);
     dom.dbEditId.value = '';
-    dom.newFoodForm.reset();
+    if (dom.newFoodForm) dom.newFoodForm.reset();
     dom.dbBaseAmount.value = 100;
     document.getElementById('db-default-unit').value = 'g';
     dom.dbVitaminsContainer.innerHTML = '';
@@ -25,8 +25,8 @@ export function openDbModalForAdd() {
 export function openDbModalForEdit(foodId) {
     const food = state.foodList.find(f => f.id === foodId);
     if (!food) return;
-    const dbModalTitle = document.getElementById('db-modal-title');
-    dbModalTitle.textContent = t('db_modal_title_edit', state.language);
+    const dbModalTitleEl = document.getElementById('db-modal-title');
+    if (dbModalTitleEl) dbModalTitleEl.textContent = t('db_modal_title_edit', state.language);
     dom.dbSaveBtn.textContent = t('update_food', state.language);
     dom.dbEditId.value = food.id;
     dom.dbName.value = food.name;
@@ -71,12 +71,18 @@ export async function deleteFromDatabase(foodId, refreshCallback) {
 
     if (confirm(t('confirm_delete_food', state.language).replace('{name}', food.name))) {
         try {
-            const foodDocRef = FB.doc(FB.db, 'foodList', foodId);
+            // New path: users/{uid}/foods/{foodId}
+            const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', foodId);
             await FB.deleteDoc(foodDocRef);
             refreshLibrary();
             if (refreshCallback) refreshCallback();
         } catch (e) {
             console.error("Delete failed", e);
+            // Fallback for older items in global list if they still exist there
+            try {
+                const globalDocRef = FB.doc(FB.db, 'foodList', foodId);
+                await FB.deleteDoc(globalDocRef);
+            } catch(e2) {}
         }
     }
 }
@@ -84,16 +90,18 @@ export async function deleteFromDatabase(foodId, refreshCallback) {
 export async function handleNewFoodSubmit(event, refreshCallback) {
     event.preventDefault();
     const editId = dom.dbEditId.value;
+    
     const foodData = {
         name: dom.dbName.value,
         baseAmount: parseFloat(dom.dbBaseAmount.value) || 100,
-        protein: parseFloat(dom.dbProtein.value),
-        carbs: parseFloat(dom.dbCarbs.value),
-        fat: parseFloat(dom.dbFat.value),
+        protein: parseFloat(dom.dbProtein.value) || 0,
+        carbs: parseFloat(dom.dbCarbs.value) || 0,
+        fat: parseFloat(dom.dbFat.value) || 0,
         defaultUnit: document.getElementById('db-default-unit').value || 'g',
         vitamins: Nutrients.getDynamicNutrientsFromContainer('db-vitamins-container'),
         minerals: Nutrients.getDynamicNutrientsFromContainer('db-minerals-container'),
         conversions: Nutrients.getConversionsFromContainer('db-conversions-container', parseFloat(dom.dbBaseAmount.value) || 100),
+        ownerName: state.displayName,
         updated_at: Date.now()
     };
 
@@ -103,16 +111,30 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
         if (editId) {
             const food = state.foodList.find(f => f.id === editId);
             // Ownership check for editing
-            if (food && food.ownerId === state.user.uid) {
-                const foodDocRef = FB.doc(FB.db, 'foodList', editId);
-                await FB.updateDoc(foodDocRef, foodData);
+            const isOwner = food && food.ownerId === state.user.uid;
+            
+            if (isOwner) {
+                // Determine source and update path
+                if (food.source === 'user') {
+                    const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', editId);
+                    await FB.updateDoc(foodDocRef, foodData);
+                } else {
+                    // Legacy path fallback (foodList)
+                    const legacyRef = FB.doc(FB.db, 'foodList', editId);
+                    await FB.updateDoc(legacyRef, foodData);
+                }
             } else {
                 return alert(state.language === 'es' ? "No tienes permiso para editar este alimento." : "No permission to edit this food.");
             }
         } else {
-            const foodCollection = FB.collection(FB.db, 'foodList');
-            // Attach ownerId to the new document
-            await FB.addDoc(foodCollection, { ...foodData, ownerId: state.user.uid, created_at: Date.now() });
+            // Creation logic - always saves to the user's specific subcollection
+            const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
+            await FB.addDoc(foodCollection, { 
+                ...foodData, 
+                ownerId: state.user.uid, 
+                created_at: Date.now(),
+                source: 'user'
+            });
         }
         dom.dbModal.style.display = 'none';
         dom.newFoodForm.reset();
@@ -121,6 +143,7 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
         Nutrients.updateNutrientSuggestions();
     } catch (e) {
         console.error("Submission failed", e);
+        alert(state.language === 'es' ? "Error al guardar el alimento: " + e.message : "Error saving food: " + e.message);
     }
 }
 
@@ -138,16 +161,20 @@ export async function handlePasteFood(refreshCallback) {
             );
 
             if (existing) {
-                const foodDocRef = FB.doc(FB.db, 'foodList', existing.id);
+                const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', existing.id);
                 await FB.updateDoc(foodDocRef, {
                     ...parsed,
                     updated_at: Date.now()
+                }).catch(async () => {
+                   const legacyRef = FB.doc(FB.db, 'foodList', existing.id);
+                   await FB.updateDoc(legacyRef, { ...parsed, updated_at: Date.now() });
                 });
             } else {
-                const foodCollection = FB.collection(FB.db, 'foodList');
+                const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
                 await FB.addDoc(foodCollection, { 
                     ...parsed, 
-                    ownerId: state.user.uid, 
+                    ownerId: state.user.uid,
+                    ownerName: state.displayName,
                     created_at: Date.now(), 
                     updated_at: Date.now() 
                 });

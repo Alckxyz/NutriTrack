@@ -3,6 +3,7 @@ import * as FB from './firebase-config.js';
 
 export const state = {
     user: null,
+    displayName: '',
     mode: 'standard', // 'standard' or 'daily'
     language: 'es',
     currentDate: new Date().toISOString().split('T')[0],
@@ -30,8 +31,59 @@ export const state = {
 };
 
 let userDataListener = null;
-let sharedFoodListener = null;
+let userFoodsListener = null;
+let globalFoodListener = null;
+let userFoodGroupListener = null;
 let weightEntriesListener = null;
+
+const _rawFoods = {
+    global: [],
+    users: [],
+    personal: []
+};
+
+let _refreshUICallback = null;
+
+const updateMergedFoodList = () => {
+    // We want to show all foods from all users. 
+    // To keep it clean, we deduplicate by (Name + Owner).
+    // This allows different users to have their own "Apple" entry visible to others.
+    const uniqueFoods = new Map();
+
+    const processFood = (food) => {
+        if (!food || !food.name) return;
+        // Unique key: Name + OwnerID (or 'global' for defaults)
+        const ownerKey = food.ownerId || food.source || 'system';
+        const key = `${food.name.trim().toLowerCase()}_${ownerKey}`;
+        
+        const existing = uniqueFoods.get(key);
+        if (!existing) {
+            uniqueFoods.set(key, food);
+        } else {
+            // If same name from same owner, keep the newest one
+            const foodTime = food.updated_at || food.created_at || 0;
+            const existingTime = existing.updated_at || existing.created_at || 0;
+            if (foodTime > existingTime) {
+                uniqueFoods.set(key, food);
+            }
+        }
+    };
+
+    // 1. Start with defaults
+    defaultFoods.forEach(f => processFood({ ...f, source: 'default' }));
+    
+    // 2. Add global shared pool
+    _rawFoods.global.forEach(f => processFood(f));
+
+    // 3. Add all user contributions (from collectionGroup)
+    _rawFoods.users.forEach(f => processFood(f));
+
+    // 4. Add personal foods (direct fetch, highest reliability)
+    _rawFoods.personal.forEach(f => processFood(f));
+
+    state.foodList = Array.from(uniqueFoods.values());
+    if (_refreshUICallback) _refreshUICallback();
+};
 
 export function getCurrentMeals() {
     if (state.mode === 'standard') {
@@ -67,6 +119,7 @@ export const saveState = async (callback) => {
     const dataToSave = {
         mode: state.mode,
         language: state.language,
+        displayName: state.displayName,
         meals: state.meals,
         dailyPlans: state.dailyPlans,
         goals: state.goals
@@ -82,66 +135,96 @@ export const saveState = async (callback) => {
 };
 
 export function initSharedFoodSync(refreshUI) {
-    if (sharedFoodListener) return;
-    const foodCollection = FB.collection(FB.db, 'foodList');
-    sharedFoodListener = FB.onSnapshot(foodCollection, (snapshot) => {
-        if (!snapshot.empty) {
-            state.foodList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        } else {
-            state.foodList = defaultFoods;
+    if (globalFoodListener || userFoodGroupListener) return;
+    _refreshUICallback = refreshUI;
+
+    // 1. Listen to Global Foods (the shared pool)
+    const globalCol = FB.collection(FB.db, 'foodList');
+    globalFoodListener = FB.onSnapshot(globalCol, (snapshot) => {
+        _rawFoods.global = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'global' }));
+        console.log("global foods:", _rawFoods.global.length);
+        updateMergedFoodList();
+    }, (err) => console.error("Global foods sync error:", err));
+
+    // 2. Listen to all User Foods (community contributions)
+    // This allows any user to see foods created by others (Read: All)
+    const userFoodsGroup = FB.collectionGroup(FB.db, 'foods');
+    userFoodGroupListener = FB.onSnapshot(userFoodsGroup, (snapshot) => {
+        _rawFoods.users = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data(), 
+            source: 'user' 
+        }));
+        console.log("user foods:", _rawFoods.users.length);
+        updateMergedFoodList();
+    }, (err) => {
+        console.error("User foods sync (collectionGroup) failed.", err);
+        if (err.code === 'permission-denied') {
+            console.error("ERROR: Permisos denegados para collectionGroup('foods'). Asegúrate de haber publicado las reglas correctas.");
+        } else if (err.code === 'failed-precondition') {
+            console.error("ERROR: Falta un índice para collectionGroup('foods'). Revisa el link en el mensaje de error de la consola.");
         }
-        if (refreshUI) refreshUI();
+        // Fallback: update list anyway with what we have (defaults + global)
+        updateMergedFoodList();
     });
 }
 
 export async function loadUserData(user, refreshUI) {
     state.user = user;
+    
+    // Cleanup existing listeners if any
+    if (userDataListener) userDataListener();
+    if (userFoodsListener) userFoodsListener();
+    if (weightEntriesListener) weightEntriesListener();
+    
     if (!user) {
-        if (userDataListener) {
-            userDataListener();
-            userDataListener = null;
-        }
-        if (weightEntriesListener) {
-            weightEntriesListener();
-            weightEntriesListener = null;
-        }
+        userDataListener = null;
+        userFoodsListener = null;
+        weightEntriesListener = null;
+        _rawFoods.personal = [];
+        updateMergedFoodList();
         return;
     }
 
+    // 1. User preferences listener
     const userDocRef = FB.doc(FB.db, 'users', user.uid);
     userDataListener = FB.onSnapshot(userDocRef, (snapshot) => {
         const data = snapshot.data();
         if (data) {
             state.mode = data.mode || state.mode;
             state.language = data.language || state.language;
+            state.displayName = data.displayName || user.displayName || '';
             
-            if (data.meals) {
-                state.meals = data.meals;
-            }
+            if (data.meals) state.meals = data.meals;
+            if (data.dailyPlans) state.dailyPlans = data.dailyPlans;
+            if (data.goals) state.goals = data.goals;
             
-            if (data.dailyPlans) {
-                state.dailyPlans = data.dailyPlans;
-            }
-
-            if (data.goals) {
-                state.goals = data.goals;
-            }
-            
+            // Re-merge to prioritize this specific user's foods now that state.user is set
+            updateMergedFoodList();
             if (refreshUI) refreshUI();
+        } else {
+            // First time user, set default display name from auth
+            state.displayName = user.displayName || '';
         }
     });
 
-    // Subscribirse a entradas de peso en la subcolección privada del usuario
+    // 2. Personal Foods listener (users/{uid}/foods)
+    // This ensures your own foods always load even if collectionGroup has issues
+    const userFoodsCol = FB.collection(FB.db, 'users', user.uid, 'foods');
+    userFoodsListener = FB.onSnapshot(userFoodsCol, (snapshot) => {
+        _rawFoods.personal = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'user' }));
+        updateMergedFoodList();
+        if (refreshUI) refreshUI();
+    }, (err) => console.error("Personal foods sync error:", err));
+
+    // 3. Weight entries listener
     const weightCol = FB.collection(FB.db, 'users', user.uid, 'weightEntries');
     const weightQuery = FB.query(weightCol, FB.orderBy('createdAt', 'desc'));
     
     weightEntriesListener = FB.onSnapshot(weightQuery, (snapshot) => {
         state.weightEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (refreshUI) refreshUI();
-    });
+    }, (err) => console.error("Weight entries sync error:", err));
 }
 
 export async function loadDailyPlanForDate(date, refreshUI) {

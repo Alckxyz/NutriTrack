@@ -11,6 +11,13 @@ export const settingsModals = `
             <div class="settings-section">
                 <h3 data-t="settings_preferences">${t('settings_preferences', state.language)}</h3>
                 <div class="form-group">
+                    <label data-t="display_name_label">${t('display_name_label', state.language)}</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="display-name-input" placeholder="Tu nombre...">
+                        <button id="save-profile-btn" class="primary-btn" data-t="save_profile">${t('save_profile', state.language)}</button>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label data-t="mode_label">${t('mode_label', state.language)}</label>
                     <select id="mode-selector" class="settings-select">
                         <option value="standard" data-t="mode_standard">${t('mode_standard', state.language)}</option>

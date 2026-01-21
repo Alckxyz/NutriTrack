@@ -231,7 +231,17 @@ document.getElementById('db-default-unit').addEventListener('input', (e) => {
 
 dom.settingsBtn.onclick = () => {
     dom.settingsModal.style.display = 'block';
+    if (dom.displayNameInput) dom.displayNameInput.value = state.displayName || '';
     GoalsLogic.initGoalsUI(refreshUI);
+};
+
+dom.saveProfileBtn.onclick = async () => {
+    const newName = dom.displayNameInput.value.trim();
+    if (newName) {
+        state.displayName = newName;
+        await saveState(refreshUI);
+        alert(state.language === 'es' ? "Perfil actualizado" : "Profile updated");
+    }
 };
 
 document.getElementById('manage-db-btn').onclick = () => {
@@ -272,7 +282,14 @@ dom.librarySortSelect.onchange = (e) => {
     DatabaseLogic.refreshLibrary();
 };
 
-dom.exportDbBtn.onclick = () => Utils.downloadJSON(state.foodList, 'nutritrack-food-list.json');
+dom.exportDbBtn.onclick = () => {
+    if (!state.user) {
+        alert(state.language === 'es' ? "Inicia sesión para exportar tus alimentos." : "Login to export your foods.");
+        return;
+    }
+    const userFoods = state.foodList.filter(f => f.ownerId === state.user.uid);
+    Utils.downloadJSON(userFoods, 'nutritrack-food-list.json');
+};
 
 dom.exportPlanBtn.onclick = () => {
     if (state.mode === 'daily') {
@@ -344,11 +361,16 @@ dom.fileInput.onchange = async (e) => {
                     };
 
                     if (existing) {
-                        // Update existing
-                        await FB.updateDoc(FB.doc(FB.db, 'foodList', existing.id), foodData);
+                        // Update existing (new path)
+                        const foodRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', existing.id);
+                        await FB.updateDoc(foodRef, foodData).catch(async () => {
+                            const legacyRef = FB.doc(FB.db, 'foodList', existing.id);
+                            await FB.updateDoc(legacyRef, foodData);
+                        });
                     } else {
-                        // Create new
-                        await FB.addDoc(FB.collection(FB.db, 'foodList'), { 
+                        // Create new (new path)
+                        const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
+                        await FB.addDoc(foodCollection, { 
                             ...foodData, 
                             ownerId: state.user.uid, 
                             created_at: Date.now() 

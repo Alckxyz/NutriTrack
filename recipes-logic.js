@@ -120,12 +120,16 @@ export async function deleteRecipe(recipeId, refreshCallback) {
 
     if (confirm(state.language === 'es' ? '¿Borrar esta receta?' : 'Delete this recipe?')) {
         try {
-            const recipeDocRef = FB.doc(FB.db, 'foodList', recipeId);
+            const recipeDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', recipeId);
             await FB.deleteDoc(recipeDocRef);
             // onSnapshot in state.js will handle refreshing UI
             if (refreshCallback) refreshCallback();
         } catch (e) {
             console.error("Delete recipe failed", e);
+            try {
+                const legacyRef = FB.doc(FB.db, 'foodList', recipeId);
+                await FB.deleteDoc(legacyRef);
+            } catch(e2) {}
         }
     }
 }
@@ -173,7 +177,7 @@ export async function saveRecipe(refreshCallback) {
     if (!state.user) return alert("Login to save.");
 
     try {
-        const colRef = FB.collection(FB.db, 'foodList');
+        const colRef = FB.collection(FB.db, 'users', state.user.uid, 'foods');
         await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
         
         dom.recipeEditorModal.style.display = 'none';

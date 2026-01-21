@@ -20,9 +20,10 @@ export function renderLibraryList(container, searchInput, sortSelect, onEdit, on
         const foodKcal = Math.round(calculateCalories(food));
         const isRecipe = food.type === 'recipe';
         const isOwner = state.user && food.ownerId === state.user.uid;
+        const creatorName = food.ownerName ? ` <small style="color:var(--text-light); opacity:0.7">(${t('created_by', state.language)} ${food.ownerName})</small>` : '';
         item.innerHTML = `
             <div class="library-item-info">
-                <strong>${food.name}</strong> ${isRecipe ? `<small style="color:var(--secondary); border:1px solid var(--secondary); padding:0 2px; border-radius:2px; font-size:0.6rem;">${t('recipe_badge', state.language)}</small>` : ''}<br>
+                <strong>${food.name}</strong> ${isRecipe ? `<small style="color:var(--secondary); border:1px solid var(--secondary); padding:0 2px; border-radius:2px; font-size:0.6rem;">${t('recipe_badge', state.language)}</small>` : ''}${creatorName}<br>
                 <small>${foodKcal} kcal | P: ${food.protein.toFixed(1)}g | C: ${food.carbs.toFixed(1)}g | F: ${food.fat.toFixed(1)}g</small>
             </div>
             <div class="library-item-actions ${isOwner ? '' : 'hidden'}">
@@ -45,19 +46,25 @@ export function renderFoodResults(container, query, activeTab, onSelect) {
     if (activeTab === 'recipes') {
         const recipes = results.filter(f => f.type === 'recipe');
         recipes.forEach(recipe => {
+            const creator = recipe.ownerName ? `<br><small style="color:var(--text-light); font-size:0.65rem;">${t('created_by', state.language)} ${recipe.ownerName}</small>` : '';
             const div = document.createElement('div');
             div.className = 'food-result-item';
             div.style.borderLeft = '3px solid var(--secondary)';
-            div.innerHTML = `<strong>${recipe.name}</strong> <small style="color:var(--secondary)">(${t('recipe_badge', state.language)})</small> <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(recipe))} kcal/${t('portions_unit', state.language)})</span>`;
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.innerHTML = `<div><strong>${recipe.name}</strong> <small style="color:var(--secondary)">(${t('recipe_badge', state.language)})</small> <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(recipe))} kcal/${t('portions_unit', state.language)})</span></div>${creator}`;
             div.onclick = () => onSelect(recipe);
             container.appendChild(div);
         });
     } else {
         const standardFoods = results.filter(f => f.type !== 'recipe');
         standardFoods.forEach(food => {
+            const creator = food.ownerName ? `<br><small style="color:var(--text-light); font-size:0.65rem;">${t('created_by', state.language)} ${food.ownerName}</small>` : '';
             const div = document.createElement('div');
             div.className = 'food-result-item';
-            div.innerHTML = `<strong>${food.name}</strong> <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(food))} kcal/100g)</span>`;
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.innerHTML = `<div><strong>${food.name}</strong> <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(food))} kcal/100g)</span></div>${creator}`;
             div.onclick = () => onSelect(food);
             container.appendChild(div);
         });
