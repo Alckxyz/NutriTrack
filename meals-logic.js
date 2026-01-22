@@ -8,6 +8,33 @@ export let currentActiveMealId = null;
 export let currentSelectedFoodId = null;
 export let activeAddTab = 'food'; // 'food' or 'recipes'
 
+export function initMealsUI(refreshUI) {
+    dom.foodSearch.oninput = (e) => UI.renderFoodResults(dom.foodResults, e.target.value, activeAddTab, selectFoodForMeal);
+    
+    dom.foodAmountInput.onkeydown = (e) => {
+        if (e.key === 'Enter') dom.confirmAddFoodBtn.click();
+    };
+
+    dom.confirmAddFoodBtn.onclick = () => {
+        if (currentActiveMealId === 'TEMP_RECIPE') {
+            const amount = parseFloat(dom.foodAmountInput.value);
+            if (!amount || amount <= 0) return;
+            import('./recipes-logic.js').then(m => m.handleIngredientSelection(currentSelectedFoodId, amount));
+        } else {
+            confirmAddFood(refreshUI);
+        }
+    };
+
+    dom.addMealBtn.onclick = () => {
+        const name = prompt(t('prompt_new_meal', state.language));
+        if (name) {
+            const meals = getCurrentMeals();
+            meals.push({ id: 'm' + Date.now(), name, items: [] });
+            saveState(refreshUI);
+        }
+    };
+}
+
 export function openAddFoodModal(mealId, refreshCallback) {
     currentActiveMealId = mealId;
     currentSelectedFoodId = null;
@@ -79,6 +106,21 @@ export function renderUnitSelector(food) {
     defaultOption.value = defaultUnitCode;
     defaultOption.textContent = tUnit(defaultUnitCode, state.language, isRecipe);
     selector.appendChild(defaultOption);
+
+    // Add fixed standard conversions based on base unit
+    if (defaultUnitCode === 'g') {
+        ['kg', 'oz', 'lb'].forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = tUnit(u, state.language);
+            selector.appendChild(opt);
+        });
+    } else if (defaultUnitCode === 'ml') {
+        const opt = document.createElement('option');
+        opt.value = 'l';
+        opt.textContent = tUnit('l', state.language);
+        selector.appendChild(opt);
+    }
 
     // Add custom conversions if any
     if (food.conversions && Array.isArray(food.conversions)) {

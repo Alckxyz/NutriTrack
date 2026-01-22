@@ -65,9 +65,14 @@ export function renderMeals(options = {}) {
                         ratio = (item.amount * weightPerUnit) / baseAmount;
                     } else {
                         unitLabel = tUnit(unitCode, state.language, isRecipe);
-                        const isPer100 = (unitCode === 'g' || unitCode === 'ml');
+                        const conversionFactors = { kg: 1000, lb: 453.592, oz: 28.3495, l: 1000 };
+                        const factor = conversionFactors[unitCode] || 1;
+                        const amountInBase = item.amount * factor;
+                        
+                        const baseUnit = food.defaultUnit || 'g';
+                        const isPer100 = (baseUnit === 'g' || baseUnit === 'ml');
                         const baseAmount = food.baseAmount || (isPer100 ? 100 : 1);
-                        ratio = isRecipe ? (item.amount || 0) : (item.amount / baseAmount);
+                        ratio = isRecipe ? (amountInBase || 0) : (amountInBase / baseAmount);
                     }
                     const foodKcal = calculateCalories(food);
                     let foodMicros = [];

@@ -31,7 +31,6 @@ export const settingsModals = `
                 <div class="settings-grid">
                     <button id="export-db-btn" class="secondary-btn" data-t="export_db">${t('export_db', state.language)}</button>
                     <button id="import-db-btn" class="secondary-btn" data-t="import_db">${t('import_db', state.language)}</button>
-                    <button id="paste-food-btn" class="secondary-btn" data-t="paste_food" style="grid-column: span 2;">${t('paste_food', state.language)}</button>
                 </div>
             </div>
 

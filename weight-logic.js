@@ -9,6 +9,21 @@ Chart.register(...registerables);
 let weightChart = null;
 let currentRange = 30;
 
+export function initWeightUI(refreshUI) {
+    dom.weightBtn.onclick = () => {
+        dom.weightModal.style.display = 'block';
+        refreshWeightUI();
+    };
+
+    dom.reminderWeightBtn.onclick = () => {
+        dom.weightBtn.click();
+    };
+
+    dom.saveWeightBtn.onclick = () => {
+        saveWeightEntry();
+    };
+}
+
 export async function saveWeightEntry() {
     if (!state.user) return alert("Inicia sesión para guardar tu progreso");
     const weight = parseFloat(dom.weightInput.value);

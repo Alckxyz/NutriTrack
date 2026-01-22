@@ -219,3 +219,32 @@ button {
     font-weight: bold;
     color: var(--primary);
 }
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    z-index: 99999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    font-weight: 600;
+    font-size: 0.9rem;
+    pointer-events: none;
+    animation: toast-fade-in-out 2s forwards;
+    border: 1px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes toast-fade-in-out {
+    0% { opacity: 0; transform: translate(-50%, -20px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+}

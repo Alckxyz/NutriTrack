@@ -9,6 +9,19 @@ import * as FB from './firebase-config.js';
 let currentEditingRecipeId = null;
 let tempRecipeItems = [];
 
+export function initRecipesUI(refreshUI) {
+    dom.manageRecipesBtn.onclick = () => {
+        dom.recipeLibraryModal.style.display = 'block';
+        refreshRecipeLibrary();
+    };
+
+    dom.createNewRecipeBtn.onclick = () => openRecipeEditor();
+    dom.recipeLibrarySearch.oninput = () => refreshRecipeLibrary();
+    dom.recipePortionsInput.oninput = () => updateRecipePreview();
+    dom.recipeAddIngredientBtn.onclick = () => addIngredientToRecipeContext();
+    dom.saveRecipeBtn.onclick = () => saveRecipe(refreshUI);
+}
+
 export function refreshRecipeLibrary() {
     UI.renderRecipeLibraryList(dom.recipeLibraryList, dom.recipeLibrarySearch.value, openRecipeEditor, deleteRecipe);
 }

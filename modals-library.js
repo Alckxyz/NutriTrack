@@ -7,6 +7,7 @@ export const libraryModals = `
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2 id="db-modal-title" data-t="db_modal_title_add">${t('db_modal_title_add', state.language)}</h2>
+            <button id="paste-food-btn" class="secondary-btn" data-t="paste_food" style="width: 100%; margin-bottom: 1.5rem; border: 1px dashed var(--secondary); color: var(--secondary);">${t('paste_food', state.language)}</button>
             <form id="new-food-form">
                 <input type="hidden" id="db-edit-id">
                 <div class="form-group">

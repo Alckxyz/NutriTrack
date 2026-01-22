@@ -12,8 +12,14 @@
     overflow-y: auto;
 }
 
-#food-modal, #paste-modal, #wizard-modal, #db-modal, #weight-modal {
+/* Main layer modals */
+#food-modal, #db-modal, #weight-modal, #library-modal, #recipe-library-modal, #settings-modal {
     z-index: 1100;
+}
+
+/* Secondary layer modals (must appear above main modals) */
+#paste-modal, #wizard-modal, #recipe-editor-modal {
+    z-index: 1200;
 }
 
 .modal-content {
