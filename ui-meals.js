@@ -78,12 +78,13 @@ export function renderMeals(options = {}) {
                     let foodMicros = [];
                     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`));
                     if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`));
+                    const brandDisplay = food.brand ? `<small style="color:var(--text-light); font-size:0.7rem;"> [${food.brand}]</small>` : '';
                     return `
                         <div class="meal-item" data-index="${idx}">
                             <div class="item-info">
                                 <div class="item-name">
                                     ${isDeleted ? `<span style="color:#ff8a80; font-weight:bold; font-size:0.7rem;">[${t('deleted_badge', state.language)}]</span> ` : ''}
-                                    ${food.name} 
+                                    ${food.name}${brandDisplay} 
                                     ${isRecipe ? `<small style="color:var(--secondary); font-size:0.6rem; border:1px solid var(--secondary); padding:0 2px; border-radius:2px;">${t('recipe_badge', state.language)}</small>` : ''}
                                 </div>
                                 <div class="item-meta">

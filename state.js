@@ -21,6 +21,7 @@ export const state = {
     librarySort: 'name',
     clipboard: null,
     weightEntries: [],
+    foodConversions: {}, // Format: { foodId: [{name, grams, originalQty, totalWeight}, ...] }
     goals: {
         calories: 0,
         protein: 0,
@@ -32,6 +33,7 @@ export const state = {
 
 let userDataListener = null;
 let userFoodsListener = null;
+let userConversionsListener = null;
 let globalFoodListener = null;
 let userFoodGroupListener = null;
 let weightEntriesListener = null;
@@ -109,6 +111,9 @@ export function setCurrentMeals(newMeals) {
     }
 }
 
+import { deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+export { deleteField };
+
 export const saveState = async (callback) => {
     if (!state.user) {
         if (callback) callback();
@@ -175,11 +180,13 @@ export async function loadUserData(user, refreshUI) {
     // Cleanup existing listeners if any
     if (userDataListener) userDataListener();
     if (userFoodsListener) userFoodsListener();
+    if (userConversionsListener) userConversionsListener();
     if (weightEntriesListener) weightEntriesListener();
     
     if (!user) {
         userDataListener = null;
         userFoodsListener = null;
+        userConversionsListener = null;
         weightEntriesListener = null;
         _rawFoods.personal = [];
         updateMergedFoodList();
@@ -209,15 +216,39 @@ export async function loadUserData(user, refreshUI) {
     });
 
     // 2. Personal Foods listener (users/{uid}/foods)
-    // This ensures your own foods always load even if collectionGroup has issues
     const userFoodsCol = FB.collection(FB.db, 'users', user.uid, 'foods');
     userFoodsListener = FB.onSnapshot(userFoodsCol, (snapshot) => {
         _rawFoods.personal = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), source: 'user' }));
+        
+        // Automatic migration of legacy conversions
+        snapshot.docs.forEach(async (docSnap) => {
+            const data = docSnap.data();
+            if (data.conversions && Array.isArray(data.conversions) && data.conversions.length > 0) {
+                console.log(`Migrating conversions for food: ${docSnap.id}`);
+                const convRef = FB.doc(FB.db, 'users', user.uid, 'foodConversions', docSnap.id);
+                await FB.setDoc(convRef, { conversions: data.conversions }, { merge: true });
+                // Remove legacy field from food doc
+                const foodRef = FB.doc(FB.db, 'users', user.uid, 'foods', docSnap.id);
+                await FB.updateDoc(foodRef, { conversions: FB.deleteField() });
+            }
+        });
+
         updateMergedFoodList();
         if (refreshUI) refreshUI();
     }, (err) => console.error("Personal foods sync error:", err));
 
-    // 3. Weight entries listener
+    // 3. User Conversions listener (users/{uid}/foodConversions)
+    const userConversionsCol = FB.collection(FB.db, 'users', user.uid, 'foodConversions');
+    userConversionsListener = FB.onSnapshot(userConversionsCol, (snapshot) => {
+        const newConversions = {};
+        snapshot.docs.forEach(doc => {
+            newConversions[doc.id] = doc.data().conversions || [];
+        });
+        state.foodConversions = newConversions;
+        if (refreshUI) refreshUI();
+    });
+
+    // 4. Weight entries listener
     const weightCol = FB.collection(FB.db, 'users', user.uid, 'weightEntries');
     const weightQuery = FB.query(weightCol, FB.orderBy('createdAt', 'desc'));
     
@@ -253,12 +284,13 @@ export function calculateMealNutrients(meal) {
         if (!item || !item.foodId) return;
         let food = state.foodList.find(f => f && f.id === item.foodId);
         
-        // Fallback to snapshot if food was deleted from global list
         if (!food) {
             if (item.snapshot) {
-                food = item.snapshot;
+                // Use snapshot but mark as deleted
+                food = { ...item.snapshot, name: `${t('deleted_badge', state.language)}: ${item.snapshot.name || 'Alimento'}` };
             } else {
-                return;
+                // If no snapshot, use placeholder
+                food = { name: t('deleted_badge', state.language), protein: 0, carbs: 0, fat: 0, vitamins: {}, minerals: {} };
             }
         }
         

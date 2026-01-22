@@ -122,15 +122,14 @@ export function renderUnitSelector(food) {
         selector.appendChild(opt);
     }
 
-    // Add custom conversions if any
-    if (food.conversions && Array.isArray(food.conversions)) {
-        food.conversions.forEach(conv => {
-            const opt = document.createElement('option');
-            opt.value = `custom:${conv.grams}:${conv.name}`;
-            opt.textContent = conv.name;
-            selector.appendChild(opt);
-        });
-    }
+    // Add custom conversions from state.foodConversions
+    const customConversions = state.foodConversions[food.id] || [];
+    customConversions.forEach(conv => {
+        const opt = document.createElement('option');
+        opt.value = `custom:${conv.grams}:${conv.name}`;
+        opt.textContent = conv.name;
+        selector.appendChild(opt);
+    });
 }
 
 export function selectFoodForMeal(food) {
@@ -182,6 +181,7 @@ export function confirmAddFood(refreshCallback) {
     // Create a snapshot of the food data to preserve nutrients even if the food is deleted from library
     const snapshot = {
         name: food.name,
+        brand: food.brand || '',
         protein: food.protein,
         carbs: food.carbs,
         fat: food.fat,

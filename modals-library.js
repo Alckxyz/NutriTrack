@@ -10,9 +10,15 @@ export const libraryModals = `
             <button id="paste-food-btn" class="secondary-btn" data-t="paste_food" style="width: 100%; margin-bottom: 1.5rem; border: 1px dashed var(--secondary); color: var(--secondary);">${t('paste_food', state.language)}</button>
             <form id="new-food-form">
                 <input type="hidden" id="db-edit-id">
-                <div class="form-group">
-                    <label data-t="name_label">${t('name_label', state.language)}</label>
-                    <input type="text" id="db-name" required>
+                <div class="stats-form-grid">
+                    <div class="form-group">
+                        <label data-t="name_label">${t('name_label', state.language)}</label>
+                        <input type="text" id="db-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-t="brand_label">${t('brand_label', state.language)}</label>
+                        <input type="text" id="db-brand">
+                    </div>
                 </div>
                 <div class="stats-form-grid">
                     <div class="form-group">
@@ -68,6 +74,7 @@ export const libraryModals = `
                         <button type="button" class="add-mini-btn" id="add-conversion-btn" data-t="add_unit_conversion">${t('add_unit_conversion', state.language)}</button>
                     </div>
                     <div id="db-conversions-container" class="nutrients-input-list"></div>
+                    <p style="font-size:0.7rem; color:var(--text-light); margin-top:5px; font-style:italic;">* Estas conversiones son personales y no afectan al alimento global.</p>
                 </div>
 
                 <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%; margin-top: 20px;" data-t="save_to_list">${t('save_to_list', state.language)}</button>

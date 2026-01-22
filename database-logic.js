@@ -27,6 +27,11 @@ Estoy listo
 Después de eso, cuando yo te mande un alimento, dame los nutrientes promedio con este formato exacto (sin agregar nada extra, sin explicaciones, sin emojis, sin corchetes, sin comillas, sin paréntesis extra, y sin unidades de medida en los valores: solo números).
 Los valores deben ser un promedio.
 
+✅ Regla CLAVE (muy importante):
+- TODOS los valores de Protein, Carbs, Fat, Vitamins y Minerals deben corresponder EXACTAMENTE a la cantidad indicada en Units.
+- Si usas datos por 100 g (o 100 ml), debes convertirlos proporcionalmente a los gramos/ml indicados en Units.
+- Nunca uses nutrientes de 100 g si en Units aparece otra cantidad.
+
 ✅ Regla del nombre (primera línea):
 - La primera línea debe ser solo el nombre del alimento, sin cantidad, sin peso y sin empaque.
 - NO escribas “bolsa”, “paquete”, “porción”, “unidad”, “gramos”, etc.
@@ -50,7 +55,9 @@ Los valores deben ser un promedio.
   - Si es líquido: ml: X
 
 - Si el usuario menciona gramos o mililitros, usa ese número.
-- Si NO menciona gramos o mililitros, agrega un aproximado.
+- Si NO menciona gramos o mililitros:
+  - Si es sólido, usa g: 100
+  - Si es líquido, usa ml: 100
 
 - Después de la primera unidad (g o ml), agrega unidades extra si aparecen en la descripción:
   - “una bolsa” → bolsa: 1
@@ -66,6 +73,7 @@ Los valores deben ser un promedio.
 - SIEMPRE incluye Vitamins y Minerals.
 - Incluye solo los micronutrientes MÁS IMPORTANTES según ese alimento.
 - Pon entre 2 y 5 vitaminas y entre 2 y 5 minerales (elige los más relevantes).
+- Sus valores también deben corresponder a la cantidad indicada en Units.
 
 Formato obligatorio:
 
@@ -147,17 +155,30 @@ export function openDbModalForAdd() {
 export function openDbModalForEdit(foodId) {
     const food = state.foodList.find(f => f.id === foodId);
     if (!food) return;
+    const isOwner = state.user && food.ownerId === state.user.uid;
     const dbModalTitleEl = document.getElementById('db-modal-title');
-    if (dbModalTitleEl) dbModalTitleEl.textContent = t('db_modal_title_edit', state.language);
+    if (dbModalTitleEl) dbModalTitleEl.textContent = isOwner ? t('db_modal_title_edit', state.language) : t('conversions_title', state.language);
     if (dom.pasteFoodBtn) dom.pasteFoodBtn.classList.add('hidden');
-    dom.dbSaveBtn.textContent = t('update_food', state.language);
+    
+    dom.dbSaveBtn.textContent = isOwner ? t('update_food', state.language) : t('save_conversions', state.language);
     dom.dbEditId.value = food.id;
+    
+    // Set values
     dom.dbName.value = food.name;
+    dom.dbBrand.value = food.brand || '';
     dom.dbBaseAmount.value = food.baseAmount || ((food.defaultUnit === 'g' || food.defaultUnit === 'ml') ? 100 : 1);
     dom.dbProtein.value = food.protein;
     dom.dbCarbs.value = food.carbs;
     dom.dbFat.value = food.fat;
-    document.getElementById('db-default-unit').value = food.defaultUnit || 'g';
+    const unitInput = document.getElementById('db-default-unit');
+    if (unitInput) unitInput.value = food.defaultUnit || 'g';
+
+    // Toggle editability based on ownership
+    [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, unitInput].forEach(el => {
+        if (el) el.disabled = !isOwner;
+    });
+    dom.addVitaminBtn.style.display = isOwner ? '' : 'none';
+    dom.addMineralBtn.style.display = isOwner ? '' : 'none';
 
     dom.dbVitaminsContainer.innerHTML = '';
     dom.dbMineralsContainer.innerHTML = '';
@@ -166,13 +187,14 @@ export function openDbModalForEdit(foodId) {
 
     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-vitamins-container', n, v));
     if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-minerals-container', n, v));
-    if (food.conversions) {
-        food.conversions.forEach(c => {
-            // Recalculate original quantity if missing (backward compatibility)
-            const qty = c.originalQty || (food.baseAmount / c.grams);
-            Nutrients.addConversionRow('db-conversions-container', c.name, qty);
-        });
-    }
+    
+    // Load conversions from the new state.foodConversions
+    const conversions = state.foodConversions[foodId] || [];
+    conversions.forEach(c => {
+        const qty = c.originalQty || 1;
+        const weight = c.totalWeight || (c.grams * qty);
+        Nutrients.addConversionRow('db-conversions-container', c.name, qty, weight);
+    });
 
     dom.dbModal.style.display = 'block';
     setTimeout(() => dom.dbName.focus(), 10);
@@ -194,9 +216,14 @@ export async function deleteFromDatabase(foodId, refreshCallback) {
 
     if (confirm(t('confirm_delete_food', state.language).replace('{name}', food.name))) {
         try {
-            // New path: users/{uid}/foods/{foodId}
+            // Delete food
             const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', foodId);
             await FB.deleteDoc(foodDocRef);
+
+            // Delete conversions
+            const convDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foodConversions', foodId);
+            await FB.deleteDoc(convDocRef).catch(() => {});
+
             refreshLibrary();
             if (refreshCallback) refreshCallback();
         } catch (e) {
@@ -220,6 +247,7 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
 
     const foodData = {
         name: dom.dbName.value,
+        brand: dom.dbBrand.value.trim() || '',
         baseAmount: parseFloat(dom.dbBaseAmount.value) || 100,
         protein: parseFloat(dom.dbProtein.value) || 0,
         carbs: parseFloat(dom.dbCarbs.value) || 0,
@@ -227,42 +255,44 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
         defaultUnit: document.getElementById('db-default-unit').value || 'g',
         vitamins: Nutrients.getDynamicNutrientsFromContainer('db-vitamins-container'),
         minerals: Nutrients.getDynamicNutrientsFromContainer('db-minerals-container'),
-        conversions: Nutrients.getConversionsFromContainer('db-conversions-container', parseFloat(dom.dbBaseAmount.value) || 100),
         ownerName: state.displayName,
         updated_at: Date.now()
     };
 
+    const conversions = Nutrients.getConversionsFromContainer('db-conversions-container');
+
     if (!state.user) return alert("Please login to save foods.");
 
     try {
+        let savedId = editId;
         if (editId) {
             const food = state.foodList.find(f => f.id === editId);
-            // Ownership check for editing
             const isOwner = food && food.ownerId === state.user.uid;
             
             if (isOwner) {
-                // Determine source and update path
                 if (food.source === 'user') {
                     const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', editId);
                     await FB.updateDoc(foodDocRef, foodData);
                 } else {
-                    // Legacy path fallback (foodList)
                     const legacyRef = FB.doc(FB.db, 'foodList', editId);
                     await FB.updateDoc(legacyRef, foodData);
                 }
-            } else {
-                return alert(state.language === 'es' ? "No tienes permiso para editar este alimento." : "No permission to edit this food.");
             }
+            // If not owner, we just skip updating the food doc and continue to conversions
         } else {
-            // Creation logic - always saves to the user's specific subcollection
             const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
-            await FB.addDoc(foodCollection, { 
+            const newDoc = await FB.addDoc(foodCollection, { 
                 ...foodData, 
                 ownerId: state.user.uid, 
                 created_at: Date.now(),
                 source: 'user'
             });
+            savedId = newDoc.id;
         }
+
+        // Save conversions separately
+        const convDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foodConversions', savedId);
+        await FB.setDoc(convDocRef, { conversions }, { merge: true });
         if (editId) {
             dom.dbModal.style.display = 'none';
         } else {
@@ -278,7 +308,8 @@ export async function handleNewFoodSubmit(event, refreshCallback) {
             setTimeout(() => dom.dbName.focus(), 50);
         }
         
-        Utils.showToast("✅ " + t('paste_success_msg', state.language));
+        const successKey = editId ? 'edit_success_msg' : 'paste_success_msg';
+        Utils.showToast("✅ " + t(successKey, state.language));
         
         if (refreshCallback) refreshCallback();
         if (dom.libraryModal.style.display === 'block') refreshLibrary();
@@ -305,31 +336,40 @@ export async function handlePasteFood(refreshCallback) {
     const parsed = Utils.parsePastedFood(text);
     if (parsed) {
         try {
-            // Check for duplicate by name and owner
+            // Separate conversions from food data for pasting
+            const { conversions, ...foodData } = parsed;
+            
             const existing = state.foodList.find(f => 
-                f.name.toLowerCase() === parsed.name.toLowerCase() && 
+                f.name.toLowerCase() === foodData.name.toLowerCase() && 
                 f.ownerId === state.user.uid
             );
 
+            let savedId;
             if (existing) {
+                savedId = existing.id;
                 const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', existing.id);
                 await FB.updateDoc(foodDocRef, {
-                    ...parsed,
+                    ...foodData,
                     updated_at: Date.now()
                 }).catch(async () => {
                    const legacyRef = FB.doc(FB.db, 'foodList', existing.id);
-                   await FB.updateDoc(legacyRef, { ...parsed, updated_at: Date.now() });
+                   await FB.updateDoc(legacyRef, { ...foodData, updated_at: Date.now() });
                 });
             } else {
                 const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
-                await FB.addDoc(foodCollection, { 
-                    ...parsed, 
+                const newDoc = await FB.addDoc(foodCollection, { 
+                    ...foodData, 
                     ownerId: state.user.uid,
                     ownerName: state.displayName,
                     created_at: Date.now(), 
                     updated_at: Date.now() 
                 });
+                savedId = newDoc.id;
             }
+
+            // Save conversions
+            const convDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foodConversions', savedId);
+            await FB.setDoc(convDocRef, { conversions: conversions || [] }, { merge: true });
             
             Utils.showToast("✅ " + t('paste_success_msg', state.language));
             dom.pasteArea.value = '';

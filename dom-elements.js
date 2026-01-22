@@ -46,6 +46,7 @@ export const dom = {
     get exportPlanBtn() { return document.getElementById('export-plan-btn'); },
     get importPlanBtn() { return document.getElementById('import-plan-btn'); },
     get dbName() { return document.getElementById('db-name'); },
+    get dbBrand() { return document.getElementById('db-brand'); },
     get dbBaseAmount() { return document.getElementById('db-base-amount'); },
     get dbProtein() { return document.getElementById('db-protein'); },
     get dbCarbs() { return document.getElementById('db-carbs'); },

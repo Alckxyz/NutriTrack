@@ -21,18 +21,23 @@ export function renderLibraryList(container, searchInput, sortSelect, onEdit, on
         const isRecipe = food.type === 'recipe';
         const isOwner = state.user && food.ownerId === state.user.uid;
         const creatorName = food.ownerName ? ` <small style="color:var(--text-light); opacity:0.7">(${t('created_by', state.language)} ${food.ownerName})</small>` : '';
+        const brandDisplay = food.brand ? ` <span style="color:var(--secondary); font-size:0.75rem;">[${food.brand}]</span>` : '';
         item.innerHTML = `
             <div class="library-item-info">
-                <strong>${food.name}</strong> ${isRecipe ? `<small style="color:var(--secondary); border:1px solid var(--secondary); padding:0 2px; border-radius:2px; font-size:0.6rem;">${t('recipe_badge', state.language)}</small>` : ''}${creatorName}<br>
+                <strong>${food.name}</strong>${brandDisplay} ${isRecipe ? `<small style="color:var(--secondary); border:1px solid var(--secondary); padding:0 2px; border-radius:2px; font-size:0.6rem;">${t('recipe_badge', state.language)}</small>` : ''}${creatorName}<br>
                 <small>${foodKcal} kcal | P: ${food.protein.toFixed(1)}g | C: ${food.carbs.toFixed(1)}g | F: ${food.fat.toFixed(1)}g</small>
             </div>
-            <div class="library-item-actions ${isOwner ? '' : 'hidden'}">
-                <button class="edit-btn">${t('edit_btn', state.language)}</button>
-                <button class="delete-btn">${t('delete_btn', state.language)}</button>
+            <div class="library-item-actions">
+                <button class="conv-btn secondary-btn" style="padding: 4px 8px; font-size: 0.7rem; color: var(--secondary);">${t('conv_btn_short', state.language)}</button>
+                <button class="edit-btn ${isOwner ? '' : 'hidden'}">${t('edit_btn', state.language)}</button>
+                <button class="delete-btn ${isOwner ? '' : 'hidden'}">${t('delete_btn', state.language)}</button>
             </div>
         `;
-        item.querySelector('.edit-btn').onclick = () => onEdit(food.id);
-        item.querySelector('.delete-btn').onclick = () => onDelete(food.id);
+        item.querySelector('.conv-btn').onclick = () => onEdit(food.id);
+        const editBtn = item.querySelector('.edit-btn');
+        if (editBtn) editBtn.onclick = () => onEdit(food.id);
+        const delBtn = item.querySelector('.delete-btn');
+        if (delBtn) delBtn.onclick = () => onDelete(food.id);
         container.appendChild(item);
     });
 }
@@ -60,11 +65,12 @@ export function renderFoodResults(container, query, activeTab, onSelect) {
         const standardFoods = results.filter(f => f.type !== 'recipe');
         standardFoods.forEach(food => {
             const creator = food.ownerName ? `<br><small style="color:var(--text-light); font-size:0.65rem;">${t('created_by', state.language)} ${food.ownerName}</small>` : '';
+            const brandDisplay = food.brand ? ` <small style="color:var(--secondary)">[${food.brand}]</small>` : '';
             const div = document.createElement('div');
             div.className = 'food-result-item';
             div.style.flexDirection = 'column';
             div.style.alignItems = 'flex-start';
-            div.innerHTML = `<div><strong>${food.name}</strong> <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(food))} kcal/100g)</span></div>${creator}`;
+            div.innerHTML = `<div><strong>${food.name}</strong>${brandDisplay} <span style="font-size:0.8rem; color:#888">(${Math.round(calculateCalories(food))} kcal/100g)</span></div>${creator}`;
             div.onclick = () => onSelect(food);
             container.appendChild(div);
         });
@@ -81,15 +87,18 @@ export function renderRecipeLibraryList(container, query, onEdit, onDelete) {
         item.className = 'library-item';
         const kcal = Math.round(calculateCalories(recipe));
         const isOwner = state.user && recipe.ownerId === state.user.uid;
+        const creatorName = recipe.ownerName ? ` <small style="color:var(--text-light); opacity:0.7">(${t('created_by', state.language)} ${recipe.ownerName})</small>` : '';
         item.innerHTML = `
             <div class="library-item-info">
-                <strong>${recipe.name}</strong><br>
+                <strong>${recipe.name}</strong>${creatorName}<br>
                 <small>${kcal} kcal/${t('portions_unit', state.language)} | P: ${recipe.protein.toFixed(1)}g | C: ${recipe.carbs.toFixed(1)}g | F: ${recipe.fat.toFixed(1)}g</small>
             </div>
             <div class="library-item-actions ${isOwner ? '' : 'hidden'}">
+                <button class="edit-btn">${t('edit_btn', state.language)}</button>
                 <button class="delete-btn">${t('delete_btn', state.language)}</button>
             </div>
         `;
+        item.querySelector('.edit-btn').onclick = () => onEdit(recipe.id);
         item.querySelector('.delete-btn').onclick = () => onDelete(recipe.id);
         container.appendChild(item);
     });

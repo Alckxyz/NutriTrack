@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -53,5 +53,5 @@ const provider = new GoogleAuthProvider();
 export { 
     app, db, auth, provider, 
     signInWithPopup, signOut, onAuthStateChanged, 
-    collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc 
+    collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, deleteField
 };

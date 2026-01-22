@@ -17,7 +17,7 @@ export function initSettingsUI(refreshUI) {
         if (newName) {
             state.displayName = newName;
             await saveState(refreshUI);
-            alert(state.language === 'es' ? "Perfil actualizado" : "Profile updated");
+            Utils.showToast("✅ " + t('profile_updated', state.language));
         }
     };
 

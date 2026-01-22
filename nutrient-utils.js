@@ -50,38 +50,47 @@ export function addNutrientRowToContainer(containerId, name = '', value = '') {
     container.appendChild(row);
 }
 
-export function addConversionRow(containerId, name = '', quantity = '1') {
+export function addConversionRow(containerId, name = '', quantity = '1', weight = '') {
     const container = document.getElementById(containerId);
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'nutrient-input-row';
     row.innerHTML = `
-        <input type="number" step="any" min="0.01" value="${quantity}" required class="conv-qty" style="width: 60px;" title="Cantidad">
+        <input type="number" step="any" min="0.01" value="${quantity}" required class="conv-qty" style="width: 55px;" title="Cantidad">
         <input type="text" placeholder="${t('unit_name_placeholder', state.language)}" value="${name}" required class="conv-name" style="flex: 1;">
-        <span style="font-size: 0.8rem; color: var(--text-light); margin: 0 5px;">= ref.</span>
+        <span style="font-size: 0.8rem; color: var(--text-light); margin: 0 2px;">=</span>
+        <input type="number" step="any" min="0" placeholder="g/ml" value="${weight}" required class="conv-weight" style="width: 65px;" title="Peso total">
+        <span style="font-size: 0.7rem; color: var(--text-light);">g/ml</span>
         <button type="button" class="remove-row-btn">×</button>
     `;
     row.querySelector('.remove-row-btn').onclick = () => row.remove();
     container.appendChild(row);
 }
 
-export function getConversionsFromContainer(containerId, baseAmount) {
+export function getConversionsFromContainer(containerId) {
     const container = document.getElementById(containerId);
     const rows = container.querySelectorAll('.nutrient-input-row');
     const conversions = [];
     rows.forEach(row => {
         const nameInput = row.querySelector('.conv-name');
         const qtyInput = row.querySelector('.conv-qty');
-        if (!nameInput || !qtyInput) return;
+        const weightInput = row.querySelector('.conv-weight');
+        if (!nameInput || !qtyInput || !weightInput) return;
         
         const name = nameInput.value.trim();
         const qty = parseFloat(qtyInput.value) || 1;
+        const totalWeight = parseFloat(weightInput.value) || 0;
         
-        if (name) {
-            // grams = baseAmount / quantity
-            // e.g. if 2 cups = 500g (baseAmount), then 1 cup = 250g
-            const weightPerUnit = baseAmount / qty;
-            conversions.push({ name, grams: weightPerUnit, originalQty: qty });
+        if (name && totalWeight > 0) {
+            // grams = totalWeight / quantity
+            // e.g. if 1 cup = 250g, weightPerUnit = 250
+            const weightPerUnit = totalWeight / qty;
+            conversions.push({ 
+                name, 
+                grams: weightPerUnit, 
+                originalQty: qty,
+                totalWeight: totalWeight
+            });
         }
     });
     return conversions;

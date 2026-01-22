@@ -98,7 +98,11 @@ function setupGlobalUI() {
     dom.addVitaminBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-vitamins-container');
     dom.addMineralBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-minerals-container');
     const addConvBtn = document.getElementById('add-conversion-btn');
-    if (addConvBtn) addConvBtn.onclick = () => Nutrients.addConversionRow('db-conversions-container');
+    if (addConvBtn) addConvBtn.onclick = () => {
+        // Default to the current base amount as the weight for new conversion rows
+        const currentBase = dom.dbBaseAmount.value || '100';
+        Nutrients.addConversionRow('db-conversions-container', '', '1', currentBase);
+    };
 }
 
 // Initial Run

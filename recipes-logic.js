@@ -26,12 +26,27 @@ export function refreshRecipeLibrary() {
     UI.renderRecipeLibraryList(dom.recipeLibraryList, dom.recipeLibrarySearch.value, openRecipeEditor, deleteRecipe);
 }
 
-export function openRecipeEditor() {
-    currentEditingRecipeId = null;
+export function openRecipeEditor(recipeId = null) {
+    currentEditingRecipeId = recipeId;
     dom.recipeIngredientsList.innerHTML = '';
-    dom.recipeNameInput.value = '';
-    dom.recipePortionsInput.value = 1;
-    tempRecipeItems = [];
+    
+    if (recipeId) {
+        const recipe = state.foodList.find(f => f.id === recipeId);
+        if (recipe) {
+            dom.recipeNameInput.value = recipe.name || '';
+            dom.recipePortionsInput.value = recipe.portions || 1;
+            // Load existing ingredients into temp state
+            tempRecipeItems = JSON.parse(JSON.stringify(recipe.items || []));
+            const titleEl = document.getElementById('recipe-editor-title');
+            if (titleEl) titleEl.textContent = t('recipe_editor_title', state.language) + ' (Edit)';
+        }
+    } else {
+        dom.recipeNameInput.value = '';
+        dom.recipePortionsInput.value = 1;
+        tempRecipeItems = [];
+        const titleEl = document.getElementById('recipe-editor-title');
+        if (titleEl) titleEl.textContent = t('recipe_editor_title', state.language);
+    }
 
     renderRecipeEditorItems();
     dom.recipeEditorModal.style.display = 'block';
@@ -147,6 +162,19 @@ export async function deleteRecipe(recipeId, refreshCallback) {
     }
 }
 
+export async function updateRecipe(recipeId, recipeData, refreshCallback) {
+    if (!state.user) return;
+    try {
+        const docRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', recipeId);
+        await FB.updateDoc(docRef, recipeData);
+        Utils.showToast("✅ " + (state.language === 'es' ? "Receta guardada" : "Recipe saved"));
+        if (refreshCallback) refreshCallback();
+    } catch (e) {
+        console.error("Update recipe failed", e);
+        Utils.showToast("❌ " + t('recipe_error_msg', state.language));
+    }
+}
+
 export async function saveRecipe(refreshCallback) {
     const name = dom.recipeNameInput.value.trim();
     const portions = parseFloat(dom.recipePortionsInput.value) || 1;
@@ -186,6 +214,7 @@ export async function saveRecipe(refreshCallback) {
         vitamins: {},
         minerals: {},
         ownerId: state.user.uid,
+        ownerName: state.displayName,
         updated_at: Date.now()
     };
     Object.entries(totals.vitamins).forEach(([n, v]) => recipeData.vitamins[n] = v / portions);
@@ -194,10 +223,13 @@ export async function saveRecipe(refreshCallback) {
     if (!state.user) return alert("Login to save.");
 
     try {
-        const colRef = FB.collection(FB.db, 'users', state.user.uid, 'foods');
-        await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
-        
-        Utils.showToast("✅ " + t('recipe_success_msg', state.language));
+        if (currentEditingRecipeId) {
+            await updateRecipe(currentEditingRecipeId, recipeData, refreshCallback);
+        } else {
+            const colRef = FB.collection(FB.db, 'users', state.user.uid, 'foods');
+            await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
+            Utils.showToast("✅ " + t('recipe_success_msg', state.language));
+        }
         
         dom.recipeEditorModal.style.display = 'none';
         if (refreshCallback) refreshCallback();
@@ -221,6 +253,7 @@ export function handleIngredientSelection(foodId, amount) {
     if (food) {
         const snapshot = {
             name: food.name,
+            brand: food.brand || '',
             protein: food.protein,
             carbs: food.carbs,
             fat: food.fat,

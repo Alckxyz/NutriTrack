@@ -1,6 +1,7 @@
 export function parsePastedFood(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     let name = "Nuevo Alimento";
+    let brand = "";
     let protein = 0, carbs = 0, fat = 0;
     let baseAmount = 100;
     let defaultUnit = 'g';
@@ -19,7 +20,8 @@ export function parsePastedFood(text) {
         
         const lowerLine = line.toLowerCase();
         
-        if (lowerLine.startsWith('protein:')) protein = parseFloat(line.split(':')[1]) || 0;
+        if (lowerLine.startsWith('brand:') || lowerLine.startsWith('marca:')) brand = line.split(':')[1].trim();
+        else if (lowerLine.startsWith('protein:')) protein = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('carbs:')) carbs = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('fat:')) fat = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('unit:')) {
@@ -73,7 +75,7 @@ export function parsePastedFood(text) {
     else if (norm.includes('oz') || norm.includes('onza')) defaultUnit = 'oz';
     else if (norm === 'g' || norm === 'gramos' || norm === 'gramo') defaultUnit = 'g';
 
-    return { name, protein, carbs, fat, vitamins, minerals, conversions, baseAmount, defaultUnit };
+    return { name, brand, protein, carbs, fat, vitamins, minerals, conversions, baseAmount, defaultUnit };
 }
 
 export function downloadJSON(data, filename) {
