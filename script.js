@@ -26,6 +26,7 @@ const uiOptions = {
     onCopyMeal: (mealId) => MealsLogic.copyMeal(mealId, refreshUI),
     onPasteMeal: (mealId) => MealsLogic.pasteMeal(mealId, refreshUI),
     onDeleteMeal: (mealId) => MealsLogic.deleteMeal(mealId, refreshUI),
+    onViewRecipe: (mealId, index) => MealsLogic.showRecipeDetails(mealId, index),
     onRemoveItem: (mealId, index) => MealsLogic.removeItemFromMeal(mealId, index, refreshUI),
     onInlineEdit: (e, mealId, index) => MealsLogic.startInlineEdit(e, mealId, index, refreshUI)
 };
@@ -47,6 +48,13 @@ const refreshUI = () => {
     UI.renderAll(uiOptions);
     AuthLogic.updateAuthUI();
     WeightLogic.refreshWeightUI();
+
+    if (dom.recipeLibraryModal && dom.recipeLibraryModal.style.display === 'block') {
+        RecipesLogic.refreshRecipeLibrary();
+    }
+    if (dom.libraryModal && dom.libraryModal.style.display === 'block') {
+        DatabaseLogic.refreshLibrary();
+    }
 
     if (dom.foodModal && dom.foodModal.style.display === 'block' && MealsLogic.currentSelectedFoodId) {
         const food = state.foodList.find(f => f.id === MealsLogic.currentSelectedFoodId);
@@ -81,7 +89,7 @@ function setupGlobalUI() {
 
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.settingsModal, dom.wizardModal, dom.weightModal].forEach(m => {
+            [dom.foodModal, dom.dbModal, dom.libraryModal, dom.pasteModal, dom.recipeLibraryModal, dom.recipeEditorModal, dom.recipeDetailsModal, dom.settingsModal, dom.wizardModal, dom.weightModal].forEach(m => {
                 if(m) m.style.display = 'none';
             });
         }

@@ -2,6 +2,18 @@ import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const recipeModals = `
+    <!-- Modal for viewing recipe ingredients -->
+    <div id="recipe-details-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-btn">&times;</span>
+            <h2 id="recipe-details-title" style="margin-bottom: 1rem;">Recipe Ingredients</h2>
+            <div id="recipe-details-list" class="meal-items" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+                <!-- Ingredients will be listed here -->
+            </div>
+            <button class="primary-btn close-details-btn" style="width: 100%; margin-top: 1.5rem;">Cerrar</button>
+        </div>
+    </div>
+
     <!-- Modal for managing recipes -->
     <div id="recipe-library-modal" class="modal">
         <div class="modal-content" style="max-width: 600px;">

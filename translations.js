@@ -51,6 +51,8 @@ export const translations = {
         pasted_success: "Importado con éxito: \"{name}\"",
         paste_success_msg: "Alimento creado",
         paste_error_msg: "Error al crear alimento",
+        recipe_success_msg: "Receta creada",
+        recipe_error_msg: "Error al crear receta",
         standard_title: "Plan Estándar",
         daily_title: "Planificador Diario",
         breakfast: "Desayuno",

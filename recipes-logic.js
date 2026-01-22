@@ -153,6 +153,10 @@ export async function saveRecipe(refreshCallback) {
     if (!name) return alert('Please enter a recipe name');
     if (tempRecipeItems.length === 0) return alert('Add at least one ingredient');
 
+    const btn = dom.saveRecipeBtn;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+
     const totals = { protein: 0, carbs: 0, fat: 0, weight: 0, vitamins: {}, minerals: {} };
     tempRecipeItems.forEach(item => {
         if (!item) return;
@@ -193,10 +197,17 @@ export async function saveRecipe(refreshCallback) {
         const colRef = FB.collection(FB.db, 'users', state.user.uid, 'foods');
         await FB.addDoc(colRef, { ...recipeData, created_at: Date.now() });
         
+        Utils.showToast("✅ " + t('recipe_success_msg', state.language));
+        
         dom.recipeEditorModal.style.display = 'none';
         if (refreshCallback) refreshCallback();
+        if (dom.recipeLibraryModal.style.display === 'block') refreshRecipeLibrary();
     } catch (e) {
         console.error("Save recipe failed", e);
+        Utils.showToast("❌ " + t('recipe_error_msg', state.language));
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
     }
 }
 

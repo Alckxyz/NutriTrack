@@ -95,6 +95,7 @@ export function renderMeals(options = {}) {
                                 </div>
                             </div>
                             <div class="item-actions">
+                                ${isRecipe ? `<button class="edit-btn-mini view-recipe-trigger" data-meal-id="${meal.id}" data-index="${idx}" title="Ver ingredientes">👁️</button>` : ''}
                                 <button class="delete-btn remove-item-trigger" data-meal-id="${meal.id}" data-index="${idx}">×</button>
                                 <span class="item-drag-handle">☰</span>
                             </div>
@@ -110,6 +111,11 @@ export function renderMeals(options = {}) {
         if (pasteBtn) pasteBtn.onclick = () => onPasteMeal(meal.id);
         mealCard.querySelector('.delete-meal-trigger').onclick = () => onDeleteMeal(meal.id);
         mealCard.querySelector('.add-food-trigger').onclick = () => onAddFood(meal.id);
+        mealCard.querySelectorAll('.view-recipe-trigger').forEach(btn => {
+            btn.onclick = () => {
+                if (options.onViewRecipe) options.onViewRecipe(btn.dataset.mealId, parseInt(btn.dataset.index));
+            };
+        });
         mealCard.querySelectorAll('.remove-item-trigger').forEach(btn => btn.onclick = () => onRemoveItem(btn.dataset.mealId, parseInt(btn.dataset.index)));
         mealCard.querySelectorAll('.editable-amount').forEach(span => span.onclick = (e) => onInlineEdit(e, span.dataset.mealId, parseInt(span.dataset.index)));
         mealsListEl.appendChild(mealCard);

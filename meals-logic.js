@@ -190,7 +190,8 @@ export function confirmAddFood(refreshCallback) {
         baseAmount: food.baseAmount || (food.defaultUnit === 'g' || food.defaultUnit === 'ml' ? 100 : 1),
         defaultUnit: food.defaultUnit || 'g',
         type: food.type || 'standard',
-        conversions: food.conversions || []
+        conversions: food.conversions || [],
+        items: food.items || [] // Store ingredients if it's a recipe
     };
 
     meal.items.push({ 
@@ -290,4 +291,72 @@ export function pasteMeal(mealId, refreshCallback) {
 
 export function setCurrentActiveMealId(id) {
     currentActiveMealId = id;
+}
+
+export function showRecipeDetails(mealId, itemIdx) {
+    const meals = getCurrentMeals();
+    const meal = meals.find(m => m.id === mealId);
+    if (!meal || !meal.items[itemIdx]) return;
+    
+    const item = meal.items[itemIdx];
+    const food = state.foodList.find(f => f.id === item.foodId) || item.snapshot;
+    
+    if (!food || food.type !== 'recipe') return;
+
+    dom.recipeDetailsTitle.textContent = food.name;
+    dom.recipeDetailsList.innerHTML = '';
+    
+    const ingredients = food.items || [];
+    if (ingredients.length === 0) {
+        dom.recipeDetailsList.innerHTML = `<div style="padding:15px; text-align:center; color:var(--text-light);">${state.language === 'es' ? 'No hay ingredientes registrados.' : 'No ingredients registered.'}</div>`;
+    } else {
+        ingredients.forEach(ing => {
+            const ingFood = state.foodList.find(f => f.id === ing.foodId) || ing.snapshot;
+            if (!ingFood) return;
+
+            const isSubRecipe = ingFood.type === 'recipe';
+            const baseAmount = ingFood.baseAmount || (ingFood.defaultUnit === 'g' || ingFood.defaultUnit === 'ml' ? 100 : 1);
+            const ratio = isSubRecipe ? (ing.amount || 0) : (ing.amount / baseAmount);
+            
+            const protein = (ingFood.protein || 0) * ratio;
+            const carbs = (ingFood.carbs || 0) * ratio;
+            const fat = (ingFood.fat || 0) * ratio;
+            const kcal = (protein * 4) + (carbs * 4) + (fat * 9);
+
+            let micros = [];
+            if (ingFood.vitamins) Object.entries(ingFood.vitamins).forEach(([n, v]) => micros.push(`${n}: ${(v * ratio).toFixed(1)}`));
+            if (ingFood.minerals) Object.entries(ingFood.minerals).forEach(([n, v]) => micros.push(`${n}: ${(v * ratio).toFixed(1)}`));
+
+            const row = document.createElement('div');
+            row.className = 'meal-item';
+            row.style.minHeight = 'auto';
+            row.style.padding = '10px 12px';
+            row.innerHTML = `
+                <div class="item-info">
+                    <div class="item-name" style="font-size: 0.85rem; font-weight: 600;">
+                        ${ingFood.name}
+                        ${isSubRecipe ? `<small style="color:var(--secondary); font-size:0.6rem; border:1px solid var(--secondary); padding:0 2px; border-radius:2px; margin-left:4px;">${t('recipe_badge', state.language)}</small>` : ''}
+                    </div>
+                    <div class="item-meta">
+                        <span style="font-size: 0.75rem;">
+                            <strong>${ing.amount}${isSubRecipe ? ' ' + t('portions_unit', state.language) : 'g'}</strong> - 
+                            <span style="color: var(--primary)">${Math.round(kcal)} kcal</span>
+                        </span>
+                        <div class="item-nutrients-mini" style="font-size: 0.7rem; color: var(--text-light); margin-top: 2px;">
+                            P: ${protein.toFixed(1)}g | C: ${carbs.toFixed(1)}g | F: ${fat.toFixed(1)}g
+                            ${micros.length > 0 ? `<br><span class="micro-text" style="color: #81c784; font-style: italic; font-size: 0.65rem; display: block; margin-top: 2px;">${micros.join(' | ')}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            dom.recipeDetailsList.appendChild(row);
+        });
+    }
+
+    dom.recipeDetailsModal.style.display = 'block';
+    
+    const closeBtn = dom.recipeDetailsModal.querySelector('.close-details-btn');
+    if (closeBtn) {
+        closeBtn.onclick = () => dom.recipeDetailsModal.style.display = 'none';
+    }
 }

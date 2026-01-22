@@ -13,13 +13,18 @@
 }
 
 /* Main layer modals */
-#food-modal, #db-modal, #weight-modal, #library-modal, #recipe-library-modal, #settings-modal {
+#db-modal, #weight-modal, #library-modal, #recipe-library-modal, #settings-modal {
     z-index: 1100;
 }
 
 /* Secondary layer modals (must appear above main modals) */
 #paste-modal, #wizard-modal, #recipe-editor-modal {
     z-index: 1200;
+}
+
+/* Top layer modals (pickers that open over others) */
+#food-modal {
+    z-index: 1300;
 }
 
 .modal-content {
