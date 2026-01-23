@@ -132,7 +132,7 @@ export function renderUnitSelector(food) {
     });
 }
 
-export function selectFoodForMeal(food) {
+export async function selectFoodForMeal(food) {
     currentSelectedFoodId = food.id;
     const isRecipe = food.type === 'recipe';
     dom.selectedFoodName.textContent = food.name;
@@ -140,6 +140,8 @@ export function selectFoodForMeal(food) {
     // Hint no longer needed as conversions are removed
     dom.defaultConvHint.classList.add('hidden');
 
+    // Fetch latest public conversions to ensure the selector is up to date
+    await import('./state.js').then(m => m.fetchFoodConversions(food.id));
     renderUnitSelector(food);
 
     if (isRecipe) {

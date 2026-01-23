@@ -74,7 +74,7 @@ export const libraryModals = `
                         <button type="button" class="add-mini-btn" id="add-conversion-btn" data-t="add_unit_conversion">${t('add_unit_conversion', state.language)}</button>
                     </div>
                     <div id="db-conversions-container" class="nutrients-input-list"></div>
-                    <p style="font-size:0.7rem; color:var(--text-light); margin-top:5px; font-style:italic;">* Estas conversiones son personales y no afectan al alimento global.</p>
+                    <p style="font-size:0.7rem; color:var(--text-light); margin-top:5px; font-style:italic;">* Estas conversiones son públicas y visibles para todos los usuarios.</p>
                 </div>
 
                 <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%; margin-top: 20px;" data-t="save_to_list">${t('save_to_list', state.language)}</button>

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -42,8 +42,20 @@ const provider = new GoogleAuthProvider();
  *       }
  *     }
  *
+ *     // PUBLIC CONVERSIONS
+ *     match /foodList/{foodId}/conversions/{conversionId} {
+ *       allow read: if true;
+ *       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+ *       allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+ *     }
+ *
  *     // Global rule for collectionGroup: Allow reading any 'foods' subcollection across all users
  *     match /{path=**}/foods/{foodId} {
+ *       allow read: if true;
+ *     }
+ *
+ *     // Global rule for collectionGroup: Allow reading any 'conversions' subcollection
+ *     match /{path=**}/conversions/{conversionId} {
  *       allow read: if true;
  *     }
  *   }
@@ -53,5 +65,5 @@ const provider = new GoogleAuthProvider();
 export { 
     app, db, auth, provider, 
     signInWithPopup, signOut, onAuthStateChanged, 
-    collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, deleteField
+    collection, collectionGroup, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, getDocs, deleteField
 };

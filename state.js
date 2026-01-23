@@ -33,7 +33,7 @@ export const state = {
 
 let userDataListener = null;
 let userFoodsListener = null;
-let userConversionsListener = null;
+let globalConversionsListener = null;
 let globalFoodListener = null;
 let userFoodGroupListener = null;
 let weightEntriesListener = null;
@@ -139,9 +139,56 @@ export const saveState = async (callback) => {
     }
 };
 
+/**
+ * Fetches conversions for a specific food from the public path.
+ * This ensures we have the most up-to-date data even if the collectionGroup listener is lagging.
+ */
+export async function fetchFoodConversions(foodId, refreshUI) {
+    try {
+        const convCol = FB.collection(FB.db, 'foodList', foodId, 'conversions');
+        const snapshot = await FB.getDocs(convCol);
+        const conversions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        state.foodConversions[foodId] = conversions;
+        if (refreshUI) refreshUI();
+        return conversions;
+    } catch (e) {
+        console.error("Error fetching public conversions for food:", foodId, e);
+        return [];
+    }
+}
+
+export function initSharedConversionsSync(refreshUI) {
+    if (globalConversionsListener) return;
+    const convGroup = FB.collectionGroup(FB.db, 'conversions');
+    globalConversionsListener = FB.onSnapshot(convGroup, (snapshot) => {
+        // We update the whole map but preserve keys that might have been manually fetched if needed
+        const newConversions = { ...state.foodConversions };
+        snapshot.docs.forEach(doc => {
+            // Extracts foodId from path: foodList/{foodId}/conversions/{convId}
+            const foodId = doc.ref.parent.parent.id;
+            if (!newConversions[foodId] || snapshot.docChanges().some(c => c.doc.id === doc.id)) {
+                // If we don't have it or it changed, we'll need to rebuild this food's list
+            }
+        });
+        
+        // Rebuild the map based on all current docs in group
+        const tempMap = {};
+        snapshot.docs.forEach(doc => {
+            const foodId = doc.ref.parent.parent.id;
+            if (!tempMap[foodId]) tempMap[foodId] = [];
+            tempMap[foodId].push({ id: doc.id, ...doc.data() });
+        });
+        
+        state.foodConversions = tempMap;
+        if (refreshUI) refreshUI();
+    }, (err) => console.error("Global conversions sync error:", err));
+}
+
 export function initSharedFoodSync(refreshUI) {
     if (globalFoodListener || userFoodGroupListener) return;
     _refreshUICallback = refreshUI;
+
+    initSharedConversionsSync(refreshUI);
 
     // 1. Listen to Global Foods (the shared pool)
     const globalCol = FB.collection(FB.db, 'foodList');
@@ -180,7 +227,6 @@ export async function loadUserData(user, refreshUI) {
     // Cleanup existing listeners if any
     if (userDataListener) userDataListener();
     if (userFoodsListener) userFoodsListener();
-    if (userConversionsListener) userConversionsListener();
     if (weightEntriesListener) weightEntriesListener();
     
     if (!user) {
@@ -224,9 +270,15 @@ export async function loadUserData(user, refreshUI) {
         snapshot.docs.forEach(async (docSnap) => {
             const data = docSnap.data();
             if (data.conversions && Array.isArray(data.conversions) && data.conversions.length > 0) {
-                console.log(`Migrating conversions for food: ${docSnap.id}`);
-                const convRef = FB.doc(FB.db, 'users', user.uid, 'foodConversions', docSnap.id);
-                await FB.setDoc(convRef, { conversions: data.conversions }, { merge: true });
+                console.log(`Migrating conversions to public path for food: ${docSnap.id}`);
+                for (const c of data.conversions) {
+                    const convCol = FB.collection(FB.db, 'foodList', docSnap.id, 'conversions');
+                    await FB.addDoc(convCol, { 
+                        ...c, 
+                        ownerId: user.uid,
+                        createdAt: Date.now()
+                    });
+                }
                 // Remove legacy field from food doc
                 const foodRef = FB.doc(FB.db, 'users', user.uid, 'foods', docSnap.id);
                 await FB.updateDoc(foodRef, { conversions: FB.deleteField() });
@@ -236,17 +288,6 @@ export async function loadUserData(user, refreshUI) {
         updateMergedFoodList();
         if (refreshUI) refreshUI();
     }, (err) => console.error("Personal foods sync error:", err));
-
-    // 3. User Conversions listener (users/{uid}/foodConversions)
-    const userConversionsCol = FB.collection(FB.db, 'users', user.uid, 'foodConversions');
-    userConversionsListener = FB.onSnapshot(userConversionsCol, (snapshot) => {
-        const newConversions = {};
-        snapshot.docs.forEach(doc => {
-            newConversions[doc.id] = doc.data().conversions || [];
-        });
-        state.foodConversions = newConversions;
-        if (refreshUI) refreshUI();
-    });
 
     // 4. Weight entries listener
     const weightCol = FB.collection(FB.db, 'users', user.uid, 'weightEntries');
