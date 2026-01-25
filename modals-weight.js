@@ -50,8 +50,18 @@ export const weightModals = `
                     <div class="section-header-mini" style="margin-top:0">
                         <h3 data-t="weight_history_title">${t('weight_history_title', state.language)}</h3>
                     </div>
-                    <div id="weight-history-list" class="library-list" style="max-height: 350px;">
+                    <div id="weight-history-list" class="library-list" style="max-height: 180px;">
                         <!-- Entries list here -->
+                    </div>
+
+                    <div id="auto-coach-panel" style="margin-top: 1.5rem; background: rgba(129, 199, 132, 0.05); border: 1px solid var(--primary); padding: 1rem; border-radius: 12px;">
+                        <div class="section-header-mini" style="margin-top:0; border-bottom:none;">
+                            <h3 data-t="coach_title">${t('coach_title', state.language)}</h3>
+                        </div>
+                        <div id="coach-content" style="font-size: 0.85rem; line-height: 1.4;">
+                            <!-- Coach recommendations here -->
+                        </div>
+                        <button id="coach-apply-btn" class="primary-btn hidden" style="width: 100%; margin-top: 10px; font-size: 0.75rem; padding: 6px;"></button>
                     </div>
                 </div>
             </div>

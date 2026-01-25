@@ -70,7 +70,7 @@ export function openDbModalForAdd() {
         dom.newFoodForm.reset();
         // Re-enable all inputs that might have been disabled in "Edit/Conversions" mode
         const unitInput = document.getElementById('db-default-unit');
-        [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, unitInput].forEach(el => {
+        [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, dom.dbFiber, unitInput].forEach(el => {
             if (el) el.disabled = false;
         });
     }
@@ -109,11 +109,12 @@ export async function openDbModalForEdit(foodId) {
     dom.dbProtein.value = food.protein;
     dom.dbCarbs.value = food.carbs;
     dom.dbFat.value = food.fat;
+    dom.dbFiber.value = food.fiber || 0;
     const unitInput = document.getElementById('db-default-unit');
     if (unitInput) unitInput.value = food.defaultUnit || 'g';
 
     // Toggle editability based on ownership
-    [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, unitInput].forEach(el => {
+    [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, dom.dbFiber, unitInput].forEach(el => {
         if (el) el.disabled = !isOwner;
     });
     dom.addVitaminBtn.style.display = isOwner ? '' : 'none';

@@ -5,7 +5,8 @@ const statContainers = {
     get calories() { return document.getElementById('stat-calories'); },
     get protein() { return document.getElementById('stat-protein'); },
     get carbs() { return document.getElementById('stat-carbs'); },
-    get fat() { return document.getElementById('stat-fat'); }
+    get fat() { return document.getElementById('stat-fat'); },
+    get fiber() { return document.getElementById('stat-fiber'); }
 };
 
 const renderStat = (container, current, goal, unit, labelKey, hasGoals) => {
@@ -50,7 +51,7 @@ const renderStat = (container, current, goal, unit, labelKey, hasGoals) => {
 };
 
 export function updateSummary() {
-    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0, vitamins: {}, minerals: {} };
+    let totals = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, vitamins: {}, minerals: {} };
     const currentMeals = (typeof state.getCurrentMeals === 'function' ? state.getCurrentMeals() : []); 
     // Usually state.js handles getCurrentMeals, but we import it from state.js anyway
     import('./state.js').then(({ getCurrentMeals }) => {
@@ -61,6 +62,7 @@ export function updateSummary() {
             totals.protein += m.protein;
             totals.carbs += m.carbs;
             totals.fat += m.fat;
+            totals.fiber += m.fiber;
             Object.entries(m.vitamins).forEach(([n, v]) => totals.vitamins[n] = (totals.vitamins[n] || 0) + v);
             Object.entries(m.minerals).forEach(([n, v]) => totals.minerals[n] = (totals.minerals[n] || 0) + v);
         });
@@ -70,6 +72,7 @@ export function updateSummary() {
         renderStat(statContainers.protein, totals.protein, state.goals.protein, 'g', 'protein', hasGoals);
         renderStat(statContainers.carbs, totals.carbs, state.goals.carbs, 'g', 'carbs', hasGoals);
         renderStat(statContainers.fat, totals.fat, state.goals.fat, 'g', 'fat', hasGoals);
+        renderStat(statContainers.fiber, totals.fiber, state.goals.fiber, 'g', 'fiber', hasGoals);
 
         const existingPrompt = document.querySelector('.set-goals-prompt');
         if (hasGoals) {
@@ -83,8 +86,9 @@ export function updateSummary() {
         }
 
         let microsHtml = '';
+        const visibleList = state.visibleMicros || [];
         [...Object.entries(totals.vitamins), ...Object.entries(totals.minerals)].forEach(([name, val]) => {
-            if (val > 0) {
+            if (val > 0 && visibleList.includes(name)) {
                 microsHtml += `<div class="micro-badge-large"><span class="label">${name}</span><span class="value">${val.toFixed(1)}</span></div>`;
             }
         });

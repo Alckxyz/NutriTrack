@@ -1,6 +1,7 @@
 import { state, fetchFoodConversions } from './state.js';
 import { t } from './i18n.js';
 import * as FB from './firebase-config.js';
+import { confirmAction } from './utils.js';
 
 export function updateNutrientSuggestions() {
     const suggestionsList = document.getElementById('nutrient-suggestions');
@@ -75,7 +76,8 @@ export function addConversionRow(containerId, name = '', quantity = '1', weight 
     removeBtn.onclick = async () => {
         if (id && state.user && ownerId === state.user.uid) {
             const confirmMsg = t('confirm_delete_conversion', state.language);
-            if (!confirm(confirmMsg === 'confirm_delete_conversion' ? "¿Borrar esta conversión?" : confirmMsg)) return;
+            const msg = confirmMsg === 'confirm_delete_conversion' ? "¿Borrar esta conversión?" : confirmMsg;
+            if (!(await confirmAction(msg, t('confirm', state.language), { okText: t('delete_btn', state.language), isDanger: true }))) return;
             
             const foodId = document.getElementById('db-edit-id').value;
             try {

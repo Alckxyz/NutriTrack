@@ -14,9 +14,16 @@ Después de eso, cuando yo te mande un alimento, dame los nutrientes promedio co
 Los valores deben ser un promedio.
 
 ✅ Regla CLAVE (muy importante):
-- TODOS los valores de Protein, Carbs, Fat, Vitamins y Minerals deben corresponder EXACTAMENTE a la cantidad indicada en Units.
+- TODOS los valores de Protein, Carbs, Fat, Fiber, Vitamins y Minerals deben corresponder EXACTAMENTE a la cantidad indicada en Units.
 - Si usas datos por 100 g (o 100 ml), debes convertirlos proporcionalmente a los gramos/ml indicados en Units.
 - Nunca uses nutrientes de 100 g si en Units aparece otra cantidad.
+
+✅ Regla para priorizar fibra (MUY IMPORTANTE):
+- La fibra (Fiber) debe incluirse SIEMPRE.
+- Si existe fibra en el alimento, NO uses 0.
+- Si el alimento es integral, con cáscara, con pulpa, con salvado, o versión “alto en fibra”, usa la opción con MÁS fibra disponible.
+- Si el alimento tiene versiones con y sin fibra (ej: pan blanco vs integral, arroz blanco vs integral, jugo vs fruta entera),
+  elige la versión con MÁS fibra, a menos que el usuario especifique lo contrario.
 
 ✅ Regla del nombre (primera línea):
 - La primera línea debe ser solo el nombre del alimento, sin cantidad, sin peso y sin empaque.
@@ -56,7 +63,7 @@ Los valores deben ser un promedio.
   - “una taza” → taza: 1
 
 ✅ Micronutrientes:
-- SIEMPRE incluye Vitamins y Minerals.
+- SIEMPRE incluye Fiber, Vitamins y Minerals.
 - Incluye solo los micronutrientes MÁS IMPORTANTES según ese alimento.
 - Pon entre 2 y 5 vitaminas y entre 2 y 5 minerales (elige los más relevantes).
 - Sus valores también deben corresponder a la cantidad indicada en Units.
@@ -67,6 +74,7 @@ Nombre del alimento
 Protein: X
 Carbs: X
 Fat: X
+Fiber: X
 Units:
 g: X
 unidad_extra: X
@@ -77,6 +85,7 @@ Mineral X: X
 
 Reglas:
 - Protein, Carbs y Fat son obligatorios.
+- Fiber es obligatorio.
 - Vitamins y Minerals son obligatorios.
 - Usa solo números (decimales permitidos).
 - No pongas “g”, “mg”, “kcal”, etc. (solo las etiquetas g: y ml: en Units)`;

@@ -146,7 +146,7 @@ export async function deleteRecipe(recipeId, refreshCallback) {
         return alert(state.language === 'es' ? "No tienes permiso para borrar esta receta." : "No permission to delete this recipe.");
     }
 
-    if (confirm(state.language === 'es' ? '¿Borrar esta receta?' : 'Delete this recipe?')) {
+    if (await Utils.confirmAction(state.language === 'es' ? '¿Borrar esta receta?' : 'Delete this recipe?')) {
         try {
             const recipeDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', recipeId);
             await FB.deleteDoc(recipeDocRef);
@@ -223,6 +223,9 @@ export async function saveRecipe(refreshCallback) {
     if (!state.user) return alert("Login to save.");
 
     try {
+        // Immediate UI feedback: close modal early
+        dom.recipeEditorModal.style.display = 'none';
+
         if (currentEditingRecipeId) {
             await updateRecipe(currentEditingRecipeId, recipeData, refreshCallback);
         } else {
@@ -231,7 +234,6 @@ export async function saveRecipe(refreshCallback) {
             Utils.showToast("✅ " + t('recipe_success_msg', state.language));
         }
         
-        dom.recipeEditorModal.style.display = 'none';
         if (refreshCallback) refreshCallback();
         if (dom.recipeLibraryModal.style.display === 'block') refreshRecipeLibrary();
     } catch (e) {

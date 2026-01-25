@@ -52,6 +52,10 @@ export const libraryModals = `
                         <label><span data-t="fat">${t('fat', state.language)}</span> (g)*</label>
                         <input type="number" id="db-fat" step="0.1" required>
                     </div>
+                    <div class="form-group">
+                        <label><span data-t="fiber">${t('fiber', state.language)}</span> (g)</label>
+                        <input type="number" id="db-fiber" step="0.1">
+                    </div>
                 </div>
 
                 <div class="dynamic-nutrients-section">

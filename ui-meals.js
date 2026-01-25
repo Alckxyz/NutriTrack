@@ -15,18 +15,22 @@ export function renderMeals(options = {}) {
         mealCard.dataset.id = meal.id;
         const mealSummary = calculateMealNutrients(meal);
         let microsHtml = '';
+        const visibleList = state.visibleMicros || [];
         [...Object.entries(mealSummary.vitamins), ...Object.entries(mealSummary.minerals)].forEach(([name, val]) => {
-            if (val > 0) microsHtml += `<span class="nutrient-badge micro">${name}: ${val.toFixed(1)}</span>`;
+            if (val > 0 && visibleList.includes(name)) {
+                microsHtml += `<span class="nutrient-badge micro">${name}: ${val.toFixed(1)}</span>`;
+            }
         });
         mealCard.innerHTML = `
             <div class="meal-header">
                 <div class="meal-title-group">
-                    <h3>${meal.name}</h3>
+                    <h3 class="meal-name-editable" contenteditable="true" data-placeholder="${t('untitled_meal', state.language)}">${meal.name || ''}</h3>
                     <div class="meal-nutrients-grid">
                         <span class="nutrient-badge kcal">${Math.round(mealSummary.calories)} kcal</span>
-                        <span class="nutrient-badge">P: ${mealSummary.protein.toFixed(1)}g</span>
-                        <span class="nutrient-badge">C: ${mealSummary.carbs.toFixed(1)}g</span>
-                        <span class="nutrient-badge">F: ${mealSummary.fat.toFixed(1)}g</span>
+                        <span class="nutrient-badge macro">P: ${mealSummary.protein.toFixed(1)}g</span>
+                        <span class="nutrient-badge macro">C: ${mealSummary.carbs.toFixed(1)}g</span>
+                        <span class="nutrient-badge macro">F: ${mealSummary.fat.toFixed(1)}g</span>
+                        <span class="nutrient-badge fiber-badge">Fib: ${mealSummary.fiber.toFixed(1)}g</span>
                         ${microsHtml}
                     </div>
                 </div>
@@ -76,8 +80,13 @@ export function renderMeals(options = {}) {
                     }
                     const foodKcal = calculateCalories(food);
                     let foodMicros = [];
-                    if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`));
-                    if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`));
+                    const visibleList = state.visibleMicros || [];
+                    if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => {
+                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                    });
+                    if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => {
+                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                    });
                     const brandDisplay = food.brand ? `<small style="color:var(--text-light); font-size:0.7rem;"> [${food.brand}]</small>` : '';
                     return `
                         <div class="meal-item" data-index="${idx}">
@@ -92,7 +101,7 @@ export function renderMeals(options = {}) {
                                         <span class="editable-amount" data-meal-id="${meal.id}" data-index="${idx}">${item.amount}</span> ${unitLabel}
                                         - <strong>${Math.round(foodKcal * ratio)} kcal</strong>
                                     </span>
-                                    <div class="item-nutrients-mini">P: ${(food.protein * ratio).toFixed(1)}g | C: ${(food.carbs * ratio).toFixed(1)}g | F: ${(food.fat * ratio).toFixed(1)}g${foodMicros.length > 0 ? `<br><span class="micro-text">${foodMicros.join(' | ')}</span>` : ''}</div>
+                                    <div class="item-nutrients-mini">P: ${(food.protein * ratio).toFixed(1)}g | C: ${(food.carbs * ratio).toFixed(1)}g | F: ${(food.fat * ratio).toFixed(1)}g | Fib: ${((food.fiber || 0) * ratio).toFixed(1)}g${foodMicros.length > 0 ? `<br><span class="micro-text">${foodMicros.join(' | ')}</span>` : ''}</div>
                                 </div>
                             </div>
                             <div class="item-actions">
@@ -106,7 +115,27 @@ export function renderMeals(options = {}) {
             </div>
             <div class="meal-footer"><button class="add-btn add-food-trigger" data-meal-id="${meal.id}">${t('add_food_btn', state.language)}</button></div>
         `;
-        mealCard.querySelector('.rename-meal-trigger').onclick = () => onRenameMeal(meal.id);
+        const nameEl = mealCard.querySelector('.meal-name-editable');
+        nameEl.onblur = () => {
+            const newName = nameEl.textContent.trim();
+            import('./meals-logic.js').then(m => m.renameMeal(meal.id, newName, onRenderAll));
+        };
+        nameEl.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                nameEl.blur();
+            }
+        };
+
+        mealCard.querySelector('.rename-meal-trigger').onclick = () => {
+            nameEl.focus();
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(nameEl);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        };
         mealCard.querySelector('.copy-meal-trigger').onclick = () => onCopyMeal(meal.id);
         const pasteBtn = mealCard.querySelector('.paste-meal-trigger');
         if (pasteBtn) pasteBtn.onclick = () => onPasteMeal(meal.id);

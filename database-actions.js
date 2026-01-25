@@ -14,7 +14,11 @@ export async function deleteFromDatabase(foodId, refreshLibrary, refreshCallback
         return alert(state.language === 'es' ? "No tienes permiso para borrar este alimento." : "You don't have permission to delete this food.");
     }
 
-    if (confirm(t('confirm_delete_food', state.language).replace('{name}', food.name))) {
+    if (await Utils.confirmAction(
+        t('confirm_delete_food', state.language).replace('{name}', food.name),
+        t('confirm', state.language),
+        { okText: t('delete_btn', state.language), isDanger: true }
+    )) {
         try {
             const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', foodId);
             await FB.deleteDoc(foodDocRef);
@@ -52,6 +56,7 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
             protein: parseFloat(dom.dbProtein.value) || 0,
             carbs: parseFloat(dom.dbCarbs.value) || 0,
             fat: parseFloat(dom.dbFat.value) || 0,
+            fiber: parseFloat(dom.dbFiber.value) || 0,
             defaultUnit: document.getElementById('db-default-unit').value || 'g',
             vitamins: Nutrients.getDynamicNutrientsFromContainer('db-vitamins-container'),
             minerals: Nutrients.getDynamicNutrientsFromContainer('db-minerals-container'),
@@ -60,6 +65,9 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
         };
 
         const conversions = Nutrients.getConversionsFromContainer('db-conversions-container');
+
+        // If editing, close modal immediately for better UX
+        if (editId) dom.dbModal.style.display = 'none';
 
         let savedId = editId;
         if (editId) {
@@ -103,14 +111,14 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
         }
 
         if (editId) {
-            dom.dbModal.style.display = 'none';
             // Reset form and re-enable inputs to ensure the next "Add" operation isn't blocked
             const unitInput = document.getElementById('db-default-unit');
-            [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, unitInput].forEach(el => {
+            [dom.dbName, dom.dbBrand, dom.dbBaseAmount, dom.dbProtein, dom.dbCarbs, dom.dbFat, dom.dbFiber, unitInput].forEach(el => {
                 if (el) el.disabled = false;
             });
             dom.newFoodForm.reset();
-            await import('./state.js').then(m => m.fetchFoodConversions(editId));
+            // Trigger fetch in background
+            import('./state.js').then(m => m.fetchFoodConversions(editId));
         } else {
             dom.newFoodForm.reset();
             dom.dbBaseAmount.value = 100;

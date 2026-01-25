@@ -63,23 +63,6 @@
     align-items: center;
 }
 
-.drag-handle, .item-drag-handle {
-    color: #666;
-    cursor: grab;
-    font-size: 1.2rem;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    transition: color 0.2s;
-}
-
-.drag-handle:hover, .item-drag-handle:hover {
-    color: var(--primary);
-}
-
 .meal-items {
     min-height: 40px;
     padding: 0.25rem 0.5rem;

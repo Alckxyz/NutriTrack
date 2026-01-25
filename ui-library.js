@@ -25,7 +25,7 @@ export function renderLibraryList(container, searchInput, sortSelect, onEdit, on
         item.innerHTML = `
             <div class="library-item-info">
                 <strong>${food.name}</strong>${brandDisplay} ${isRecipe ? `<small style="color:var(--secondary); border:1px solid var(--secondary); padding:0 2px; border-radius:2px; font-size:0.6rem;">${t('recipe_badge', state.language)}</small>` : ''}${creatorName}<br>
-                <small>${foodKcal} kcal | P: ${food.protein.toFixed(1)}g | C: ${food.carbs.toFixed(1)}g | F: ${food.fat.toFixed(1)}g</small>
+                <small>${foodKcal} kcal | P: ${food.protein.toFixed(1)}g | C: ${food.carbs.toFixed(1)}g | F: ${food.fat.toFixed(1)}g | Fib: ${(food.fiber || 0).toFixed(1)}g</small>
             </div>
             <div class="library-item-actions">
                 <button class="conv-btn secondary-btn" style="padding: 4px 8px; font-size: 0.7rem; color: var(--secondary);">${t('conv_btn_short', state.language)}</button>

@@ -2,6 +2,19 @@ import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const foodModals = `
+    <!-- Modal for prompting meal name -->
+    <div id="meal-prompt-modal" class="modal">
+        <div class="modal-content" style="max-width: 350px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="add_meal">Añadir Comida</h2>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label data-t="prompt_new_meal">Nombre de la comida:</label>
+                <input type="text" id="meal-prompt-input" placeholder="Ej: Merienda">
+            </div>
+            <button id="confirm-meal-btn" class="primary-btn" style="width: 100%;">Añadir</button>
+        </div>
+    </div>
+
     <!-- Modal for adding food to meal -->
     <div id="food-modal" class="modal">
         <div class="modal-content">
@@ -48,6 +61,7 @@ export const foodModals = `
 Protein: 4.4
 Carbs: 53
 Fat: 0.4
+Fiber: 0.6
 Units:
 Cup: 200
 Bag: 1000

@@ -2,7 +2,7 @@ export function parsePastedFood(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     let name = "Nuevo Alimento";
     let brand = "";
-    let protein = 0, carbs = 0, fat = 0;
+    let protein = 0, carbs = 0, fat = 0, fiber = 0;
     let baseAmount = 100;
     let defaultUnit = 'g';
     let vitamins = {}, minerals = {}, conversions = [];
@@ -24,6 +24,7 @@ export function parsePastedFood(text) {
         else if (lowerLine.startsWith('protein:')) protein = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('carbs:')) carbs = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('fat:')) fat = parseFloat(line.split(':')[1]) || 0;
+        else if (lowerLine.startsWith('fiber:') || lowerLine.startsWith('fibra:')) fiber = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('unit:')) {
             defaultUnit = line.split(':')[1].trim();
             firstUnitInListFound = true; // Si hay una línea explícita de "unit:", no usamos la primera de la lista
@@ -75,7 +76,7 @@ export function parsePastedFood(text) {
     else if (norm.includes('oz') || norm.includes('onza')) defaultUnit = 'oz';
     else if (norm === 'g' || norm === 'gramos' || norm === 'gramo') defaultUnit = 'g';
 
-    return { name, brand, protein, carbs, fat, vitamins, minerals, conversions, baseAmount, defaultUnit };
+    return { name, brand, protein, carbs, fat, fiber, vitamins, minerals, conversions, baseAmount, defaultUnit };
 }
 
 export function downloadJSON(data, filename) {
@@ -135,4 +136,61 @@ export function convertToBaseAmount(amount, unit) {
         return amount * CONVERSION_FACTORS[unit];
     }
     return amount;
+}
+
+/**
+ * Custom confirmation modal that replaces native window.confirm()
+ * @param {string} message 
+ * @param {string} title 
+ * @returns {Promise<boolean>}
+ */
+export function uuidv4() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+}
+
+export async function confirmAction(message, title = '¿Estás seguro?', options = {}) {
+    const modal = document.getElementById('confirm-modal');
+    const msgEl = document.getElementById('confirm-modal-message');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const okBtn = document.getElementById('confirm-ok-btn');
+    const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+    if (!modal) return window.confirm(message);
+
+    const {
+        okText = 'Confirmar',
+        cancelText = 'Cancelar',
+        isDanger = false
+    } = options;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    okBtn.textContent = okText;
+    cancelBtn.textContent = cancelText;
+    
+    // Reset and apply style
+    okBtn.style.background = isDanger ? '#ff8a80' : 'var(--primary)';
+
+    modal.style.display = 'block';
+
+    return new Promise((resolve) => {
+        const handleOk = () => {
+            cleanup();
+            resolve(true);
+        };
+        const handleCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+        const cleanup = () => {
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+            modal.style.display = 'none';
+        };
+
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+    });
 }

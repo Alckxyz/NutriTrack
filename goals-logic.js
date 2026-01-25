@@ -23,6 +23,7 @@ export function initGoalsUI(refreshCallback) {
     dom.goalProtein.value = state.goals.protein || '';
     dom.goalCarbs.value = state.goals.carbs || '';
     dom.goalFat.value = state.goals.fat || '';
+    dom.goalFiber.value = state.goals.fiber || '';
     
     updateCalculatedCalories();
 
@@ -35,6 +36,7 @@ export function initGoalsUI(refreshCallback) {
         const p = parseFloat(dom.goalProtein.value) || 0;
         const c = parseFloat(dom.goalCarbs.value) || 0;
         const f = parseFloat(dom.goalFat.value) || 0;
+        const fiber = parseFloat(dom.goalFiber.value) || 0;
         const kcal = Math.round((p * 4) + (c * 4) + (f * 9));
 
         state.goals = {
@@ -43,6 +45,7 @@ export function initGoalsUI(refreshCallback) {
             protein: p,
             carbs: c,
             fat: f,
+            fiber: fiber,
             mode: 'manual',
             lastUpdated: Date.now()
         };
@@ -118,6 +121,9 @@ export function initGoalsUI(refreshCallback) {
         // 4. Fat Calculation
         let fatG = weight * 0.8;
         const minFatG = weight * 0.6;
+        
+        // Fiber Calculation (Rough guideline: 14g per 1000kcal)
+        const fiberG = Math.round((targetKcal / 1000) * 14);
 
         // 5. Carb Calculation with Training Minimums
         const carbMinFactors = {
@@ -161,6 +167,7 @@ export function initGoalsUI(refreshCallback) {
             protein: parseFloat(proteinG.toFixed(1)),
             carbs: parseFloat(carbsG.toFixed(1)),
             fat: parseFloat(fatG.toFixed(1)),
+            fiber: fiberG,
             pFactorUsed: pFactor.toFixed(2),
             appliedSafetyMin, appliedFatMin, appliedProteinRed, appliedCarbMinFixed,
             inputs: { sex, age, height, weight, activityFactor, trainingType, goal, speed }
@@ -180,6 +187,7 @@ export function initGoalsUI(refreshCallback) {
             <strong>• Protein:</strong> ${result.protein}g (${result.pFactorUsed} g/kg)${result.appliedProteinReduction ? ' [Reduced to min]' : ''}<br>
             <strong>• Carbs:</strong> ${result.carbs}g ${result.appliedCarbMin ? ' [Forced Minimum]' : ''}<br>
             <strong>• Fat:</strong> ${result.fat}g ${result.appliedFatMin ? ' [Reduced to min]' : ''}<br>
+            <strong>• Fiber:</strong> ${result.fiber}g<br>
         `;
         if (result.appliedMinKcal) summary += `<span style="color:#ff8a80; font-size:0.7rem;">* Adjusted to safety calorie floor.</span>`;
         
@@ -195,6 +203,7 @@ export function initGoalsUI(refreshCallback) {
             protein: currentCalculatedGoal.protein,
             carbs: currentCalculatedGoal.carbs,
             fat: currentCalculatedGoal.fat,
+            fiber: currentCalculatedGoal.fiber,
             mode: 'auto',
             calculatorInputs: currentCalculatedGoal.inputs,
             lastUpdated: Date.now()
@@ -204,6 +213,7 @@ export function initGoalsUI(refreshCallback) {
         dom.goalProtein.value = state.goals.protein;
         dom.goalCarbs.value = state.goals.carbs;
         dom.goalFat.value = state.goals.fat;
+        dom.goalFiber.value = state.goals.fiber;
         updateCalculatedCalories();
 
         dom.wizardModal.style.display = 'none';

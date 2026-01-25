@@ -49,6 +49,10 @@ export const settingsModals = `
                         <label data-t="fat">${t('fat', state.language)} (g)</label>
                         <input type="number" id="goal-fat" step="0.1" placeholder="70">
                     </div>
+                    <div class="form-group">
+                        <label data-t="fiber">${t('fiber', state.language)} (g)</label>
+                        <input type="number" id="goal-fiber" step="0.1" placeholder="30">
+                    </div>
                     <div class="form-group" style="grid-column: span 2; text-align: center; background: #252525; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-top: 5px;">
                         <div id="goal-calories-display" style="font-weight: bold; color: var(--primary); font-size: 0.95rem;">Calculated Calories: 0 kcal</div>
                         <input type="hidden" id="goal-calories">
@@ -65,6 +69,14 @@ export const settingsModals = `
                 <div class="settings-grid">
                     <button id="export-plan-btn" class="primary-btn" data-t="export_plan">${t('export_plan', state.language)}</button>
                     <button id="import-plan-btn" class="primary-btn" data-t="import_plan">${t('import_plan', state.language)}</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 data-t="settings_visible_micros">Micronutrientes Visibles</h3>
+                <p style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 10px;">Selecciona qué vitaminas y minerales quieres ver en el resumen diario.</p>
+                <div id="visible-micros-selection" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--input-bg); border-radius: 6px; border: 1px solid var(--border);">
+                    <!-- Checkboxes will be injected here -->
                 </div>
             </div>
         </div>

@@ -42,7 +42,31 @@ header {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 25px;
+}
+
+.main-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-btn {
+    background: transparent;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 8px 4px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.nav-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.nav-btn:hover {
+    color: var(--text);
 }
 
 .logo-container {
@@ -120,6 +144,235 @@ main {
     margin-left: 5px;
     font-size: 0.9rem;
     text-transform: capitalize;
+}
+
+/* Exercise Section Styles */
+.routines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.routine-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.routine-card.selected {
+    border-color: var(--secondary);
+    box-shadow: 0 0 15px rgba(100, 181, 246, 0.2);
+}
+
+.routine-selector-container {
+    padding-right: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.routine-select-box {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #444;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.routine-select-box.active {
+    background: var(--secondary);
+    border-color: var(--secondary);
+}
+
+.routine-select-box.active::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.routine-header {
+    background: #252525;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.routine-title-group h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--secondary);
+}
+
+.routine-name-editable {
+    outline: none;
+    border-bottom: 1px dashed transparent;
+    display: inline-block;
+    min-width: 50px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.routine-name-editable:hover, .routine-name-editable:focus {
+    background: rgba(100, 181, 246, 0.05);
+    border-bottom-color: var(--secondary);
+}
+
+.routine-name-editable:empty:before, .meal-name-editable:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text-light);
+    font-style: italic;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.meal-name-editable {
+    outline: none;
+    border-bottom: 1px dashed transparent;
+    display: inline-block;
+    min-width: 50px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.meal-name-editable:hover, .meal-name-editable:focus {
+    background: rgba(129, 199, 132, 0.05);
+    border-bottom-color: var(--primary);
+}
+
+.exercise-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.exercise-item:last-child {
+    border-bottom: none;
+}
+
+.exercise-info h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.exercise-config {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.exercise-config span strong {
+    color: var(--text);
+}
+
+.series-tracker {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.series-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: bold;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.series-dot.done {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #111;
+}
+
+.exercise-item.completed {
+    background: rgba(129, 199, 132, 0.03);
+}
+
+.exercise-item.completed .exercise-info h4 {
+    text-decoration: line-through;
+    color: var(--text-light);
+}
+
+.rest-timer-ui {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    border: 2px solid var(--secondary);
+    border-radius: 50px;
+    padding: 10px 20px;
+    z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.timer-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.timer-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--secondary);
+    font-weight: bold;
+}
+
+.timer-display {
+    font-family: monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    min-width: 80px;
+    text-align: center;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.timer-btn {
+    background: #333;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    padding: 0;
 }
 
 /* Tombstone markers for refactored sections */

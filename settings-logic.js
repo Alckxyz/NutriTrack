@@ -10,6 +10,7 @@ export function initSettingsUI(refreshUI) {
         dom.settingsModal.style.display = 'block';
         if (dom.displayNameInput) dom.displayNameInput.value = state.displayName || '';
         GoalsLogic.initGoalsUI(refreshUI);
+        renderVisibleMicrosSettings(refreshUI);
     };
 
     dom.saveProfileBtn.onclick = async () => {
@@ -100,9 +101,13 @@ function setupImportExport(refreshUI) {
                         const existing = state.foodList.find(f => f.name.toLowerCase() === item.name.toLowerCase() && f.ownerId === state.user.uid);
                         const foodData = {
                             name: item.name,
+                            brand: item.brand || '',
+                            baseAmount: parseFloat(item.baseAmount) || 100,
                             protein: parseFloat(item.protein) || 0,
                             carbs: parseFloat(item.carbs) || 0,
                             fat: parseFloat(item.fat) || 0,
+                            fiber: parseFloat(item.fiber) || 0,
+                            defaultUnit: item.defaultUnit || 'g',
                             vitamins: item.vitamins || {},
                             minerals: item.minerals || {},
                             updated_at: Date.now()
@@ -148,6 +153,65 @@ export function updateModeVisibility() {
     } else {
         dom.datePickerContainer.classList.add('hidden');
     }
+}
+
+function renderVisibleMicrosSettings(refreshUI) {
+    const container = document.getElementById('visible-micros-selection');
+    if (!container) return;
+
+    // Separate vitamins and minerals from the food list
+    const vitamins = new Set();
+    const minerals = new Set();
+    state.foodList.forEach(food => {
+        if (food.vitamins) Object.keys(food.vitamins).forEach(v => vitamins.add(v));
+        if (food.minerals) Object.keys(food.minerals).forEach(m => minerals.add(m));
+    });
+
+    container.innerHTML = '';
+
+    if (vitamins.size === 0 && minerals.size === 0) {
+        container.innerHTML = `<p style="font-size:0.7rem; color:var(--text-light); width:100%; text-align:center;">No hay micronutrientes registrados en tus alimentos todavía.</p>`;
+        return;
+    }
+
+    const createGroup = (titleKey, items) => {
+        if (items.size === 0) return;
+        const sortedItems = Array.from(items).sort();
+        
+        const groupHeader = document.createElement('div');
+        groupHeader.style.cssText = 'width: 100%; font-size: 0.7rem; font-weight: bold; color: var(--secondary); margin-top: 8px; margin-bottom: 4px; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 2px;';
+        groupHeader.textContent = t(titleKey, state.language);
+        container.appendChild(groupHeader);
+
+        const itemsContainer = document.createElement('div');
+        itemsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; width: 100%;';
+        
+        sortedItems.forEach(micro => {
+            const label = document.createElement('label');
+            label.style.cssText = 'display: flex; align-items: center; gap: 6px; background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;';
+            
+            const isChecked = state.visibleMicros.includes(micro);
+            label.innerHTML = `
+                <input type="checkbox" value="${micro}" ${isChecked ? 'checked' : ''}>
+                ${micro}
+            `;
+
+            const checkbox = label.querySelector('input');
+            checkbox.onchange = () => {
+                if (checkbox.checked) {
+                    if (!state.visibleMicros.includes(micro)) state.visibleMicros.push(micro);
+                } else {
+                    state.visibleMicros = state.visibleMicros.filter(m => m !== micro);
+                }
+                saveState(refreshUI);
+            };
+            itemsContainer.appendChild(label);
+        });
+        container.appendChild(itemsContainer);
+    };
+
+    createGroup('vitamins', vitamins);
+    createGroup('minerals', minerals);
 }
 
 export function updateDayName() {

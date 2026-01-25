@@ -1,4 +1,5 @@
 import { state, saveState, getCurrentMeals } from './state.js';
+import { confirmAction } from './utils.js';
 import * as Utils from './utils.js';
 import * as UI from './ui.js';
 import { t, tUnit } from './i18n.js';
@@ -26,12 +27,22 @@ export function initMealsUI(refreshUI) {
     };
 
     dom.addMealBtn.onclick = () => {
-        const name = prompt(t('prompt_new_meal', state.language));
-        if (name) {
-            const meals = getCurrentMeals();
-            meals.push({ id: 'm' + Date.now(), name, items: [] });
-            saveState(refreshUI);
-        }
+        dom.mealPromptInput.value = '';
+        dom.mealPromptModal.style.display = 'block';
+        setTimeout(() => dom.mealPromptInput.focus(), 10);
+    };
+
+    dom.mealPromptInput.onkeydown = (e) => {
+        if (e.key === 'Enter') dom.confirmMealBtn.click();
+    };
+
+    dom.confirmMealBtn.onclick = () => {
+        const name = dom.mealPromptInput.value.trim();
+        if (!name) return;
+        const meals = getCurrentMeals();
+        meals.push({ id: 'm' + Date.now(), name, items: [] });
+        dom.mealPromptModal.style.display = 'none';
+        saveState(refreshUI);
     };
 }
 
@@ -249,8 +260,8 @@ export function removeItemFromMeal(mealId, index, refreshCallback) {
     saveState(refreshCallback);
 }
 
-export function deleteMeal(mealId, refreshCallback) {
-    if (confirm(t('confirm_delete_meal', state.language))) {
+export async function deleteMeal(mealId, refreshCallback) {
+    if (await confirmAction(t('confirm_delete_meal', state.language))) {
         const meals = getCurrentMeals();
         const updatedMeals = meals.filter(m => m.id !== mealId);
         import('./state.js').then(m => {
@@ -260,13 +271,12 @@ export function deleteMeal(mealId, refreshCallback) {
     }
 }
 
-export function renameMeal(mealId, refreshCallback) {
+export function renameMeal(mealId, newName, refreshCallback) {
     const meals = getCurrentMeals();
     const meal = meals.find(m => m && m.id === mealId);
     if (!meal) return;
-    const newName = prompt(t('prompt_rename_meal', state.language), meal.name);
-    if (newName && newName.trim() !== '') {
-        meal.name = newName.trim();
+    if (newName !== meal.name) {
+        meal.name = newName;
         saveState(refreshCallback);
     }
 }
@@ -326,8 +336,13 @@ export function showRecipeDetails(mealId, itemIdx) {
             const kcal = (protein * 4) + (carbs * 4) + (fat * 9);
 
             let micros = [];
-            if (ingFood.vitamins) Object.entries(ingFood.vitamins).forEach(([n, v]) => micros.push(`${n}: ${(v * ratio).toFixed(1)}`));
-            if (ingFood.minerals) Object.entries(ingFood.minerals).forEach(([n, v]) => micros.push(`${n}: ${(v * ratio).toFixed(1)}`));
+            const visibleList = state.visibleMicros || [];
+            if (ingFood.vitamins) Object.entries(ingFood.vitamins).forEach(([n, v]) => {
+                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+            });
+            if (ingFood.minerals) Object.entries(ingFood.minerals).forEach(([n, v]) => {
+                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+            });
 
             const row = document.createElement('div');
             row.className = 'meal-item';

@@ -28,7 +28,10 @@
                 <img src="icon_logo.png" alt="NutriTrack Logo" class="logo">
                 <h1>NutriTrack</h1>
             </div>
-
+            <nav class="main-nav">
+                <button id="nav-calories-btn" class="nav-btn active" data-t="nav_calories">Calorías</button>
+                <button id="nav-exercises-btn" class="nav-btn" data-t="nav_exercises">Ejercicios</button>
+            </nav>
         </div>
         <div class="header-actions">
             <div id="user-profile" class="hidden">
@@ -45,6 +48,7 @@
     </header>
 
     <main>
+        <section id="calories-view">
         <section class="summary-card">
             <div id="weight-reminder" class="hidden" style="background: rgba(100, 181, 246, 0.1); border: 1px solid var(--secondary); padding: 8px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
                 <span data-t="weight_reminder_text">¿Quieres actualizar tu peso? Han pasado más de 7 días.</span>
@@ -72,6 +76,11 @@
                     <span class="value">0</span>
                     <span class="unit">g</span>
                 </div>
+                <div class="stat-item" id="stat-fiber">
+                    <span class="label" data-t="fiber">Fibra</span>
+                    <span class="value">0</span>
+                    <span class="unit">g</span>
+                </div>
             </div>
             <div class="micros-summary" id="total-micros">
                 <!-- Vitamins and minerals totals here -->
@@ -95,6 +104,31 @@
             </div>
             <div id="meals-list" class="meals-list">
                 <!-- Meals will be injected here -->
+            </div>
+        </section>
+        </section>
+
+        <section id="exercises-view" class="hidden">
+            <div class="section-header">
+                <h2 data-t="routines_title">Mis Rutinas</h2>
+                <button id="add-routine-btn" class="add-btn" data-t="add_routine">+ Nueva Rutina</button>
+            </div>
+            
+            <div id="routines-list" class="routines-list">
+                <!-- Routines will be injected here -->
+            </div>
+
+            <!-- Rest Timer Floating UI -->
+            <div id="rest-timer-ui" class="rest-timer-ui hidden">
+                <div class="timer-content">
+                    <div class="timer-label" id="timer-type-label">Descanso</div>
+                    <div class="timer-display" id="timer-display">00:00</div>
+                    <div class="timer-controls">
+                        <button id="timer-toggle-btn" class="timer-btn">▶</button>
+                        <button id="timer-reset-btn" class="timer-btn">↺</button>
+                        <button id="timer-close-btn" class="timer-btn">×</button>
+                    </div>
+                </div>
             </div>
         </section>
     </main>

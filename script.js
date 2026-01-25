@@ -13,6 +13,9 @@ import { t, updateUILanguage } from './i18n.js';
 import * as Nutrients from './nutrient-utils.js';
 import * as AuthLogic from './auth-logic.js';
 import * as SettingsLogic from './settings-logic.js';
+import * as ExerciseLogic from './exercise-logic.js';
+import * as ExerciseUI from './exercise-ui.js';
+import { initTimerUI } from './exercise-timer.js';
 
 // --- DOM Injection ---
 if (dom.modalsOutlet) {
@@ -60,6 +63,8 @@ const refreshUI = () => {
         const food = state.foodList.find(f => f.id === MealsLogic.currentSelectedFoodId);
         if (food) MealsLogic.renderUnitSelector(food);
     }
+
+    ExerciseUI.renderRoutines();
 };
 
 // --- Tombstone comments for refactored functions ---
@@ -73,6 +78,27 @@ const refreshUI = () => {
 function setupGlobalUI() {
     dom.loginBtn.onclick = AuthLogic.login;
     dom.logoutBtn.onclick = () => AuthLogic.logout(refreshUI);
+
+    const navCalBtn = document.getElementById('nav-calories-btn');
+    const navExBtn = document.getElementById('nav-exercises-btn');
+    const calView = document.getElementById('calories-view');
+    const exView = document.getElementById('exercises-view');
+
+    navCalBtn.onclick = () => {
+        navCalBtn.classList.add('active');
+        navExBtn.classList.remove('active');
+        calView.classList.remove('hidden');
+        exView.classList.add('hidden');
+        if (dom.fabContainer) dom.fabContainer.classList.remove('hidden');
+    };
+
+    navExBtn.onclick = () => {
+        navCalBtn.classList.remove('active');
+        navExBtn.classList.add('active');
+        calView.classList.add('hidden');
+        exView.classList.remove('hidden');
+        if (dom.fabContainer) dom.fabContainer.classList.add('hidden');
+    };
 
     document.querySelectorAll('.close-btn').forEach(btn => {
         btn.onclick = () => {
@@ -112,6 +138,8 @@ MealsLogic.initMealsUI(refreshUI);
 RecipesLogic.initRecipesUI(refreshUI);
 DatabaseLogic.initDatabaseUI(refreshUI);
 WeightLogic.initWeightUI(refreshUI);
+ExerciseLogic.initExerciseLogic(refreshUI);
+initTimerUI();
 setupGlobalUI();
 
 refreshUI();

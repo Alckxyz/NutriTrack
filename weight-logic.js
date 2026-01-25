@@ -58,7 +58,7 @@ export async function saveWeightEntry() {
 
 export async function deleteWeightEntry(id) {
     if (!state.user) return;
-    if (confirm("¿Borrar este registro?")) {
+    if (await Utils.confirmAction("¿Borrar este registro?", t('confirm', state.language), { okText: t('delete_btn', state.language), isDanger: true })) {
         try {
             const docRef = FB.doc(FB.db, 'users', state.user.uid, 'weightEntries', id);
             await FB.deleteDoc(docRef);
@@ -68,14 +68,18 @@ export async function deleteWeightEntry(id) {
     }
 }
 
-function checkRecalculateAlert(newWeightKg) {
+async function checkRecalculateAlert(newWeightKg) {
     // Check against last calculation weight if stored, or first weight
     const lastCalculatedWeight = state.goals?.calculatorInputs?.weight;
     if (lastCalculatedWeight) {
         const diff = Math.abs(newWeightKg - lastCalculatedWeight) / lastCalculatedWeight;
         if (diff > 0.04) { // 4% change
             const diffPct = (diff * 100).toFixed(1);
-            if (confirm(t('weight_recalculate_alert', state.language).replace('{diff}', diffPct))) {
+            if (await Utils.confirmAction(
+                t('weight_recalculate_alert', state.language).replace('{diff}', diffPct), 
+                "Nuevo Peso Detectado",
+                { okText: t('recalculate_now_btn', state.language), isDanger: false }
+            )) {
                 dom.weightModal.style.display = 'none';
                 dom.settingsBtn.click();
                 setTimeout(() => dom.openWizardBtn.click(), 500);
@@ -88,6 +92,7 @@ export function refreshWeightUI() {
     renderWeightHistory();
     renderWeightChart();
     renderWeightAnalysis();
+    renderAutoCoach();
     updateDashboardReminder();
 }
 
@@ -167,6 +172,112 @@ function renderWeightAnalysis() {
             <span style="color:var(--primary)">${trendMsg}</span>
         </div>
     `;
+}
+
+function renderAutoCoach() {
+    const coachContent = dom.coachContent;
+    const applyBtn = dom.coachApplyBtn;
+    if (!coachContent || !applyBtn) return;
+
+    if (!state.weightEntries || state.weightEntries.length < 2) {
+        coachContent.innerHTML = `<p style="color:var(--text-light); font-style:italic;">${t('coach_no_data', state.language)}</p>`;
+        applyBtn.classList.add('hidden');
+        return;
+    }
+
+    const now = Date.now();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    
+    const weekNowEntries = state.weightEntries.filter(e => e.createdAt > (now - oneWeekMs));
+    const weekPrevEntries = state.weightEntries.filter(e => e.createdAt <= (now - oneWeekMs) && e.createdAt > (now - 2 * oneWeekMs));
+
+    if (weekNowEntries.length < 2 || weekPrevEntries.length < 1) {
+        coachContent.innerHTML = `<p style="color:var(--text-light); font-style:italic;">${t('coach_no_data', state.language)}</p>`;
+        applyBtn.classList.add('hidden');
+        return;
+    }
+
+    const avgNow = weekNowEntries.reduce((sum, e) => sum + e.weightKg, 0) / weekNowEntries.length;
+    const avgPrev = weekPrevEntries.reduce((sum, e) => sum + e.weightKg, 0) / weekPrevEntries.length;
+    
+    const diffKg = avgNow - avgPrev;
+    const pctChange = (diffKg / avgPrev) * 100;
+    
+    // User goal from wizard or settings
+    const userGoal = state.goals.calculatorInputs?.goal || 'maintain'; // lose, maintain, gain
+    
+    let statusMsg = '';
+    let recommendationKcal = 0;
+    let onTrack = false;
+
+    // Ranges:
+    // gain (bulk): +0.25% to +0.5%
+    // lose (cut): -0.5% to -1.0%
+    // maintain: -0.25% to +0.25%
+
+    if (userGoal === 'gain') {
+        if (pctChange >= 0.20 && pctChange <= 0.60) {
+            onTrack = true;
+            statusMsg = t('coach_status_on_track', state.language);
+        } else if (pctChange < 0.20) {
+            statusMsg = t('coach_status_too_slow', state.language);
+            recommendationKcal = 200;
+        } else {
+            statusMsg = t('coach_status_too_fast', state.language);
+            recommendationKcal = -150;
+        }
+    } else if (userGoal === 'lose') {
+        if (pctChange <= -0.45 && pctChange >= -1.1) {
+            onTrack = true;
+            statusMsg = t('coach_status_on_track', state.language);
+        } else if (pctChange > -0.45) {
+            statusMsg = t('coach_status_too_slow', state.language);
+            recommendationKcal = -200;
+        } else {
+            statusMsg = t('coach_status_too_fast', state.language);
+            recommendationKcal = 200;
+        }
+    } else { // maintain
+        if (pctChange >= -0.30 && pctChange <= 0.30) {
+            onTrack = true;
+            statusMsg = t('coach_status_on_track', state.language);
+        } else if (pctChange > 0.30) {
+            statusMsg = t('coach_status_too_fast', state.language);
+            recommendationKcal = -150;
+        } else {
+            statusMsg = t('coach_status_too_slow', state.language);
+            recommendationKcal = 150;
+        }
+    }
+
+    const goalLabel = t(`coach_goal_${userGoal === 'lose' ? 'cut' : userGoal === 'gain' ? 'bulk' : 'maintain'}`, state.language);
+    
+    coachContent.innerHTML = `
+        <div style="margin-bottom:8px;">
+            <strong>Objetivo actual:</strong> <span style="color:var(--secondary)">${goalLabel}</span>
+        </div>
+        <div style="margin-bottom:8px; color: ${onTrack ? 'var(--primary)' : '#ff8a80'};">
+            ${t('coach_trend_msg', state.language).replace('{kg}', diffKg.toFixed(2)).replace('{pct}', pctChange.toFixed(2))}
+        </div>
+        <div style="font-weight:bold; margin-bottom:4px;">${statusMsg}</div>
+    `;
+
+    if (recommendationKcal !== 0) {
+        applyBtn.classList.remove('hidden');
+        applyBtn.textContent = t('coach_apply_btn', state.language).replace('{delta}', (recommendationKcal > 0 ? '+' : '') + recommendationKcal);
+        applyBtn.onclick = async () => {
+            state.goals.calories = (state.goals.calories || 2000) + recommendationKcal;
+            // Also store coach info for analytics if needed
+            state.goals.lastCoachDelta = recommendationKcal;
+            state.goals.lastCoachDate = Date.now();
+            
+            await saveState();
+            import('./utils.js').then(u => u.showToast("✅ " + t('profile_updated', state.language)));
+            renderAutoCoach();
+        };
+    } else {
+        applyBtn.classList.add('hidden');
+    }
 }
 
 function renderWeightChart() {

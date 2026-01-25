@@ -85,8 +85,32 @@ button {
     border: 1px solid #444;
 }
 
-.nutrient-badge.kcal { border-color: var(--primary); color: var(--primary); }
-.nutrient-badge.micro { border-color: #555; color: var(--text-light); }
+.nutrient-badge.kcal { 
+    border-color: var(--primary); 
+    color: var(--primary); 
+    font-weight: 800;
+}
+
+.nutrient-badge.macro {
+    border-color: var(--secondary);
+    color: #fff;
+    background: rgba(100, 181, 246, 0.15);
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+}
+
+.nutrient-badge.fiber-badge {
+    border-color: #555;
+    color: var(--text-light);
+    font-size: 0.65rem;
+}
+
+.nutrient-badge.micro { 
+    border-color: #444; 
+    color: #888;
+    font-size: 0.6rem;
+}
 
 .micro-text {
     color: #81c784;
@@ -126,9 +150,15 @@ button {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
     margin-top: 0.5rem;
+}
+
+@media (min-width: 601px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 .stat-item {
@@ -177,6 +207,17 @@ button {
     transition: color 0.3s ease;
 }
 
+#stat-protein .value, #stat-carbs .value, #stat-fat .value {
+    font-size: 1.3rem;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(129, 199, 132, 0.2);
+}
+
+#stat-fiber .value {
+    font-size: 1rem;
+    color: var(--text-light);
+}
+
 .stat-item .unit {
     font-size: 0.8rem;
     color: var(--text-light);
@@ -217,6 +258,24 @@ button {
 .micro-badge-large .value {
     font-size: 1rem;
     font-weight: bold;
+    color: var(--primary);
+}
+
+/* Drag and Drop Handles */
+.drag-handle, .item-drag-handle {
+    color: #666;
+    cursor: grab;
+    font-size: 1.2rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.drag-handle:hover, .item-drag-handle:hover {
     color: var(--primary);
 }
 
