@@ -87,6 +87,12 @@ header {
 .header-actions {
     display: flex;
     gap: 6px;
+    align-items: center;
+}
+
+.header-tools-group {
+    display: flex;
+    gap: 6px;
 }
 
 /* Base Layout, Resets, and Globals */

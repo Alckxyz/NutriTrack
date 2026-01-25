@@ -84,11 +84,14 @@ function setupGlobalUI() {
     const calView = document.getElementById('calories-view');
     const exView = document.getElementById('exercises-view');
 
+    const calTools = document.getElementById('calories-tools');
+
     navCalBtn.onclick = () => {
         navCalBtn.classList.add('active');
         navExBtn.classList.remove('active');
         calView.classList.remove('hidden');
         exView.classList.add('hidden');
+        if (calTools) calTools.classList.remove('hidden');
         if (dom.fabContainer) dom.fabContainer.classList.remove('hidden');
     };
 
@@ -97,6 +100,7 @@ function setupGlobalUI() {
         navExBtn.classList.add('active');
         calView.classList.add('hidden');
         exView.classList.remove('hidden');
+        if (calTools) calTools.classList.add('hidden');
         if (dom.fabContainer) dom.fabContainer.classList.add('hidden');
     };
 

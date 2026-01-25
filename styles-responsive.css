@@ -6,49 +6,79 @@
     }
     header {
         position: relative;
-        padding: 0.4rem;
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto auto;
-        gap: 4px;
-        align-items: center;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
     }
-    .logo-container {
-        grid-column: 2;
-        grid-row: 1;
-        justify-self: center;
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+    }
+    .header-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .header-tools-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        width: 100%;
     }
     .logo-container h1 {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
     }
     .logo {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
+    }
+    .main-nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: #252525;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .nav-btn {
+        padding: 10px 5px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        border-bottom: none !important;
+        color: var(--text-light);
+    }
+
+    .nav-btn.active {
+        background: var(--primary);
+        color: #000;
     }
 
     #login-btn, #user-profile {
-        grid-column: 3;
-        grid-row: 1;
-        justify-self: end;
+        position: absolute;
+        top: 8px;
+        right: 8px;
     }
-    
-    /* Grid-based Tools row */
-    #manage-db-btn { grid-column: 1; grid-row: 2; }
-    #manage-recipes-btn { grid-column: 2; grid-row: 2; }
-    #weight-btn { grid-column: 1; grid-row: 3; }
-    #settings-btn { grid-column: 3; grid-row: 2; }
 
     .weight-dashboard-grid {
         grid-template-columns: 1fr !important;
     }
 
-    .header-actions button:not(#login-btn) {
-        width: 100%;
-        padding: 4px 2px !important;
-        font-size: 0.6rem !important;
-        height: 34px;
-        white-space: normal;
-        line-height: 1.0;
+    .header-actions button {
+        padding: 6px 4px !important;
+        font-size: 0.7rem !important;
+        height: 38px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stats-grid {

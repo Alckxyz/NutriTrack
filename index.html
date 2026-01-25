@@ -34,15 +34,17 @@
             </nav>
         </div>
         <div class="header-actions">
+            <div id="calories-tools" class="header-tools-group">
+                <button id="manage-db-btn" class="secondary-btn" data-t="manage_db">🍎 Food List</button>
+                <button id="manage-recipes-btn" class="secondary-btn" data-t="manage_recipes">📖 Recipes</button>
+                <button id="weight-btn" class="secondary-btn" data-t="weight_btn">⚖️ Peso</button>
+                <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
+            </div>
             <div id="user-profile" class="hidden">
                 <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; vertical-align: middle;">
                 <button id="logout-btn" class="secondary-btn" style="padding: 4px 8px; font-size: 0.7rem;">Logout</button>
             </div>
             <button id="login-btn" class="primary-btn">Login with Google</button>
-            <button id="manage-db-btn" class="secondary-btn" data-t="manage_db">🍎 Food List</button>
-            <button id="manage-recipes-btn" class="secondary-btn" data-t="manage_recipes">📖 Recipes</button>
-            <button id="weight-btn" class="secondary-btn" data-t="weight_btn">⚖️ Peso</button>
-            <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
             <input type="file" id="file-input" style="display: none;">
         </div>
     </header>
