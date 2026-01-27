@@ -21,6 +21,10 @@ export const weightModals = `
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
+                        <label>Fecha</label>
+                        <input type="date" id="weight-date-input" class="settings-select">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
                          <label data-t="weight_note_placeholder">${t('weight_note_placeholder', state.language)}</label>
                          <input type="text" id="weight-note" placeholder="...">
                     </div>

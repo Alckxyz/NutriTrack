@@ -76,6 +76,7 @@ export function renderRoutines() {
                                 <span>⏲️ <strong class="editable" data-field="restBetweenSets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenSets}</strong>s (set)</span>
                                 <span>⏲️ <strong class="editable" data-field="restBetweenExercises" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenExercises}</strong>s (ex)</span>
                             </div>
+                            ${ex.isVariantChange ? `<div style="font-size:0.6rem; color:var(--secondary); font-weight:bold; margin-top:4px;">✨ ${t('variant_change_msg', state.language)}</div>` : ''}
                         </div>
                         <div class="series-tracker">
                             ${Array.from({length: ex.sets}).map((_, i) => `

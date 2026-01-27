@@ -12,6 +12,8 @@ let currentRange = 30;
 export function initWeightUI(refreshUI) {
     dom.weightBtn.onclick = () => {
         dom.weightModal.style.display = 'block';
+        const dateInput = document.getElementById('weight-date-input');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
         refreshWeightUI();
     };
 
@@ -29,23 +31,22 @@ export async function saveWeightEntry() {
     const weight = parseFloat(dom.weightInput.value);
     const unit = dom.weightUnitSelect.value;
     const note = dom.weightNote.value.trim();
+    const dateInput = document.getElementById('weight-date-input');
+    const selectedDate = dateInput ? dateInput.value : null;
 
     if (isNaN(weight) || weight <= 0) return alert("Ingresa un peso válido.");
 
     const weightKg = unit === 'lb' ? weight * 0.453592 : weight;
+    const timestamp = selectedDate ? new Date(selectedDate + 'T12:00:00').getTime() : Date.now();
 
     try {
-        const path = `users/${state.user.uid}/weightEntries`;
-        console.log(`Saving weight entry for user: ${state.user.uid}`);
-        console.log(`Target Firestore path: ${path}`);
-
         const colRef = FB.collection(FB.db, 'users', state.user.uid, 'weightEntries');
         await FB.addDoc(colRef, {
             weight,
             unit,
             weightKg,
             note,
-            createdAt: Date.now()
+            createdAt: timestamp
         });
         dom.weightInput.value = '';
         dom.weightNote.value = '';

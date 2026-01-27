@@ -77,7 +77,22 @@ const refreshUI = () => {
 
 function setupGlobalUI() {
     dom.loginBtn.onclick = AuthLogic.login;
-    dom.logoutBtn.onclick = () => AuthLogic.logout(refreshUI);
+    
+    const userProfile = document.getElementById('user-profile');
+    const logoutDropdown = document.getElementById('logout-dropdown');
+    
+    if (userProfile && logoutDropdown) {
+        userProfile.onclick = (e) => {
+            e.stopPropagation();
+            logoutDropdown.classList.toggle('hidden');
+        };
+    }
+
+    dom.logoutBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (logoutDropdown) logoutDropdown.classList.add('hidden');
+        AuthLogic.logout(refreshUI);
+    };
 
     const navCalBtn = document.getElementById('nav-calories-btn');
     const navExBtn = document.getElementById('nav-exercises-btn');
@@ -115,6 +130,11 @@ function setupGlobalUI() {
         modal.addEventListener('mousedown', (e) => {
             if (e.target === modal) modal.style.display = 'none';
         });
+    });
+
+    window.addEventListener('click', () => {
+        const logoutDropdown = document.getElementById('logout-dropdown');
+        if (logoutDropdown) logoutDropdown.classList.add('hidden');
     });
 
     window.addEventListener('keydown', (event) => {

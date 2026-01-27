@@ -76,19 +76,23 @@ function renderChart() {
         .sort((a, b) => a.createdAt - b.createdAt);
 
     const labels = history.map(log => new Date(log.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-    const data = history.map(log => {
+    const data = history.map((log, idx) => {
         const ex = log.exercises.find(e => e.exerciseGroupId === currentGroupId);
         if (!ex || ex.sets.length === 0) return 0;
 
-        const effectiveWeight = (set, bodyweight) => {
-            if (ex.type === 'bodyweight') return (bodyweight || 70) + set.weightKg;
-            return set.weightKg;
+        const getSetScore = (set) => {
+            if (ex.loadMode === 'bodyweight') {
+                return set.reps;
+            }
+            const multiplier = ex.loadMultiplier || 1;
+            const equivalentWeight = set.weightKg * multiplier;
+            return equivalentWeight * set.reps;
         };
 
         if (currentMetric === 'topSet') {
-            return Math.max(...ex.sets.map(s => effectiveWeight(s, ex.bodyweightKg) * s.reps));
+            return Math.max(...ex.sets.map(s => getSetScore(s)));
         } else if (currentMetric === 'volume') {
-            return ex.sets.reduce((sum, s) => sum + (effectiveWeight(s, ex.bodyweightKg) * s.reps), 0);
+            return ex.sets.reduce((sum, s) => sum + getSetScore(s), 0);
         } else if (currentMetric === 'sets') {
             return ex.sets.length;
         }

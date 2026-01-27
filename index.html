@@ -40,9 +40,11 @@
                 <button id="weight-btn" class="secondary-btn" data-t="weight_btn">⚖️ Peso</button>
                 <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
             </div>
-            <div id="user-profile" class="hidden">
-                <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; vertical-align: middle;">
-                <button id="logout-btn" class="secondary-btn" style="padding: 4px 8px; font-size: 0.7rem;">Logout</button>
+            <div id="user-profile" class="hidden" style="position: relative; cursor: pointer;">
+                <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; display: block;">
+                <div id="logout-dropdown" class="hidden" style="position: absolute; top: calc(100% + 10px); right: 0; background: var(--card-bg); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 8px; min-width: 100px; padding: 4px; z-index: 1000;">
+                    <button id="logout-btn" class="secondary-btn" style="width: 100%; text-align: left; padding: 8px 12px; font-size: 0.85rem;">Logout</button>
+                </div>
             </div>
             <button id="login-btn" class="primary-btn">Login with Google</button>
             <input type="file" id="file-input" style="display: none;">

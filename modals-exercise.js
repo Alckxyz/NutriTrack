@@ -41,6 +41,15 @@ export const exerciseModals = `
                         <input type="number" id="ex-weight" value="0" step="any" min="0">
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label data-t="load_mode_label">Cómo se cuenta el peso</label>
+                    <select id="ex-load-mode" class="settings-select">
+                        <option value="external_total" data-t="load_mode_total">Peso total (barra / máquina)</option>
+                        <option value="external_single" data-t="load_mode_single">Peso por mano (mancuernas bilateral)</option>
+                        <option value="bodyweight" data-t="load_mode_bodyweight">Peso corporal (solo reps)</option>
+                    </select>
+                </div>
                 <div class="stats-form-grid">
                     <div class="form-group">
                         <label data-t="rest_between_sets">${t('rest_between_sets', state.language)}</label>

@@ -243,6 +243,11 @@ export const translations = {
         set_x_of_y: "Serie {x} de {y}",
         save_and_continue: "✅ Guardar y seguir",
         finish_workout_now: "🏁 Terminar entrenamiento",
-        save_workout_confirm_btn: "✅ Guardar entrenamiento"
+        save_workout_confirm_btn: "✅ Guardar entrenamiento",
+        load_mode_label: "Cómo se cuenta el peso",
+        load_mode_total: "Peso total (barra / máquina)",
+        load_mode_single: "Peso por mano (mancuernas)",
+        load_mode_bodyweight: "Peso corporal (solo reps)",
+        variant_change_msg: "✅ Cambiaste a una variante más desafiante, continuamos tu progreso"
     }
 };

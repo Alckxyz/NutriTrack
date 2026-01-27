@@ -74,7 +74,9 @@ export function startWorkout(routineId, refreshUI) {
             exerciseId: ex.id,
             exerciseName: ex.name,
             exerciseGroupId: ex.exerciseGroupId || ex.id,
-            type: ex.weight > 0 ? 'weighted' : 'bodyweight',
+            type: ex.loadMode === 'bodyweight' ? 'bodyweight' : 'weighted',
+            loadMode: ex.loadMode || 'external_total',
+            loadMultiplier: ex.loadMultiplier || 1,
             bodyweightKg: state.weightEntries[0]?.weightKg || 70,
             sets: [],
             targetSets: ex.sets,
@@ -288,19 +290,34 @@ function renderWorkoutSession() {
 }
 
 async function saveWorkout() {
-    if (!state.user || !state.activeWorkout) return;
+    const user = FB.auth.currentUser;
+    if (!user) {
+        alert(state.language === 'es' ? "Debes iniciar sesión" : "You must login");
+        return;
+    }
+
+    if (!state.activeWorkout) return;
+    
     try {
-        const colRef = FB.collection(FB.db, 'users', state.user.uid, 'workoutLogs');
+        const colRef = FB.collection(FB.db, 'users', user.uid, 'workoutLogs');
         // Clean up: remove exercises with 0 sets to keep history clean
         const filteredExercises = state.activeWorkout.exercises.filter(ex => ex.sets.length > 0);
         
-        await FB.addDoc(colRef, {
+        const logData = {
             ...state.activeWorkout,
+            userId: user.uid,
             exercises: filteredExercises,
             createdAt: Date.now()
-        });
+        };
+
+        await FB.addDoc(colRef, logData);
         Utils.showToast("✅ " + (state.language === 'es' ? "Entrenamiento guardado" : "Workout saved"));
     } catch (e) {
         console.error("Error saving workout log:", e);
+        if (e.code === 'permission-denied') {
+            alert(state.language === 'es' ? "Error de permisos: Asegúrate de estar autenticado correctamente." : "Permission denied: Ensure you are logged in correctly.");
+        } else {
+            alert(state.language === 'es' ? "Error al guardar: " + e.message : "Error saving: " + e.message);
+        }
     }
 }

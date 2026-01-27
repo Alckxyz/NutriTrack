@@ -121,6 +121,9 @@ export function editExercise(routineId, exerciseId) {
     dom.exWeight.value = ex.weight;
     dom.exRestSets.value = ex.restBetweenSets;
     dom.exRestExercises.value = ex.restBetweenExercises;
+
+    const lmSelect = document.getElementById('ex-load-mode');
+    if (lmSelect) lmSelect.value = ex.loadMode || 'external_total';
     
     routineIdInput.value = routineId;
     editIdInput.value = exerciseId;
@@ -143,6 +146,10 @@ async function handleExerciseSubmit(e, refreshUI) {
     const weight = parseFloat(dom.exWeight.value) || 0;
     const restSets = parseInt(dom.exRestSets.value) || 60;
     const restEx = parseInt(dom.exRestExercises.value) || 120;
+    
+    const loadMode = document.getElementById('ex-load-mode').value;
+    let loadMultiplier = 1;
+    if (loadMode === 'external_single') loadMultiplier = 2;
 
     const btn = document.getElementById('ex-save-btn');
     btn.disabled = true;
@@ -154,6 +161,8 @@ async function handleExerciseSubmit(e, refreshUI) {
             sets,
             reps,
             weight,
+            loadMode,
+            loadMultiplier,
             restBetweenSets: restSets,
             restBetweenExercises: restEx,
             updatedAt: Date.now()
@@ -230,14 +239,20 @@ export async function replaceExercise(routineId, oldExId, newName, keepProgressi
         const colRef = FB.collection(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises');
         const newGroupId = keepProgression ? (oldEx.exerciseGroupId || oldEx.id) : Utils.uuidv4();
         
+        // Mark as variant change if keeping progression
+        const isVariantChange = keepProgression;
+
         await FB.addDoc(colRef, {
             name: newName,
             sets: oldEx.sets,
             reps: oldEx.reps,
             weight: oldEx.weight,
+            loadMode: oldEx.loadMode || 'external_total',
+            loadMultiplier: oldEx.loadMultiplier || 1,
             restBetweenSets: oldEx.restBetweenSets,
             restBetweenExercises: oldEx.restBetweenExercises,
             exerciseGroupId: newGroupId,
+            isVariantChange: isVariantChange,
             doneSeries: [],
             createdAt: Date.now()
         });
