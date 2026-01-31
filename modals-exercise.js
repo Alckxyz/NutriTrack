@@ -2,16 +2,15 @@ import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const exerciseModals = `
-    <!-- Modal for prompting routine name -->
-    <div id="routine-prompt-modal" class="modal">
-        <div class="modal-content" style="max-width: 350px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
+    <!-- Modal for Managing Routines -->
+    <div id="manage-routines-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
             <span class="close-btn">&times;</span>
-            <h2 data-t="add_routine">Nueva Rutina</h2>
-            <div class="form-group" style="margin-top: 1rem;">
-                <label data-t="prompt_new_routine">Nombre de la rutina:</label>
-                <input type="text" id="routine-prompt-input" placeholder="Ej: Empuje A">
+            <h2 data-t="manage_routines_title">Gestionar Rutinas</h2>
+            <div id="manage-routines-list" class="library-list" style="margin: 1rem 0; max-height: 300px;">
+                <!-- List of routines with rename/delete -->
             </div>
-            <button id="confirm-routine-btn" class="primary-btn" style="width: 100%;">Crear</button>
+            <button id="add-routine-modal-btn" class="add-btn" style="width: 100%;">+ Nueva Rutina</button>
         </div>
     </div>
 
@@ -125,9 +124,41 @@ export const exerciseModals = `
                 </div>
             </div>
 
+            <div id="set-log-notes-container" class="form-group hidden" style="margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: 1rem;">
+                <label style="font-size: 0.75rem;" data-t="exercise_notes_label">Notas del ejercicio (opcional)</label>
+                <textarea id="set-log-notes" rows="2" style="width: 100%; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.85rem; resize: none;" data-t-placeholder="exercise_notes_placeholder" placeholder="¿Cómo te sentiste?"></textarea>
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1.5rem;">
                 <button id="set-log-save-btn" class="primary-btn" style="width: 100%; padding: 12px; font-size: 0.95rem;">Guardar y seguir</button>
                 <button id="set-log-cancel-btn" class="secondary-btn" style="width: 100%; padding: 8px; opacity: 0.7; font-size: 0.8rem;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Exercise Settings -->
+    <div id="exercise-settings-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="exercise_settings_title">Ajustes de Entrenamiento</h2>
+            
+            <div class="settings-section" style="margin-top: 1.5rem;">
+                <h3 data-t="settings_preferences">Preferencias</h3>
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                    <label data-t="enable_timer_label" style="margin-bottom: 0;">Temporizador de descanso</label>
+                    <label class="switch">
+                        <input type="checkbox" id="timer-enabled-checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 data-t="settings_data_management">Gestión de Datos</h3>
+                <div class="settings-grid">
+                    <button id="export-routines-btn" class="secondary-btn" data-t="export_routines">Exportar Rutinas</button>
+                    <button id="import-routines-btn" class="secondary-btn" data-t="import_routines">Importar Rutinas</button>
+                </div>
             </div>
         </div>
     </div>
@@ -146,8 +177,14 @@ export const exerciseModals = `
                 <button class="tab-btn" data-metric="volume">Volumen</button>
                 <button class="tab-btn" data-metric="sets">Series</button>
             </div>
-            <div style="height: 300px; position: relative;">
+            <div style="height: 250px; position: relative;">
                 <canvas id="progression-chart"></canvas>
+            </div>
+            <div id="progression-history-container" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <h3 style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase;">Historial de Notas y Sesiones</h3>
+                <div id="progression-history-list" class="library-list" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2);">
+                    <!-- History and notes will be injected here -->
+                </div>
             </div>
         </div>
     </div>

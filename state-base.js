@@ -11,11 +11,19 @@ export const state = {
         created_at: f.created_at || Date.now(),
         updated_at: f.updated_at || Date.now()
     })),
-    meals: [
-        { id: 'm1', name: 'Desayuno', items: [] },
-        { id: 'm2', name: 'Almuerzo', items: [] },
-        { id: 'm3', name: 'Cena', items: [] }
+    meals: [], // Legacy/Temporary for migration
+    standardPlans: [
+        { 
+            id: 'p1', 
+            name: 'Plan Principal', 
+            meals: [
+                { id: 'm1', name: 'Desayuno', items: [] },
+                { id: 'm2', name: 'Almuerzo', items: [] },
+                { id: 'm3', name: 'Cena', items: [] }
+            ]
+        }
     ],
+    currentStandardPlanId: 'p1',
     dailyPlans: {}, // Format: { "YYYY-MM-DD": [meals...] }
     librarySort: 'name',
     clipboard: null,
@@ -26,6 +34,7 @@ export const state = {
     activeWorkout: null, // Current session data if active
     selectedRoutineId: null, // ID of the currently active routine
     visibleMicros: [], // Array of names of micronutrients to show in summary
+    timerEnabled: true,
     goals: {
         calories: 0,
         protein: 0,

@@ -61,7 +61,7 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
             vitamins: Nutrients.getDynamicNutrientsFromContainer('db-vitamins-container'),
             minerals: Nutrients.getDynamicNutrientsFromContainer('db-minerals-container'),
             ownerName: state.displayName,
-            updated_at: Date.now()
+            updated_at: FB.serverTimestamp()
         };
 
         const conversions = Nutrients.getConversionsFromContainer('db-conversions-container');
@@ -88,7 +88,7 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
             const newDoc = await FB.addDoc(foodCollection, { 
                 ...foodData, 
                 ownerId: state.user.uid, 
-                created_at: Date.now(),
+                created_at: FB.serverTimestamp(),
                 source: 'user'
             });
             savedId = newDoc.id;
@@ -102,7 +102,7 @@ export async function handleNewFoodSubmit(event, refreshLibrary, refreshCallback
                 await FB.addDoc(convCol, { 
                     ...convData, 
                     ownerId: state.user.uid,
-                    createdAt: Date.now()
+                    createdAt: FB.serverTimestamp()
                 });
             } else if (ownerId === state.user.uid) {
                 const convDocRef = FB.doc(FB.db, 'foodList', savedId, 'conversions', id);

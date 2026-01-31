@@ -100,6 +100,7 @@ function setupGlobalUI() {
     const exView = document.getElementById('exercises-view');
 
     const calTools = document.getElementById('calories-tools');
+    const exTools = document.getElementById('exercises-tools');
 
     navCalBtn.onclick = () => {
         navCalBtn.classList.add('active');
@@ -107,6 +108,7 @@ function setupGlobalUI() {
         calView.classList.remove('hidden');
         exView.classList.add('hidden');
         if (calTools) calTools.classList.remove('hidden');
+        if (exTools) exTools.classList.add('hidden');
         if (dom.fabContainer) dom.fabContainer.classList.remove('hidden');
     };
 
@@ -116,6 +118,7 @@ function setupGlobalUI() {
         calView.classList.add('hidden');
         exView.classList.remove('hidden');
         if (calTools) calTools.classList.add('hidden');
+        if (exTools) exTools.classList.remove('hidden');
         if (dom.fabContainer) dom.fabContainer.classList.add('hidden');
     };
 

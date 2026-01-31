@@ -148,11 +148,116 @@ export function shiftDate(days, refreshUI) {
 }
 
 export function updateModeVisibility() {
+    const plansSelector = document.getElementById('standard-plans-selector-container');
     if (state.mode === 'daily') {
         dom.datePickerContainer.classList.remove('hidden');
+        if (plansSelector) plansSelector.classList.add('hidden');
     } else {
         dom.datePickerContainer.classList.add('hidden');
+        if (plansSelector) plansSelector.classList.remove('hidden');
+        renderStandardPlansSelector();
     }
+}
+
+function renderStandardPlansSelector() {
+    const select = document.getElementById('standard-plan-select');
+    if (!select) return;
+
+    select.innerHTML = '';
+    state.standardPlans.forEach(plan => {
+        const opt = document.createElement('option');
+        opt.value = plan.id;
+        opt.textContent = plan.name;
+        if (plan.id === state.currentStandardPlanId) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    select.onchange = (e) => {
+        state.currentStandardPlanId = e.target.value;
+        saveState(() => {
+            // Trigger refresh
+            const navCalBtn = document.getElementById('nav-calories-btn');
+            if (navCalBtn) navCalBtn.click();
+        });
+    };
+
+    const manageBtn = document.getElementById('manage-standard-plans-btn');
+    if (manageBtn) {
+        manageBtn.onclick = () => {
+            document.getElementById('standard-plans-modal').style.display = 'block';
+            renderStandardPlansList();
+        };
+    }
+}
+
+function renderStandardPlansList() {
+    const list = document.getElementById('standard-plans-list');
+    const addBtn = document.getElementById('add-standard-plan-btn');
+    if (!list) return;
+
+    list.innerHTML = '';
+    state.standardPlans.forEach(plan => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        item.innerHTML = `
+            <div style="flex: 1;">
+                <input type="text" class="plan-name-input" value="${plan.name}" style="background: transparent; border: none; color: white; width: 100%;">
+            </div>
+            <div class="library-item-actions">
+                <button class="delete-btn" style="padding: 4px 8px;">×</button>
+            </div>
+        `;
+
+        const nameInput = item.querySelector('.plan-name-input');
+        nameInput.onblur = () => {
+            const newName = nameInput.value.trim();
+            if (newName && newName !== plan.name) {
+                plan.name = newName;
+                saveState(() => {
+                    renderStandardPlansSelector();
+                });
+            }
+        };
+
+        item.querySelector('.delete-btn').onclick = async () => {
+            if (state.standardPlans.length <= 1) {
+                alert("Debes tener al menos un plan.");
+                return;
+            }
+            if (await Utils.confirmAction("¿Borrar este plan y todas sus comidas?", "Borrar Plan", { isDanger: true })) {
+                state.standardPlans = state.standardPlans.filter(p => p.id !== plan.id);
+                if (state.currentStandardPlanId === plan.id) {
+                    state.currentStandardPlanId = state.standardPlans[0].id;
+                }
+                saveState(() => {
+                    renderStandardPlansList();
+                    renderStandardPlansSelector();
+                    // Full refresh
+                    const navCalBtn = document.getElementById('nav-calories-btn');
+                    if (navCalBtn) navCalBtn.click();
+                });
+            }
+        };
+
+        list.appendChild(item);
+    });
+
+    addBtn.onclick = () => {
+        const newId = 'p_' + Date.now();
+        state.standardPlans.push({
+            id: newId,
+            name: 'Nuevo Plan',
+            meals: [
+                { id: 'm1_' + newId, name: 'Desayuno', items: [] },
+                { id: 'm2_' + newId, name: 'Almuerzo', items: [] },
+                { id: 'm3_' + newId, name: 'Cena', items: [] }
+            ]
+        });
+        saveState(() => {
+            renderStandardPlansList();
+            renderStandardPlansSelector();
+        });
+    };
 }
 
 function renderVisibleMicrosSettings(refreshUI) {

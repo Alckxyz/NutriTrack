@@ -22,6 +22,7 @@ function playBeep() {
 }
 
 export function startTimer(seconds, type = 'sets') {
+    if (!state.timerEnabled) return;
     const timerUI = document.getElementById('rest-timer-ui');
     const display = document.getElementById('timer-display');
     const label = document.getElementById('timer-type-label');

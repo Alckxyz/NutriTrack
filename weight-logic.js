@@ -2,6 +2,7 @@ import { state, saveState } from './state.js';
 import { dom } from './dom-elements.js';
 import { t } from './i18n.js';
 import * as FB from './firebase-config.js';
+import * as Utils from './utils.js';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -103,7 +104,8 @@ function updateDashboardReminder() {
         return;
     }
     const lastEntry = state.weightEntries[0]; // ordered desc
-    const diffDays = (Date.now() - lastEntry.createdAt) / (1000 * 60 * 60 * 24);
+    const lastTime = Utils.toMillis(lastEntry.createdAt);
+    const diffDays = (Date.now() - lastTime) / (1000 * 60 * 60 * 24);
     if (diffDays > 7) {
         dom.weightReminder.classList.remove('hidden');
     } else {
@@ -118,7 +120,7 @@ function renderWeightHistory() {
     state.weightEntries.forEach(entry => {
         const div = document.createElement('div');
         div.className = 'library-item';
-        const date = new Date(entry.createdAt).toLocaleDateString();
+        const date = Utils.toLocalDate(entry.createdAt).toLocaleDateString();
         div.innerHTML = `
             <div class="library-item-info">
                 <strong>${entry.weight} ${entry.unit}</strong> <small>(${date})</small>
@@ -144,7 +146,7 @@ function renderWeightAnalysis() {
     
     // Simple Weekly trend (last 14 days)
     const twoWeeksAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
-    const recentEntries = state.weightEntries.filter(e => e.createdAt > twoWeeksAgo);
+    const recentEntries = state.weightEntries.filter(e => Utils.toMillis(e.createdAt) > twoWeeksAgo);
     
     let trendMsg = '';
     if (recentEntries.length >= 2) {
@@ -189,8 +191,11 @@ function renderAutoCoach() {
     const now = Date.now();
     const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
     
-    const weekNowEntries = state.weightEntries.filter(e => e.createdAt > (now - oneWeekMs));
-    const weekPrevEntries = state.weightEntries.filter(e => e.createdAt <= (now - oneWeekMs) && e.createdAt > (now - 2 * oneWeekMs));
+    const weekNowEntries = state.weightEntries.filter(e => Utils.toMillis(e.createdAt) > (now - oneWeekMs));
+    const weekPrevEntries = state.weightEntries.filter(e => {
+        const ms = Utils.toMillis(e.createdAt);
+        return ms <= (now - oneWeekMs) && ms > (now - 2 * oneWeekMs);
+    });
 
     if (weekNowEntries.length < 2 || weekPrevEntries.length < 1) {
         coachContent.innerHTML = `<p style="color:var(--text-light); font-style:italic;">${t('coach_no_data', state.language)}</p>`;
@@ -289,7 +294,7 @@ function renderWeightChart() {
 
     const entries = [...state.weightEntries].reverse();
     const data = entries.map(e => e.weightKg);
-    const labels = entries.map(e => new Date(e.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+    const labels = entries.map(e => Utils.toLocalDate(e.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
 
     weightChart = new Chart(ctx, {
         type: 'line',

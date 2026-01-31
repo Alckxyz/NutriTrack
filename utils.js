@@ -144,6 +144,31 @@ export function convertToBaseAmount(amount, unit) {
  * @param {string} title 
  * @returns {Promise<boolean>}
  */
+/**
+ * Converts a Firebase Timestamp, Date object, or Number (ms) to a local Date object.
+ * Essential for displaying UTC dates in the user's local timezone.
+ */
+export function toLocalDate(ts) {
+    if (!ts) return new Date();
+    if (ts && typeof ts.toDate === 'function') return ts.toDate();
+    if (ts instanceof Date) return ts;
+    // Handle Firestore serverTimestamp objects that haven't been converted by the SDK yet
+    if (ts && typeof ts === 'object' && 'seconds' in ts) {
+        return new Date(ts.seconds * 1000 + (ts.nanoseconds || 0) / 1000000);
+    }
+    return new Date(ts);
+}
+
+/**
+ * Normalizes any date-like value to milliseconds for safe comparisons.
+ */
+export function toMillis(ts) {
+    if (!ts) return 0;
+    if (typeof ts === 'number') return ts;
+    const date = toLocalDate(ts);
+    return date.getTime();
+}
+
 export function uuidv4() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)

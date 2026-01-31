@@ -111,9 +111,8 @@ export const dom = {
     get displayNameInput() { return document.getElementById('display-name-input'); },
     get saveProfileBtn() { return document.getElementById('save-profile-btn'); },
     // Exercise elements
-    get routinePromptModal() { return document.getElementById('routine-prompt-modal'); },
-    get routinePromptInput() { return document.getElementById('routine-prompt-input'); },
-    get confirmRoutineBtn() { return document.getElementById('confirm-routine-btn'); },
+    get manageRoutinesModal() { return document.getElementById('manage-routines-modal'); },
+    get manageRoutinesList() { return document.getElementById('manage-routines-list'); },
     get exerciseModal() { return document.getElementById('exercise-modal'); },
     get exerciseForm() { return document.getElementById('exercise-form'); },
     get exRoutineId() { return document.getElementById('ex-routine-id'); },

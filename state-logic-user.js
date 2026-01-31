@@ -10,7 +10,24 @@ let exerciseListeners = {};
 
 export function getCurrentMeals() {
     if (state.mode === 'standard') {
-        return state.meals;
+        const plan = state.standardPlans.find(p => p.id === state.currentStandardPlanId);
+        if (plan) return plan.meals;
+        
+        // Fallback if currentStandardPlanId is missing
+        if (state.standardPlans.length > 0) {
+            state.currentStandardPlanId = state.standardPlans[0].id;
+            return state.standardPlans[0].meals;
+        }
+
+        // Emergency fallback if no plans exist
+        const defaultMeals = [
+            { id: 'm1', name: 'Desayuno', items: [] },
+            { id: 'm2', name: 'Almuerzo', items: [] },
+            { id: 'm3', name: 'Cena', items: [] }
+        ];
+        state.standardPlans = [{ id: 'p1', name: 'Plan Principal', meals: defaultMeals }];
+        state.currentStandardPlanId = 'p1';
+        return defaultMeals;
     } else {
         const date = state.currentDate;
         if (!state.dailyPlans[date]) {
@@ -26,7 +43,8 @@ export function getCurrentMeals() {
 
 export function setCurrentMeals(newMeals) {
     if (state.mode === 'standard') {
-        state.meals = newMeals;
+        const plan = state.standardPlans.find(p => p.id === state.currentStandardPlanId);
+        if (plan) plan.meals = newMeals;
     } else {
         state.dailyPlans[state.currentDate] = newMeals;
     }
@@ -43,10 +61,13 @@ export const saveState = async (callback) => {
         mode: state.mode,
         language: state.language,
         displayName: state.displayName,
-        meals: state.meals,
+        meals: state.meals, // keep for backward compatibility
+        standardPlans: state.standardPlans,
+        currentStandardPlanId: state.currentStandardPlanId,
         dailyPlans: state.dailyPlans,
         goals: state.goals,
         visibleMicros: state.visibleMicros || [],
+        timerEnabled: state.timerEnabled,
         selectedRoutineId: state.selectedRoutineId || null
     };
 
@@ -89,9 +110,23 @@ export async function loadUserData(user, refreshUI) {
             state.language = data.language || state.language;
             state.displayName = data.displayName || user.displayName || '';
             if (data.meals) state.meals = data.meals;
+            
+            // Migration for users without standardPlans
+            if (data.standardPlans) {
+                state.standardPlans = data.standardPlans;
+            } else if (data.meals && data.meals.length > 0) {
+                state.standardPlans = [{ id: 'p_migrated', name: 'Plan Principal', meals: data.meals }];
+                state.currentStandardPlanId = 'p_migrated';
+            }
+
+            if (data.currentStandardPlanId) {
+                state.currentStandardPlanId = data.currentStandardPlanId;
+            }
+
             if (data.dailyPlans) state.dailyPlans = data.dailyPlans;
             if (data.goals) state.goals = data.goals;
             state.visibleMicros = data.visibleMicros || [];
+            state.timerEnabled = data.timerEnabled !== undefined ? data.timerEnabled : true;
             state.selectedRoutineId = data.selectedRoutineId || null;
             updateMergedFoodList();
             if (refreshUI) refreshUI();

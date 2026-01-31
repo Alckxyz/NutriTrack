@@ -40,6 +40,9 @@
                 <button id="weight-btn" class="secondary-btn" data-t="weight_btn">⚖️ Peso</button>
                 <button id="settings-btn" class="secondary-btn" title="Settings" data-t="settings_btn">⚙️ Settings</button>
             </div>
+            <div id="exercises-tools" class="header-tools-group hidden">
+                <button id="exercise-settings-btn" class="secondary-btn" title="Ajustes de Entrenamiento" data-t="exercise_settings_btn">⚙️ Ajustes</button>
+            </div>
             <div id="user-profile" class="hidden" style="position: relative; cursor: pointer;">
                 <img id="user-avatar" src="" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; display: block;">
                 <div id="logout-dropdown" class="hidden" style="position: absolute; top: calc(100% + 10px); right: 0; background: var(--card-bg); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 8px; min-width: 100px; padding: 4px; z-index: 1000;">
@@ -94,7 +97,13 @@
         <section class="planner-container">
             <div class="section-header">
                 <div class="planner-title-area">
-                    <h2 id="planner-title" data-t="meals">Meals</h2>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2 id="planner-title" data-t="meals">Meals</h2>
+                        <div id="standard-plans-selector-container" class="hidden">
+                            <select id="standard-plan-select" class="settings-select" style="padding: 4px 8px; font-size: 0.85rem; width: auto; min-width: 140px;"></select>
+                            <button id="manage-standard-plans-btn" class="edit-btn-mini" title="Gestionar planes" style="padding: 4px 8px;">⚙️</button>
+                        </div>
+                    </div>
                     <div id="date-picker-container" class="date-picker-container hidden">
                         <div class="date-picker-controls">
                             <button id="prev-day-btn" class="secondary-btn" title="Previous Day">&larr;</button>
@@ -113,8 +122,14 @@
         </section>
 
         <section id="exercises-view" class="hidden">
-            <div class="section-header">
-                <h2 data-t="routines_title">Mis Rutinas</h2>
+            <div class="section-header" style="flex-wrap: wrap; gap: 12px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <h2 data-t="routines_title" style="margin-bottom: 0;">Mis Rutinas</h2>
+                    <div id="routine-selector-container" style="display: flex; align-items: center; gap: 6px;">
+                        <select id="routine-select" class="settings-select" style="padding: 6px 10px; font-size: 0.9rem; width: auto; min-width: 160px; height: 38px;"></select>
+                        <button id="manage-routines-btn" class="edit-btn-mini" title="Gestionar rutinas" style="padding: 6px 10px; height: 38px;">⚙️</button>
+                    </div>
+                </div>
                 <button id="add-routine-btn" class="add-btn" data-t="add_routine">+ Nueva Rutina</button>
             </div>
             

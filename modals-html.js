@@ -13,6 +13,18 @@ export const modalsHtml = `
     ${weightModals}
     ${exerciseModals}
 
+    <!-- Modal for Managing Standard Plans -->
+    <div id="standard-plans-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="manage_standard_plans_title">Gestionar Planes</h2>
+            <div id="standard-plans-list" class="library-list" style="margin: 1rem 0; max-height: 300px;">
+                <!-- List of plans with rename/delete -->
+            </div>
+            <button id="add-standard-plan-btn" class="add-btn" style="width: 100%;">+ Nuevo Plan</button>
+        </div>
+    </div>
+
     <!-- Custom Confirmation Modal -->
     <div id="confirm-modal" class="modal" style="z-index: 9999;">
         <div class="modal-content" style="max-width: 350px; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">

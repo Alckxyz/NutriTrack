@@ -6,30 +6,60 @@ import Sortable from 'sortablejs';
 
 export function renderRoutines() {
     const list = document.getElementById('routines-list');
+    const routineSelect = document.getElementById('routine-select');
     if (!list) return;
 
+    // Update Routine Selector in header
+    if (routineSelect) {
+        routineSelect.innerHTML = '';
+        state.routines.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.id;
+            opt.textContent = r.name || t('untitled_routine', state.language);
+            if (state.selectedRoutineId === r.id) opt.selected = true;
+            routineSelect.appendChild(opt);
+        });
+        
+        // If no routine is selected but we have routines, select the first one
+        if (!state.selectedRoutineId && state.routines.length > 0) {
+            state.selectedRoutineId = state.routines[0].id;
+            // Background save
+            import('./state.js').then(m => m.saveState());
+        }
+
+        routineSelect.onchange = (e) => {
+            Logic.selectRoutine(e.target.value, renderRoutines);
+        };
+    }
+
     list.innerHTML = '';
-    state.routines.forEach(routine => {
-        const isSelected = state.selectedRoutineId === routine.id;
-        const card = document.createElement('div');
-        card.className = `routine-card ${isSelected ? 'selected' : ''}`;
-        card.dataset.id = routine.id;
-        card.innerHTML = `
-            <div class="routine-header">
-                <div class="routine-selector-container">
-                    <div class="routine-select-box ${isSelected ? 'active' : ''}" title="Seleccionar rutina"></div>
-                </div>
-                <div class="routine-title-group" style="flex: 1;">
-                    <h3 class="routine-name-editable" contenteditable="true" data-placeholder="${t('untitled_routine', state.language)}">${routine.name || ''}</h3>
-                </div>
-                <div class="meal-header-actions">
-                    <button class="add-mini-btn start-workout-trigger" style="background:var(--primary); color:black; border:none; padding:4px 10px;">${t('start_workout', state.language)}</button>
-                    <button class="edit-btn-mini reset-routine-series" title="${t('reset_series', state.language)}">🔄</button>
-                    <button class="edit-btn-mini rename-routine" title="${t('rename_btn', state.language)}">✏️</button>
-                    <button class="delete-btn delete-routine" title="${t('delete_btn', state.language)}">🗑️</button>
-                    <span class="drag-handle" title="Arrastrar para reordenar rutinas">☰</span>
-                </div>
+    
+    // Find the currently selected routine to render
+    const routine = state.routines.find(r => r.id === state.selectedRoutineId);
+    
+    if (!routine) {
+        if (state.routines.length === 0) {
+            list.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-light); border:1px dashed var(--border); border-radius:12px;">${state.language === 'es' ? 'Crea una rutina para empezar' : 'Create a routine to start'}</div>`;
+        }
+        return;
+    }
+
+    const isSelected = true; // Since we only show the active one now
+    const card = document.createElement('div');
+    card.className = `routine-card selected`;
+    card.dataset.id = routine.id;
+    card.innerHTML = `
+        <div class="routine-header">
+            <div class="routine-title-group" style="flex: 1;">
+                <h3 class="routine-name-editable" contenteditable="true" data-placeholder="${t('untitled_routine', state.language)}">${routine.name || ''}</h3>
             </div>
+            <div class="meal-header-actions">
+                <button class="add-mini-btn start-workout-trigger" style="background:var(--primary); color:black; border:none; padding:4px 10px;">${t('start_workout', state.language)}</button>
+                <button class="edit-btn-mini reset-routine-series" title="${t('reset_series', state.language)}">🔄</button>
+                <button class="edit-btn-mini rename-routine" title="${t('rename_btn', state.language)}">✏️</button>
+                <button class="delete-btn delete-routine" title="${t('delete_btn', state.language)}">🗑️</button>
+            </div>
+        </div>
             <div class="exercise-items">
                 ${routine.exercises.map(ex => {
                     const isCompleted = ex.doneSeries && ex.doneSeries.length >= ex.sets;
@@ -142,7 +172,15 @@ export function renderRoutines() {
 
         const workoutBtn = card.querySelector('.start-workout-trigger');
         if (state.activeWorkout && state.activeWorkout.routineId === routine.id) {
-            workoutBtn.textContent = t('finish_workout', state.language);
+            if (!state.user || !state.user.uid) {
+                workoutBtn.textContent = state.language === 'es' ? "Cargando..." : "Loading...";
+                workoutBtn.disabled = true;
+                workoutBtn.style.opacity = '0.6';
+            } else {
+                workoutBtn.textContent = t('finish_workout', state.language);
+                workoutBtn.disabled = false;
+                workoutBtn.style.opacity = '1';
+            }
             workoutBtn.style.background = 'var(--secondary)';
             
             // Highlight current active set if training
@@ -161,12 +199,6 @@ export function renderRoutines() {
             workoutBtn.textContent = t('start_workout', state.language);
             workoutBtn.style.background = 'var(--primary)';
         }
-
-        card.querySelector('.routine-select-box').onclick = (e) => {
-            e.stopPropagation();
-            const rid = isSelected ? null : routine.id;
-            Logic.selectRoutine(rid, () => renderRoutines());
-        };
 
         card.querySelector('.reset-routine-series').onclick = (e) => {
             e.stopPropagation();
@@ -275,16 +307,4 @@ export function renderRoutines() {
                 }
             });
         }
-    });
-
-    // Initialize Sortable for Routines list
-    new Sortable(list, {
-        animation: 150,
-        handle: '.drag-handle',
-        onEnd: (evt) => {
-            const cards = Array.from(list.children);
-            const orderedIds = cards.map(c => c.dataset.id);
-            Logic.reorderRoutines(orderedIds);
-        }
-    });
 }

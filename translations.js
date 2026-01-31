@@ -205,6 +205,7 @@ export const translations = {
         prompt_new_routine: "Nombre de la rutina (ej: Empuje A):",
         prompt_rename_routine: "Nuevo nombre para la rutina:",
         confirm_delete_routine: "¿Borrar esta rutina y todos sus ejercicios?",
+        manage_routines_title: "Gestionar Rutinas",
         untitled_routine: "Rutina sin nombre",
         untitled_meal: "Comida sin nombre",
         add_exercise: "+ Ejercicio",
@@ -248,6 +249,16 @@ export const translations = {
         load_mode_total: "Peso total (barra / máquina)",
         load_mode_single: "Peso por mano (mancuernas)",
         load_mode_bodyweight: "Peso corporal (solo reps)",
-        variant_change_msg: "✅ Cambiaste a una variante más desafiante, continuamos tu progreso"
+        variant_change_msg: "✅ Cambiaste a una variante más desafiante, continuamos tu progreso",
+        manage_standard_plans_title: "Gestionar Planes Estándar",
+        exercise_notes_label: "Notas del ejercicio (opcional)",
+        exercise_notes_placeholder: "¿Cómo te sentiste? (ej: Muy pesado, buena técnica...)",
+        exercise_settings_btn: "⚙️ Ajustes",
+        exercise_settings_title: "Ajustes de Entrenamiento",
+        enable_timer_label: "Temporizador de descanso",
+        export_routines: "Exportar Rutinas",
+        import_routines: "Importar Rutinas",
+        timer_on: "Activado",
+        timer_off: "Desactivado"
     }
 };

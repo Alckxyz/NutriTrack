@@ -9,30 +9,20 @@ import { initProgressionUI } from './progression-logic.js';
 
 export function initExerciseLogic(refreshUI) {
     initWorkoutLogic(refreshUI);
+    initExerciseSettings(refreshUI);
     initProgressionUI();
+    
     const addRoutineBtn = document.getElementById('add-routine-btn');
     if (addRoutineBtn) {
         addRoutineBtn.onclick = () => {
-            if (dom.routinePromptModal) {
-                dom.routinePromptInput.value = '';
-                dom.routinePromptModal.style.display = 'block';
-                setTimeout(() => dom.routinePromptInput.focus(), 10);
-            } else {
-                createNewRoutine(refreshUI);
-            }
+            openManageRoutinesModal(refreshUI);
         };
     }
 
-    if (dom.confirmRoutineBtn) {
-        dom.confirmRoutineBtn.onclick = () => {
-            const name = dom.routinePromptInput.value.trim();
-            if (!name) return;
-            createNewRoutine(refreshUI, name);
-            dom.routinePromptModal.style.display = 'none';
-        };
-
-        dom.routinePromptInput.onkeydown = (e) => {
-            if (e.key === 'Enter') dom.confirmRoutineBtn.click();
+    const manageRoutinesBtn = document.getElementById('manage-routines-btn');
+    if (manageRoutinesBtn) {
+        manageRoutinesBtn.onclick = () => {
+            openManageRoutinesModal(refreshUI);
         };
     }
 
@@ -42,17 +32,71 @@ export function initExerciseLogic(refreshUI) {
     }
 }
 
+export function openManageRoutinesModal(refreshUI) {
+    const modal = document.getElementById('manage-routines-modal');
+    if (!modal) return;
+    modal.style.display = 'block';
+    renderRoutinesManagementList(refreshUI);
+
+    const addBtn = document.getElementById('add-routine-modal-btn');
+    addBtn.onclick = () => createNewRoutine(refreshUI);
+}
+
+export function renderRoutinesManagementList(refreshUI) {
+    const list = document.getElementById('manage-routines-list');
+    if (!list) return;
+
+    list.innerHTML = '';
+    state.routines.forEach(routine => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        item.innerHTML = `
+            <div style="flex: 1;">
+                <input type="text" class="routine-name-input" value="${routine.name || ''}" style="background: transparent; border: none; color: white; width: 100%;">
+            </div>
+            <div class="library-item-actions">
+                <button class="delete-btn" style="padding: 4px 8px;">×</button>
+            </div>
+        `;
+
+        const nameInput = item.querySelector('.routine-name-input');
+        nameInput.onblur = () => {
+            const newName = nameInput.value.trim();
+            if (newName && newName !== routine.name) {
+                renameRoutine(routine.id, newName).then(() => {
+                    if (refreshUI) refreshUI();
+                });
+            }
+        };
+
+        item.querySelector('.delete-btn').onclick = () => {
+            deleteRoutine(routine.id).then(() => {
+                renderRoutinesManagementList(refreshUI);
+                if (refreshUI) refreshUI();
+            });
+        };
+
+        list.appendChild(item);
+    });
+}
+
 async function createNewRoutine(refreshUI, name) {
     if (!state.user) return alert("Inicia sesión para crear rutinas");
     
-    const routineName = name || t('add_routine', state.language).replace('+ ', '');
+    const routineName = name || (state.language === 'es' ? 'Nueva Rutina' : 'New Routine');
 
     try {
         const colRef = FB.collection(FB.db, 'users', state.user.uid, 'routines');
-        await FB.addDoc(colRef, {
+        const newDoc = await FB.addDoc(colRef, {
             name: routineName,
-            createdAt: Date.now()
+            createdAt: FB.serverTimestamp()
         });
+        // Select the new routine immediately
+        state.selectedRoutineId = newDoc.id;
+        await import('./state.js').then(m => m.saveState(() => {
+            renderRoutinesManagementList(refreshUI);
+            if (refreshUI) refreshUI();
+        }));
     } catch (e) {
         console.error("Error creating routine:", e);
     }
@@ -165,7 +209,7 @@ async function handleExerciseSubmit(e, refreshUI) {
             loadMultiplier,
             restBetweenSets: restSets,
             restBetweenExercises: restEx,
-            updatedAt: Date.now()
+            updatedAt: FB.serverTimestamp()
         };
 
         // Immediate UI feedback: close modal and reset form before awaiting the network promise
@@ -181,7 +225,7 @@ async function handleExerciseSubmit(e, refreshUI) {
                 ...data,
                 exerciseGroupId: Utils.uuidv4(),
                 doneSeries: [],
-                createdAt: Date.now()
+                createdAt: FB.serverTimestamp()
             });
             // Legacy/Fix: immediately ensure groupId is set if somehow skipped
         }
@@ -254,7 +298,7 @@ export async function replaceExercise(routineId, oldExId, newName, keepProgressi
             exerciseGroupId: newGroupId,
             isVariantChange: isVariantChange,
             doneSeries: [],
-            createdAt: Date.now()
+            createdAt: FB.serverTimestamp()
         });
 
         const oldRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises', oldExId);
@@ -289,6 +333,97 @@ export async function reorderExercises(routineId, orderedIds) {
         await Promise.all(batch);
     } catch (e) {
         console.error("Error reordering exercises:", e);
+    }
+}
+
+function initExerciseSettings(refreshUI) {
+    const settingsBtn = document.getElementById('exercise-settings-btn');
+    const modal = document.getElementById('exercise-settings-modal');
+    const timerCheck = document.getElementById('timer-enabled-checkbox');
+    const exportBtn = document.getElementById('export-routines-btn');
+    const importBtn = document.getElementById('import-routines-btn');
+
+    if (settingsBtn) {
+        settingsBtn.onclick = () => {
+            if (timerCheck) timerCheck.checked = state.timerEnabled;
+            modal.style.display = 'block';
+        };
+    }
+
+    if (timerCheck) {
+        timerCheck.onchange = (e) => {
+            state.timerEnabled = e.target.checked;
+            import('./state.js').then(m => m.saveState());
+        };
+    }
+
+    if (exportBtn) {
+        exportBtn.onclick = () => {
+            if (!state.user) return alert("Inicia sesión para exportar.");
+            // We export the simplified routines structure
+            const exportData = state.routines.map(r => ({
+                name: r.name,
+                exercises: (r.exercises || []).map(ex => ({
+                    name: ex.name,
+                    sets: ex.sets,
+                    reps: ex.reps,
+                    weight: ex.weight,
+                    loadMode: ex.loadMode,
+                    loadMultiplier: ex.loadMultiplier,
+                    restBetweenSets: ex.restBetweenSets,
+                    restBetweenExercises: ex.restBetweenExercises
+                }))
+            }));
+            Utils.downloadJSON(exportData, 'nutritrack-rutinas.json');
+        };
+    }
+
+    if (importBtn) {
+        importBtn.onclick = () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        for (const routineData of data) {
+                            await importRoutineWithExercises(routineData);
+                        }
+                        Utils.showToast("✅ Importación completada");
+                        modal.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error("Import failed", err);
+                    alert("Error al importar el archivo.");
+                }
+            };
+            input.click();
+        };
+    }
+}
+
+async function importRoutineWithExercises(routineData) {
+    if (!state.user) return;
+    const colRef = FB.collection(FB.db, 'users', state.user.uid, 'routines');
+    const newRoutineDoc = await FB.addDoc(colRef, {
+        name: routineData.name || "Rutina Importada",
+        createdAt: FB.serverTimestamp()
+    });
+
+    if (routineData.exercises && Array.isArray(routineData.exercises)) {
+        const exCol = FB.collection(FB.db, 'users', state.user.uid, 'routines', newRoutineDoc.id, 'exercises');
+        for (const ex of routineData.exercises) {
+            await FB.addDoc(exCol, {
+                ...ex,
+                exerciseGroupId: Utils.uuidv4(),
+                doneSeries: [],
+                createdAt: FB.serverTimestamp()
+            });
+        }
     }
 }
 

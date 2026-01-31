@@ -2,6 +2,8 @@ import { state } from './state.js';
 import * as FB from './firebase-config.js';
 import { t } from './i18n.js';
 import * as Utils from './utils.js';
+import { saveWorkout } from './workout-db.js';
+import { openFinishWorkoutModal, setupSetEditorUI } from './workout-ui-session.js';
 
 export function initWorkoutLogic(refreshUI) {
     const cancelBtn = document.getElementById('cancel-workout-btn');
@@ -26,15 +28,22 @@ export function initWorkoutLogic(refreshUI) {
 
     if (finishBtn) {
         finishBtn.onclick = async () => {
+            if (!state.user || !state.user.uid) {
+                alert(state.language === 'es' ? "Espera a que cargue la sesión o inicia sesión para guardar." : "Please wait for session to load or log in to save.");
+                return;
+            }
+
             if (await Utils.confirmAction(
                 t('save_workout_confirm', state.language), 
                 t('confirm', state.language),
                 { okText: t('save_workout_confirm_btn', state.language), isDanger: false }
             )) {
-                await saveWorkout();
-                state.activeWorkout = null;
-                document.getElementById('workout-session-modal').style.display = 'none';
-                if (refreshUI) refreshUI();
+                const success = await saveWorkout();
+                if (success !== false) {
+                    state.activeWorkout = null;
+                    document.getElementById('workout-session-modal').style.display = 'none';
+                    if (refreshUI) refreshUI();
+                }
             }
         };
     }
@@ -67,18 +76,20 @@ export function startWorkout(routineId, refreshUI) {
     state.activeWorkout = {
         routineId: routine.id,
         routineName: routine.name,
-        startedAt: Date.now(),
+        startedAt: FB.Timestamp.now(),
         currentExerciseIndex: 0,
         currentSetIndex: 0,
-        exercises: routine.exercises.map(ex => ({
+        exercises: (routine.exercises || []).map(ex => ({
             exerciseId: ex.id,
             exerciseName: ex.name,
             exerciseGroupId: ex.exerciseGroupId || ex.id,
+            createdAt: FB.Timestamp.now(),
             type: ex.loadMode === 'bodyweight' ? 'bodyweight' : 'weighted',
             loadMode: ex.loadMode || 'external_total',
             loadMultiplier: ex.loadMultiplier || 1,
             bodyweightKg: state.weightEntries[0]?.weightKg || 70,
             sets: [],
+            notes: '',
             targetSets: ex.sets,
             targetReps: ex.reps,
             targetWeight: ex.weight,
@@ -89,61 +100,21 @@ export function startWorkout(routineId, refreshUI) {
 
     if (refreshUI) refreshUI();
     Utils.showToast("🚀 " + t('workout_in_progress', state.language));
-    
-    // Automatically open first set if exercises exist
-    if (routine.exercises && routine.exercises.length > 0) {
-        openSetEditor(routineId, routine.exercises[0].id, 0);
-    }
 }
 
 let _pendingSetInfo = null;
 
 export function openSetEditor(routineId, exerciseId, setIndex) {
     if (!state.activeWorkout) return;
-    const routine = state.routines.find(r => r.id === routineId);
-    const exercise = routine.exercises.find(e => e.id === exerciseId);
-    if (!exercise) return;
-
     const exIndex = state.activeWorkout.exercises.findIndex(e => e.exerciseId === exerciseId);
-    const popup = document.getElementById('set-log-popup');
-    const title = document.getElementById('set-log-title');
-    const exName = document.getElementById('set-log-ex-name');
-    const weightIn = document.getElementById('set-log-weight');
-    const repsIn = document.getElementById('set-log-reps');
-    const saveBtn = document.getElementById('set-log-save-btn');
-
-    _pendingSetInfo = { routineId, exerciseId, setIndex, exIndex };
-
+    
     // Set indices for active workout tracking
     state.activeWorkout.currentExerciseIndex = exIndex;
     state.activeWorkout.currentSetIndex = setIndex;
 
-    title.textContent = t('set_x_of_y', state.language)
-        .replace('{x}', setIndex + 1)
-        .replace('{y}', exercise.sets);
-    exName.textContent = exercise.name;
-    
-    // Default values from last set or routine config
-    const currentExSession = state.activeWorkout.exercises[exIndex];
-    const lastLoggedSet = currentExSession.sets[currentExSession.sets.length - 1];
-    
-    weightIn.value = lastLoggedSet ? lastLoggedSet.weightKg : exercise.weight;
-    repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
-
-    // Check if it's the absolute last set of the last exercise
-    const isLastEx = exIndex === state.activeWorkout.exercises.length - 1;
-    const isLastSet = setIndex === exercise.sets - 1;
-    
-    if (isLastEx && isLastSet) {
-        saveBtn.textContent = t('finish_workout_now', state.language);
-        saveBtn.style.background = 'var(--secondary)';
-    } else {
-        saveBtn.textContent = t('save_and_continue', state.language);
-        saveBtn.style.background = 'var(--primary)';
-    }
-
-    popup.style.display = 'block';
-    setTimeout(() => { repsIn.focus(); repsIn.select(); }, 10);
+    setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, (info) => {
+        _pendingSetInfo = info;
+    });
 }
 
 async function saveCurrentSet(refreshUI) {
@@ -152,11 +123,17 @@ async function saveCurrentSet(refreshUI) {
     const { routineId, exerciseId, setIndex, exIndex } = _pendingSetInfo;
     const weight = parseFloat(document.getElementById('set-log-weight').value) || 0;
     const reps = parseInt(document.getElementById('set-log-reps').value) || 0;
+    const notesIn = document.getElementById('set-log-notes');
 
     const currentExSession = state.activeWorkout.exercises[exIndex];
+
+    // Capture notes if it's the last set or if user typed something
+    if (notesIn && !document.getElementById('set-log-notes-container').classList.contains('hidden')) {
+        currentExSession.notes = notesIn.value.trim();
+    }
     
     // 1. Record the set in activeWorkout
-    const setRecord = { weightKg: weight, reps: reps, createdAt: Date.now(), setIndex };
+    const setRecord = { weightKg: weight, reps: reps, createdAt: FB.Timestamp.now(), setIndex };
     // Update or add
     const existingIdx = currentExSession.sets.findIndex(s => s.setIndex === setIndex);
     if (existingIdx !== -1) currentExSession.sets[existingIdx] = setRecord;
@@ -164,7 +141,9 @@ async function saveCurrentSet(refreshUI) {
 
     // 2. Mark dot as done in routine (for visual sync)
     const routine = state.routines.find(r => r.id === routineId);
+    if (!routine || !routine.exercises) return;
     const exercise = routine.exercises.find(e => e.id === exerciseId);
+    if (!exercise) return;
     let done = [...(exercise.doneSeries || [])];
     if (!done.includes(setIndex)) done.push(setIndex);
     
@@ -225,99 +204,8 @@ export function toggleSetInWorkout(exerciseId, setIndex, weight, reps, isDone) {
     }
 }
 
-export function openFinishWorkoutModal() {
-    if (!state.activeWorkout) return;
-    renderWorkoutSession();
-    document.getElementById('workout-session-modal').style.display = 'block';
-}
+// removed function openFinishWorkoutModal() {} -> Moved to workout-ui-session.js
+// removed function renderWorkoutSession() {} -> Moved to workout-ui-session.js
+// removed function saveWorkout() {} -> Moved to workout-db.js
 
-function renderWorkoutSession() {
-    const list = document.getElementById('workout-exercises-list');
-    if (!list || !state.activeWorkout) return;
-
-    list.innerHTML = '';
-    state.activeWorkout.exercises.forEach((ex, exIdx) => {
-        const div = document.createElement('div');
-        div.className = 'meal-card';
-        div.style.marginBottom = '15px';
-        
-        // Only show exercises that have at least one set, or show all for review? 
-        // Showing all allows adding missed sets.
-        div.innerHTML = `
-            <div class="meal-header">
-                <h3 style="font-size:0.9rem;">${ex.exerciseName}</h3>
-                <button class="add-mini-btn add-set-btn" style="border-color:var(--primary); color:var(--primary);">${t('add_set', state.language)}</button>
-            </div>
-            <div class="sets-list" style="padding:10px;">
-                ${ex.sets.sort((a,b) => (a.setIndex??999) - (b.setIndex??999)).map((set, setIdx) => `
-                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:0.7rem; color:var(--text-light); width:20px;">${(set.setIndex !== undefined ? set.setIndex + 1 : 'S')}</span>
-                        <input type="number" class="set-weight" data-ex="${exIdx}" data-set="${setIdx}" value="${set.weightKg}" style="width:70px; padding:4px;">
-                        <span style="font-size:0.8rem;">kg x</span>
-                        <input type="number" class="set-reps" data-ex="${exIdx}" data-set="${setIdx}" value="${set.reps}" style="width:60px; padding:4px;">
-                        <span style="font-size:0.8rem;">reps</span>
-                        <button class="delete-btn delete-set-btn" data-ex="${exIdx}" data-set="${setIdx}" style="padding:2px 6px;">×</button>
-                    </div>
-                `).join('')}
-                ${ex.sets.length === 0 ? `<p style="font-size:0.7rem; color:var(--text-light); text-align:center; padding:10px;">Sin series registradas</p>` : ''}
-            </div>
-        `;
-
-        div.querySelector('.add-set-btn').onclick = () => {
-            // Find appropriate default values from routine if possible
-            const lastSet = ex.sets[ex.sets.length - 1] || { weightKg: 0, reps: 10 };
-            ex.sets.push({ weightKg: lastSet.weightKg, reps: lastSet.reps });
-            renderWorkoutSession();
-        };
-
-        div.querySelectorAll('.delete-set-btn').forEach(btn => {
-            btn.onclick = () => {
-                const sIdx = parseInt(btn.dataset.set);
-                ex.sets.splice(sIdx, 1);
-                renderWorkoutSession();
-            };
-        });
-
-        div.querySelectorAll('.set-weight').forEach(input => {
-            input.onchange = () => ex.sets[parseInt(input.dataset.set)].weightKg = parseFloat(input.value) || 0;
-        });
-        div.querySelectorAll('.set-reps').forEach(input => {
-            input.onchange = () => ex.sets[parseInt(input.dataset.set)].reps = parseInt(input.value) || 0;
-        });
-
-        list.appendChild(div);
-    });
-}
-
-async function saveWorkout() {
-    const user = FB.auth.currentUser;
-    if (!user) {
-        alert(state.language === 'es' ? "Debes iniciar sesión" : "You must login");
-        return;
-    }
-
-    if (!state.activeWorkout) return;
-    
-    try {
-        const colRef = FB.collection(FB.db, 'users', user.uid, 'workoutLogs');
-        // Clean up: remove exercises with 0 sets to keep history clean
-        const filteredExercises = state.activeWorkout.exercises.filter(ex => ex.sets.length > 0);
-        
-        const logData = {
-            ...state.activeWorkout,
-            userId: user.uid,
-            exercises: filteredExercises,
-            createdAt: Date.now()
-        };
-
-        await FB.addDoc(colRef, logData);
-        Utils.showToast("✅ " + (state.language === 'es' ? "Entrenamiento guardado" : "Workout saved"));
-    } catch (e) {
-        console.error("Error saving workout log:", e);
-        if (e.code === 'permission-denied') {
-            alert(state.language === 'es' ? "Error de permisos: Asegúrate de estar autenticado correctamente." : "Permission denied: Ensure you are logged in correctly.");
-        } else {
-            alert(state.language === 'es' ? "Error al guardar: " + e.message : "Error saving: " + e.message);
-        }
-    }
-}
+export { openFinishWorkoutModal };

@@ -115,10 +115,10 @@ export async function handlePasteFood(refreshCallback, refreshLibrary) {
                 const foodDocRef = FB.doc(FB.db, 'users', state.user.uid, 'foods', existing.id);
                 await FB.updateDoc(foodDocRef, {
                     ...foodData,
-                    updated_at: Date.now()
+                    updated_at: FB.serverTimestamp()
                 }).catch(async () => {
                    const legacyRef = FB.doc(FB.db, 'foodList', existing.id);
-                   await FB.updateDoc(legacyRef, { ...foodData, updated_at: Date.now() });
+                   await FB.updateDoc(legacyRef, { ...foodData, updated_at: FB.serverTimestamp() });
                 });
             } else {
                 const foodCollection = FB.collection(FB.db, 'users', state.user.uid, 'foods');
@@ -126,8 +126,8 @@ export async function handlePasteFood(refreshCallback, refreshLibrary) {
                     ...foodData, 
                     ownerId: state.user.uid,
                     ownerName: state.displayName,
-                    created_at: Date.now(), 
-                    updated_at: Date.now() 
+                    created_at: FB.serverTimestamp(), 
+                    updated_at: FB.serverTimestamp() 
                 });
                 savedId = newDoc.id;
             }
@@ -138,7 +138,7 @@ export async function handlePasteFood(refreshCallback, refreshLibrary) {
                     await FB.addDoc(convCol, { 
                         ...c, 
                         ownerId: state.user.uid,
-                        createdAt: Date.now()
+                        createdAt: FB.serverTimestamp()
                     });
                 }
                 await import('./state.js').then(m => m.fetchFoodConversions(savedId));
