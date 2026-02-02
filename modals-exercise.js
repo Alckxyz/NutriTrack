@@ -49,7 +49,8 @@ export const exerciseModals = `
                 <input type="hidden" id="ex-edit-id">
                 <div class="form-group">
                     <label data-t="prompt_exercise_name">${t('prompt_exercise_name', state.language)}</label>
-                    <input type="text" id="ex-name" required placeholder="Ej: Press de Banca">
+                    <input type="text" id="ex-name" required placeholder="Ej: Press de Banca" list="exercise-names-list">
+                    <datalist id="exercise-names-list"></datalist>
                 </div>
                 <div class="stats-form-grid">
                     <div class="form-group">
@@ -72,6 +73,13 @@ export const exerciseModals = `
                         <select id="ex-tracking-mode" class="settings-select">
                             <option value="reps" data-t="tracking_mode_reps">Repeticiones</option>
                             <option value="time" data-t="tracking_mode_time">Tiempo</option>
+                        </select>
+                    </div>
+                    <div id="time-mode-group" class="form-group hidden">
+                        <label data-t="time_mode_label">Modo cronómetro</label>
+                        <select id="ex-time-mode" class="settings-select">
+                            <option value="single" data-t="time_mode_single">Un solo cronómetro</option>
+                            <option value="unilateral" data-t="time_mode_unilateral">Dos (Unilateral)</option>
                         </select>
                     </div>
                     <div class="form-group">

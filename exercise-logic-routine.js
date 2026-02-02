@@ -75,11 +75,15 @@ export async function renameRoutine(routineId, newName) {
     } catch (e) { console.error("Error renaming routine:", e); }
 }
 
-export async function resetRoutineSeries(routineId, refreshUI) {
+export async function resetRoutineSeries(routineId, refreshUI, silent = false) {
     if (!state.user) return;
     const routine = state.routines.find(r => r.id === routineId);
     if (!routine || !routine.exercises) return;
-    if (!(await Utils.confirmAction(t('confirm_reset_series', state.language), t('confirm', state.language), { okText: t('reset_series', state.language), isDanger: true }))) return;
+    
+    if (!silent) {
+        if (!(await Utils.confirmAction(t('confirm_reset_series', state.language), t('confirm', state.language), { okText: t('reset_series', state.language), isDanger: true }))) return;
+    }
+
     try {
         const promises = routine.exercises.map(ex => {
             const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises', ex.id);

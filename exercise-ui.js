@@ -152,10 +152,8 @@ function attachExerciseEvents(card, routine) {
                 
                 if (state.activeWorkout && state.activeWorkout.routineId === routine.id) {
                     if (isTime) {
-                        // For time-based exercises in a workout, start the stopwatch first
                         import('./exercise-timer.js').then(m => {
-                            m.startTimer(ex.reps, 'exercise', () => {
-                                // When timer ends, open editor to log results
+                            m.startTimer({ duration: ex.reps, mode: ex.timeMode || 'single' }, 'exercise', () => {
                                 import('./workout-logic.js').then(wl => wl.openSetEditor(routine.id, exId, idx));
                             });
                         });
@@ -165,7 +163,7 @@ function attachExerciseEvents(card, routine) {
                 } else {
                     if (isTime) {
                         import('./exercise-timer.js').then(m => {
-                            m.startTimer(ex.reps, 'exercise', () => {
+                            m.startTimer({ duration: ex.reps, mode: ex.timeMode || 'single' }, 'exercise', () => {
                                 let done = [...(ex.doneSeries || [])];
                                 if (!done.includes(idx)) done.push(idx);
                                 Logic.updateExercise(routine.id, exId, { doneSeries: done });

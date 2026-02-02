@@ -190,12 +190,8 @@ async function saveCurrentSet(refreshUI) {
         }
 
         if (Object.keys(updates).length > 0) {
-            try {
-                const exDocRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises', exerciseId);
-                await FB.updateDoc(exDocRef, updates);
-            } catch (err) {
-                console.warn("Could not update baseline during session:", err);
-            }
+            import('./exercise-logic.js').then(m => m.updateExercise(routineId, exerciseId, updates))
+                .catch(err => console.warn("Could not update baseline during session:", err));
         }
     }
 

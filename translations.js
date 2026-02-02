@@ -269,6 +269,12 @@ export const translations = {
         suggest_increase: "¡Excelente! Todas las series completadas. Sube el peso la próxima vez.",
         suggest_decrease: "Parece que estuvo muy pesado. Baja un poco el peso para mantener buena técnica.",
         suggest_push_reps: "Buen trabajo. Mantén este peso y busca completar el máximo de reps en todas las series.",
-        duration_label: "Duración (seg)"
+        duration_label: "Duración (seg)",
+        time_mode_label: "Modo cronómetro",
+        time_mode_single: "Un solo cronómetro",
+        time_mode_unilateral: "Dos cronómetros (Unilateral)",
+        prep_countdown: "Prepárate",
+        limb_left: "Izquierda / Lado 1",
+        limb_right: "Derecha / Lado 2"
     }
 };

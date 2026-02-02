@@ -22,8 +22,13 @@ function playBeep() {
     oscillator.stop(audioCtx.currentTime + 1.5);
 }
 
-export function startTimer(seconds, type = 'sets', onFinishCallback = null) {
+/**
+ * Starts a sequenced timer logic.
+ * @param {number|object} config Seconds or object { duration, mode: 'single'|'unilateral' }
+ */
+export function startTimer(config, type = 'sets', onFinishCallback = null) {
     if (!state.timerEnabled && type !== 'exercise') return;
+    
     const timerUI = document.getElementById('rest-timer-ui');
     const display = document.getElementById('timer-display');
     const label = document.getElementById('timer-type-label');
@@ -32,19 +37,71 @@ export function startTimer(seconds, type = 'sets', onFinishCallback = null) {
     if (!timerUI || !display || !label) return;
 
     clearInterval(timerInterval);
-    remainingSeconds = seconds;
     isPaused = false;
     onTimerComplete = onFinishCallback;
     timerUI.classList.remove('hidden');
-    
-    if (type === 'sets') label.textContent = t('timer_set_rest', state.language);
-    else if (type === 'exercise') label.textContent = t('timer_exercise', state.language);
-    else label.textContent = t('timer_ex_rest', state.language);
-    
     toggleBtn.textContent = '⏸';
 
-    updateDisplay();
+    if (type !== 'exercise') {
+        // Standard rest timer logic
+        remainingSeconds = typeof config === 'number' ? config : config.duration;
+        label.textContent = type === 'sets' ? t('timer_set_rest', state.language) : t('timer_ex_rest', state.language);
+        updateDisplay();
+        startInternalInterval();
+    } else {
+        // Complex exercise timer logic with 5s prep
+        const duration = typeof config === 'number' ? config : config.duration;
+        const mode = typeof config === 'object' ? config.mode : 'single';
+        
+        runExerciseSequence(duration, mode, label);
+    }
+}
 
+async function runExerciseSequence(duration, mode, label) {
+    // 1. First Preparation (5s)
+    label.textContent = `[1/1] ${t('prep_countdown', state.language)}`;
+    if (mode === 'unilateral') label.textContent = `[1/2] ${t('prep_countdown', state.language)}`;
+    
+    await countdown(5);
+    
+    // 2. First Side / Single Side
+    label.textContent = mode === 'unilateral' ? t('limb_left', state.language) : t('timer_exercise', state.language);
+    await countdown(duration);
+    
+    if (mode === 'unilateral') {
+        // 3. Second Preparation (5s)
+        label.textContent = `[2/2] ${t('prep_countdown', state.language)}`;
+        await countdown(5);
+        
+        // 4. Second Side
+        label.textContent = t('limb_right', state.language);
+        await countdown(duration);
+    }
+    
+    finishTimer();
+}
+
+function countdown(seconds) {
+    return new Promise((resolve) => {
+        remainingSeconds = seconds;
+        updateDisplay();
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!isPaused) {
+                remainingSeconds--;
+                updateDisplay();
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    playBeep();
+                    resolve();
+                }
+            }
+        }, 1000);
+    });
+}
+
+function startInternalInterval() {
     timerInterval = setInterval(() => {
         if (!isPaused) {
             remainingSeconds--;

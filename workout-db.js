@@ -76,12 +76,19 @@ export async function saveWorkout() {
                 }
             }
             
-            const exDocRef = FB.doc(FB.db, 'users', uid, 'routines', routineId, 'exercises', exerciseId);
-            await FB.updateDoc(exDocRef, { weight: dominantWeight }).catch(err => console.warn("Could not update base weight", err));
+            await import('./exercise-logic.js').then(m => m.updateExercise(routineId, exerciseId, { weight: dominantWeight }))
+                .catch(err => console.warn("Could not update base weight", err));
         }
 
-        // Update last finished routine indicator
-        state.lastFinishedRoutineId = state.activeWorkout.routineId;
+        // Update last finished routine indicator and reset previous routine series
+        const previousRoutineId = state.lastFinishedRoutineId;
+        const currentRoutineId = state.activeWorkout.routineId;
+
+        if (previousRoutineId && previousRoutineId !== currentRoutineId) {
+            await import('./exercise-logic.js').then(m => m.resetRoutineSeries(previousRoutineId, null, true));
+        }
+
+        state.lastFinishedRoutineId = currentRoutineId;
         await import('./state.js').then(m => m.saveState());
 
         Utils.showToast("✅ " + (state.language === 'es' ? "Entrenamiento guardado" : "Workout saved"));

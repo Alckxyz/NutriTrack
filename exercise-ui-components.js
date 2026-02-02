@@ -84,6 +84,7 @@ export function getExerciseItemHTML(ex, routine, state) {
         }
     }
     const isTime = ex.trackingMode === 'time';
+    const isUnilateral = isTime && ex.timeMode === 'unilateral';
     const suggestion = calculateExerciseSuggestion(ex, state);
     const suggestionHtml = suggestion ? `
         <div class="ai-suggestion-box ${suggestion.type}" style="margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid transparent; background: rgba(100, 181, 246, 0.05);">
@@ -105,8 +106,9 @@ export function getExerciseItemHTML(ex, routine, state) {
             <div class="exercise-config">
                 <span><strong class="editable" data-field="sets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.sets}</strong> ${t('sets', state.language)}</span>
                 <span><strong class="editable" data-field="reps" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.reps}</strong> ${isTime ? 'seg' : t('reps', state.language)}</span>
-                <span><strong class="editable" data-field="weight" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.weight}</strong> kg</span>
+                ${ex.loadMode !== 'bodyweight' ? `<span><strong class="editable" data-field="weight" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.weight}</strong> kg</span>` : ''}
             </div>
+            ${isUnilateral ? `<div style="font-size:0.65rem; color:var(--secondary); margin-top:2px;">🔄 ${t('time_mode_unilateral', state.language)}</div>` : ''}
             ${suggestionHtml}
             ${lastTopSetHtml}
             <div class="exercise-config" style="margin-top:4px; font-size:0.7rem; opacity:0.8;">
