@@ -125,7 +125,11 @@
             <div class="section-header" style="flex-wrap: wrap; gap: 12px; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <h2 data-t="routines_title" style="margin-bottom: 0;">Mis Rutinas</h2>
-                    <div id="routine-selector-container" style="display: flex; align-items: center; gap: 6px;">
+                    <div id="exercise-plan-selector-container" style="display: flex; align-items: center; gap: 6px;">
+                        <select id="exercise-plan-select" class="settings-select" style="padding: 6px 10px; font-size: 0.9rem; width: auto; min-width: 140px; height: 38px; border-color: var(--primary);"></select>
+                        <button id="manage-exercise-plans-btn" class="edit-btn-mini" title="Gestionar planes" style="padding: 6px 10px; height: 38px;">⚙️</button>
+                    </div>
+                    <div id="routine-selector-container" class="hidden" style="display: flex; align-items: center; gap: 6px;">
                         <select id="routine-select" class="settings-select" style="padding: 6px 10px; font-size: 0.9rem; width: auto; min-width: 160px; height: 38px;"></select>
                         <button id="manage-routines-btn" class="edit-btn-mini" title="Gestionar rutinas" style="padding: 6px 10px; height: 38px;">⚙️</button>
                     </div>
@@ -159,8 +163,9 @@
         <button id="open-db-modal" class="fab" title="Add Food to List">+</button>
     </div>
 
-    <!-- Datalist for micronutrient name suggestions -->
-    <datalist id="nutrient-suggestions"></datalist>
+    <!-- Datalists for micronutrient name suggestions -->
+    <datalist id="vitamin-suggestions"></datalist>
+    <datalist id="mineral-suggestions"></datalist>
 
     <script type="module" src="script.js"></script>
 </body>

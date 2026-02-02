@@ -105,9 +105,14 @@ export function startWorkout(routineId, refreshUI) {
 let _pendingSetInfo = null;
 
 export function openSetEditor(routineId, exerciseId, setIndex) {
-    if (!state.activeWorkout) return;
+    if (!state.activeWorkout || !state.activeWorkout.exercises) return;
     const exIndex = state.activeWorkout.exercises.findIndex(e => e.exerciseId === exerciseId);
     
+    if (exIndex === -1) {
+        console.warn(`Exercise ${exerciseId} not found in active workout session.`);
+        return;
+    }
+
     // Set indices for active workout tracking
     state.activeWorkout.currentExerciseIndex = exIndex;
     state.activeWorkout.currentSetIndex = setIndex;
@@ -121,7 +126,13 @@ async function saveCurrentSet(refreshUI) {
     if (!state.activeWorkout || !_pendingSetInfo) return;
 
     const { routineId, exerciseId, setIndex, exIndex } = _pendingSetInfo;
-    const weight = parseFloat(document.getElementById('set-log-weight').value) || 0;
+    
+    if (exIndex === -1 || !state.activeWorkout.exercises[exIndex]) {
+        document.getElementById('set-log-popup').style.display = 'none';
+        return;
+    }
+
+    const weight = parseFloat(document.getElementById('set-log-weight')?.value) || 0;
     const reps = parseInt(document.getElementById('set-log-reps').value) || 0;
     const notesIn = document.getElementById('set-log-notes');
 
@@ -138,6 +149,55 @@ async function saveCurrentSet(refreshUI) {
     const existingIdx = currentExSession.sets.findIndex(s => s.setIndex === setIndex);
     if (existingIdx !== -1) currentExSession.sets[existingIdx] = setRecord;
     else currentExSession.sets.push(setRecord);
+
+    // --- Real-time Base Weight & Reps Update ---
+    // If the weight or reps used in the majority of completed sets differ from original base,
+    // update the exercise definition immediately.
+    const currentSets = currentExSession.sets;
+    if (currentSets.length > 0) {
+        const weightCounts = {};
+        const repCounts = {};
+        
+        currentSets.forEach(s => {
+            weightCounts[s.weightKg] = (weightCounts[s.weightKg] || 0) + 1;
+            repCounts[s.reps] = (repCounts[s.reps] || 0) + 1;
+        });
+
+        const getDominant = (counts) => {
+            let dominant = parseFloat(Object.keys(counts)[0]);
+            let maxCount = 0;
+            for (const [val, count] of Object.entries(counts)) {
+                const num = parseFloat(val);
+                if (count > maxCount || (count === maxCount && num > dominant)) {
+                    dominant = num;
+                    maxCount = count;
+                }
+            }
+            return dominant;
+        };
+
+        const dominantWeight = getDominant(weightCounts);
+        const dominantReps = getDominant(repCounts);
+
+        const updates = {};
+        if (dominantWeight !== currentExSession.targetWeight) {
+            updates.weight = dominantWeight;
+            currentExSession.targetWeight = dominantWeight;
+        }
+        if (dominantReps !== currentExSession.targetReps) {
+            updates.reps = dominantReps;
+            currentExSession.targetReps = dominantReps;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            try {
+                const exDocRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises', exerciseId);
+                await FB.updateDoc(exDocRef, updates);
+            } catch (err) {
+                console.warn("Could not update baseline during session:", err);
+            }
+        }
+    }
 
     // 2. Mark dot as done in routine (for visual sync)
     const routine = state.routines.find(r => r.id === routineId);

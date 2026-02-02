@@ -1,6 +1,7 @@
 import Sortable from 'sortablejs';
 import { state, calculateCalories, calculateMealNutrients, saveState, getCurrentMeals } from './state.js';
 import { t, tUnit } from './i18n.js';
+import { getNutrientUnit } from './nutrient-utils.js';
 
 export function renderMeals(options = {}) {
     const mealsListEl = document.getElementById('meals-list');
@@ -18,7 +19,7 @@ export function renderMeals(options = {}) {
         const visibleList = state.visibleMicros || [];
         [...Object.entries(mealSummary.vitamins), ...Object.entries(mealSummary.minerals)].forEach(([name, val]) => {
             if (val > 0 && visibleList.includes(name)) {
-                microsHtml += `<span class="nutrient-badge micro">${name}: ${val.toFixed(1)}</span>`;
+                microsHtml += `<span class="nutrient-badge micro">${name}: ${val.toFixed(1)}${getNutrientUnit(name)}</span>`;
             }
         });
         mealCard.innerHTML = `
@@ -29,7 +30,7 @@ export function renderMeals(options = {}) {
                         <span class="nutrient-badge kcal">${Math.round(mealSummary.calories)} kcal</span>
                         <span class="nutrient-badge macro">P: ${mealSummary.protein.toFixed(1)}g</span>
                         <span class="nutrient-badge macro">C: ${mealSummary.carbs.toFixed(1)}g</span>
-                        <span class="nutrient-badge macro">F: ${mealSummary.fat.toFixed(1)}g</span>
+                        <span class="nutrient-badge macro">G: ${mealSummary.fat.toFixed(1)}g</span>
                         <span class="nutrient-badge fiber-badge">Fib: ${mealSummary.fiber.toFixed(1)}g</span>
                         ${microsHtml}
                     </div>
@@ -82,10 +83,10 @@ export function renderMeals(options = {}) {
                     let foodMicros = [];
                     const visibleList = state.visibleMicros || [];
                     if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => {
-                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}${getNutrientUnit(n)}`);
                     });
                     if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => {
-                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                        if (visibleList.includes(n)) foodMicros.push(`${n}: ${(v * ratio).toFixed(1)}${getNutrientUnit(n)}`);
                     });
                     const brandDisplay = food.brand ? `<small style="color:var(--text-light); font-size:0.7rem;"> [${food.brand}]</small>` : '';
                     return `
@@ -101,7 +102,7 @@ export function renderMeals(options = {}) {
                                         <span class="editable-amount" data-meal-id="${meal.id}" data-index="${idx}">${item.amount}</span> ${unitLabel}
                                         - <strong>${Math.round(foodKcal * ratio)} kcal</strong>
                                     </span>
-                                    <div class="item-nutrients-mini">P: ${(food.protein * ratio).toFixed(1)}g | C: ${(food.carbs * ratio).toFixed(1)}g | F: ${(food.fat * ratio).toFixed(1)}g | Fib: ${((food.fiber || 0) * ratio).toFixed(1)}g${foodMicros.length > 0 ? `<br><span class="micro-text">${foodMicros.join(' | ')}</span>` : ''}</div>
+                                    <div class="item-nutrients-mini">P: ${(food.protein * ratio).toFixed(1)}g | C: ${(food.carbs * ratio).toFixed(1)}g | G: ${(food.fat * ratio).toFixed(1)}g | Fib: ${((food.fiber || 0) * ratio).toFixed(1)}g${foodMicros.length > 0 ? `<br><span class="micro-text">${foodMicros.join(' | ')}</span>` : ''}</div>
                                 </div>
                             </div>
                             <div class="item-actions">

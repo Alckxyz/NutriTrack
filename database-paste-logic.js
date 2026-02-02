@@ -71,24 +71,24 @@ Los valores deben ser un promedio.
 Formato obligatorio:
 
 Nombre del alimento
-Protein: X
-Carbs: X
-Fat: X
-Fiber: X
-Units:
+Proteína: X
+Carbohidratos: X
+Grasas: X
+Fibra: X
+Unidades:
 g: X
 unidad_extra: X
-Vitamins:
+Vitaminas:
 Vit X: X
-Minerals:
+Minerales:
 Mineral X: X
 
 Reglas:
-- Protein, Carbs y Fat son obligatorios.
-- Fiber es obligatorio.
-- Vitamins y Minerals son obligatorios.
+- Proteína, Carbohidratos y Grasas son obligatorios.
+- Fibra es obligatorio.
+- Vitaminas y Minerales son obligatorios.
 - Usa solo números (decimales permitidos).
-- No pongas “g”, “mg”, “kcal”, etc. (solo las etiquetas g: y ml: en Units)`;
+- No pongas “g”, “mg”, “kcal”, etc. (solo las etiquetas g: y ml: en Unidades)`;
 
 export async function handlePasteFood(refreshCallback, refreshLibrary) {
     if (!state.user) return alert("Please login to import foods.");

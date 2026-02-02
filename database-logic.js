@@ -125,8 +125,8 @@ export async function openDbModalForEdit(foodId) {
     const convContainer = document.getElementById('db-conversions-container');
     if (convContainer) convContainer.innerHTML = '';
 
-    if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-vitamins-container', n, v));
-    if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-minerals-container', n, v));
+    if (food.vitamins) Object.entries(food.vitamins).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-vitamins-container', n, v, 'vitamin-suggestions'));
+    if (food.minerals) Object.entries(food.minerals).forEach(([n, v]) => Nutrients.addNutrientRowToContainer('db-minerals-container', n, v, 'mineral-suggestions'));
     
     // Load conversions from the shared state.foodConversions
     // Also trigger an explicit public fetch to ensure we see all community contributions

@@ -57,6 +57,33 @@ export async function saveWorkout() {
         console.log("Saving Workout Data:", workoutData);
 
         await FB.addDoc(colRef, workoutData);
+        
+        // Update routine with final dominant weights (handles cases where weights were manually edited in the final modal)
+        const routineId = state.activeWorkout.routineId;
+        for (const exSession of filteredExercises) {
+            const exerciseId = exSession.exerciseId;
+            const weightCounts = {};
+            exSession.sets.forEach(s => {
+                weightCounts[s.weightKg] = (weightCounts[s.weightKg] || 0) + 1;
+            });
+            let dominantWeight = exSession.sets[0].weightKg;
+            let maxCount = 0;
+            for (const [w, count] of Object.entries(weightCounts)) {
+                const weightNum = parseFloat(w);
+                if (count > maxCount || (count === maxCount && weightNum > dominantWeight)) {
+                    dominantWeight = weightNum;
+                    maxCount = count;
+                }
+            }
+            
+            const exDocRef = FB.doc(FB.db, 'users', uid, 'routines', routineId, 'exercises', exerciseId);
+            await FB.updateDoc(exDocRef, { weight: dominantWeight }).catch(err => console.warn("Could not update base weight", err));
+        }
+
+        // Update last finished routine indicator
+        state.lastFinishedRoutineId = state.activeWorkout.routineId;
+        await import('./state.js').then(m => m.saveState());
+
         Utils.showToast("✅ " + (state.language === 'es' ? "Entrenamiento guardado" : "Workout saved"));
         return true;
     } catch (error) {

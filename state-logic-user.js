@@ -68,7 +68,10 @@ export const saveState = async (callback) => {
         goals: state.goals,
         visibleMicros: state.visibleMicros || [],
         timerEnabled: state.timerEnabled,
-        selectedRoutineId: state.selectedRoutineId || null
+        selectedRoutineId: state.selectedRoutineId || null,
+        lastFinishedRoutineId: state.lastFinishedRoutineId || null,
+        exercisePlans: state.exercisePlans || [],
+        currentExercisePlanId: state.currentExercisePlanId || 'ep1'
     };
 
     try {
@@ -128,6 +131,9 @@ export async function loadUserData(user, refreshUI) {
             state.visibleMicros = data.visibleMicros || [];
             state.timerEnabled = data.timerEnabled !== undefined ? data.timerEnabled : true;
             state.selectedRoutineId = data.selectedRoutineId || null;
+            state.lastFinishedRoutineId = data.lastFinishedRoutineId || null;
+            state.exercisePlans = data.exercisePlans || [{ id: 'ep1', name: 'Plan Principal' }];
+            state.currentExercisePlanId = data.currentExercisePlanId || 'ep1';
             updateMergedFoodList();
             if (refreshUI) refreshUI();
         } else {
@@ -159,8 +165,9 @@ export async function loadUserData(user, refreshUI) {
             const existing = state.routines.find(r => r.id === doc.id);
             return { id: doc.id, ...doc.data(), exercises: existing ? existing.exercises : [] };
         });
-        // Client-side sorting based on 'order' field
-        newRoutines.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+        // Client-side sorting based on 'order' field. 
+        // Default to 0 so new items (with higher order) always go to the end.
+        newRoutines.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
         const activeRoutineIds = new Set(newRoutines.map(r => r.id));
         Object.keys(exerciseListeners).forEach(rid => {
@@ -175,8 +182,9 @@ export async function loadUserData(user, refreshUI) {
                 const exCol = FB.collection(FB.db, 'users', user.uid, 'routines', routine.id, 'exercises');
                 exerciseListeners[routine.id] = FB.onSnapshot(exCol, (exSnapshot) => {
                     const exercises = exSnapshot.docs.map(edoc => ({ id: edoc.id, ...edoc.data() }));
-                    // Client-side sorting based on 'order' field
-                    exercises.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+                    // Client-side sorting based on 'order' field.
+                    // Default to 0 so new items (with higher order) always go to the end.
+                    exercises.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
                     const idx = state.routines.findIndex(r => r.id === routine.id);
                     if (idx !== -1) state.routines[idx].exercises = exercises;
                     const localR = newRoutines.find(r => r.id === routine.id);

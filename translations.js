@@ -249,8 +249,14 @@ export const translations = {
         load_mode_total: "Peso total (barra / máquina)",
         load_mode_single: "Peso por mano (mancuernas)",
         load_mode_bodyweight: "Peso corporal (solo reps)",
+        tracking_mode_label: "Modo de seguimiento",
+        tracking_mode_reps: "Repeticiones",
+        tracking_mode_time: "Tiempo (Cronómetro)",
+        duration_label: "Duración (seg)",
+        timer_exercise: "Ejercicio en curso",
         variant_change_msg: "✅ Cambiaste a una variante más desafiante, continuamos tu progreso",
         manage_standard_plans_title: "Gestionar Planes Estándar",
+        manage_exercise_plans_title: "Gestionar Planes de Entrenamiento",
         exercise_notes_label: "Notas del ejercicio (opcional)",
         exercise_notes_placeholder: "¿Cómo te sentiste? (ej: Muy pesado, buena técnica...)",
         exercise_settings_btn: "⚙️ Ajustes",
@@ -259,6 +265,10 @@ export const translations = {
         export_routines: "Exportar Rutinas",
         import_routines: "Importar Rutinas",
         timer_on: "Activado",
-        timer_off: "Desactivado"
+        timer_off: "Desactivado",
+        suggest_increase: "¡Excelente! Todas las series completadas. Sube el peso la próxima vez.",
+        suggest_decrease: "Parece que estuvo muy pesado. Baja un poco el peso para mantener buena técnica.",
+        suggest_push_reps: "Buen trabajo. Mantén este peso y busca completar el máximo de reps en todas las series.",
+        duration_label: "Duración (seg)"
     }
 };

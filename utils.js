@@ -21,22 +21,22 @@ export function parsePastedFood(text) {
         const lowerLine = line.toLowerCase();
         
         if (lowerLine.startsWith('brand:') || lowerLine.startsWith('marca:')) brand = line.split(':')[1].trim();
-        else if (lowerLine.startsWith('protein:')) protein = parseFloat(line.split(':')[1]) || 0;
-        else if (lowerLine.startsWith('carbs:')) carbs = parseFloat(line.split(':')[1]) || 0;
-        else if (lowerLine.startsWith('fat:')) fat = parseFloat(line.split(':')[1]) || 0;
+        else if (lowerLine.startsWith('protein:') || lowerLine.startsWith('proteína:')) protein = parseFloat(line.split(':')[1]) || 0;
+        else if (lowerLine.startsWith('carbs:') || lowerLine.startsWith('carbohidratos:')) carbs = parseFloat(line.split(':')[1]) || 0;
+        else if (lowerLine.startsWith('fat:') || lowerLine.startsWith('grasas:')) fat = parseFloat(line.split(':')[1]) || 0;
         else if (lowerLine.startsWith('fiber:') || lowerLine.startsWith('fibra:')) fiber = parseFloat(line.split(':')[1]) || 0;
-        else if (lowerLine.startsWith('unit:')) {
+        else if (lowerLine.startsWith('unit:') || lowerLine.startsWith('unidad:') || lowerLine.startsWith('unidades:')) {
             defaultUnit = line.split(':')[1].trim();
             firstUnitInListFound = true; // Si hay una línea explícita de "unit:", no usamos la primera de la lista
         }
-        else if (lowerLine.startsWith('amount:') || lowerLine.startsWith('base amount:')) {
+        else if (lowerLine.startsWith('amount:') || lowerLine.startsWith('base amount:') || lowerLine.startsWith('cantidad:')) {
             baseAmount = parseFloat(line.split(':')[1]) || 100;
             explicitBaseAmountFound = true;
         }
         else if (lowerLine.includes('vitamin')) currentSection = 'vitamins';
         else if (lowerLine.includes('mineral')) currentSection = 'minerals';
-        else if (lowerLine.includes('unit') && lowerLine.endsWith(':')) currentSection = 'units';
-        else if (lowerLine.includes('conversion') && lowerLine.endsWith(':')) currentSection = 'units';
+        else if (lowerLine.includes('unit') || lowerLine.includes('unidad') || lowerLine.includes('unidades')) currentSection = 'units';
+        else if (lowerLine.includes('conversion')) currentSection = 'units';
         else if (line.includes(':')) {
             const parts = line.split(':').map(s => s.trim());
             const k = parts[0];

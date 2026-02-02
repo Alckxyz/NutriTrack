@@ -4,6 +4,7 @@ import { t } from './i18n.js';
 let timerInterval = null;
 let remainingSeconds = 0;
 let isPaused = false;
+let onTimerComplete = null;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -21,8 +22,8 @@ function playBeep() {
     oscillator.stop(audioCtx.currentTime + 1.5);
 }
 
-export function startTimer(seconds, type = 'sets') {
-    if (!state.timerEnabled) return;
+export function startTimer(seconds, type = 'sets', onFinishCallback = null) {
+    if (!state.timerEnabled && type !== 'exercise') return;
     const timerUI = document.getElementById('rest-timer-ui');
     const display = document.getElementById('timer-display');
     const label = document.getElementById('timer-type-label');
@@ -33,8 +34,13 @@ export function startTimer(seconds, type = 'sets') {
     clearInterval(timerInterval);
     remainingSeconds = seconds;
     isPaused = false;
+    onTimerComplete = onFinishCallback;
     timerUI.classList.remove('hidden');
-    label.textContent = type === 'sets' ? t('timer_set_rest', state.language) : t('timer_ex_rest', state.language);
+    
+    if (type === 'sets') label.textContent = t('timer_set_rest', state.language);
+    else if (type === 'exercise') label.textContent = t('timer_exercise', state.language);
+    else label.textContent = t('timer_ex_rest', state.language);
+    
     toggleBtn.textContent = '⏸';
 
     updateDisplay();
@@ -60,6 +66,10 @@ function updateDisplay() {
 function finishTimer() {
     clearInterval(timerInterval);
     playBeep();
+    if (onTimerComplete) {
+        onTimerComplete();
+        onTimerComplete = null;
+    }
     // Keep UI visible at 00:00 for a moment or hide
     setTimeout(() => {
         const timerUI = document.getElementById('rest-timer-ui');

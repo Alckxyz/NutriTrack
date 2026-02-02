@@ -190,11 +190,16 @@ main {
 }
 
 .routine-select-box.active {
+    background: #4caf50; /* Green dot for current selection */
+    border-color: #4caf50;
+}
+
+.routine-select-box.finished {
     background: var(--secondary);
     border-color: var(--secondary);
 }
 
-.routine-select-box.active::after {
+.routine-select-box.finished::after {
     content: '✓';
     color: white;
     font-size: 14px;
@@ -284,6 +289,20 @@ main {
 
 .exercise-config span strong {
     color: var(--text);
+}
+
+.ai-suggestion-box.increase {
+    border-color: rgba(129, 199, 132, 0.4);
+    background: rgba(129, 199, 132, 0.08) !important;
+}
+
+.ai-suggestion-box.decrease {
+    border-color: rgba(255, 138, 128, 0.4);
+    background: rgba(255, 138, 128, 0.08) !important;
+}
+
+.ai-suggestion-box.push {
+    border-color: rgba(100, 181, 246, 0.4);
 }
 
 .series-tracker {

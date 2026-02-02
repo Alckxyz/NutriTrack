@@ -2,6 +2,31 @@ import { t } from './i18n.js';
 import { state } from './state.js';
 
 export const exerciseModals = `
+    <!-- Modal for prompting routine name -->
+    <div id="routine-prompt-modal" class="modal">
+        <div class="modal-content" style="max-width: 350px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="add_routine">Nueva Rutina</h2>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label data-t="prompt_new_routine">Nombre de la rutina:</label>
+                <input type="text" id="routine-prompt-input" placeholder="Ej: Empuje A">
+            </div>
+            <button id="confirm-routine-btn" class="primary-btn" style="width: 100%;">Crear</button>
+        </div>
+    </div>
+
+    <!-- Modal for Managing Exercise Plans -->
+    <div id="exercise-plans-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-btn">&times;</span>
+            <h2 data-t="manage_exercise_plans_title">Gestionar Planes de Entrenamiento</h2>
+            <div id="exercise-plans-list" class="library-list" style="margin: 1rem 0; max-height: 300px;">
+                <!-- List of exercise plans with rename/delete -->
+            </div>
+            <button id="add-exercise-plan-btn" class="add-btn" style="width: 100%;">+ Nuevo Plan</button>
+        </div>
+    </div>
+
     <!-- Modal for Managing Routines -->
     <div id="manage-routines-modal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
@@ -32,8 +57,8 @@ export const exerciseModals = `
                         <input type="number" id="ex-sets" value="3" min="1">
                     </div>
                     <div class="form-group">
-                        <label data-t="reps">${t('reps', state.language)}</label>
-                        <input type="number" id="ex-reps" value="10" min="1">
+                        <label id="ex-reps-label" data-t="reps">${t('reps', state.language)}</label>
+                        <input type="number" id="ex-reps" value="10" min="1" placeholder="Reps">
                     </div>
                     <div class="form-group">
                         <label data-t="weight">${t('weight', state.language)} (kg)</label>
@@ -41,13 +66,22 @@ export const exerciseModals = `
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label data-t="load_mode_label">Cómo se cuenta el peso</label>
-                    <select id="ex-load-mode" class="settings-select">
-                        <option value="external_total" data-t="load_mode_total">Peso total (barra / máquina)</option>
-                        <option value="external_single" data-t="load_mode_single">Peso por mano (mancuernas bilateral)</option>
-                        <option value="bodyweight" data-t="load_mode_bodyweight">Peso corporal (solo reps)</option>
-                    </select>
+                <div class="stats-form-grid">
+                    <div class="form-group">
+                        <label data-t="tracking_mode_label">Modo seguimiento</label>
+                        <select id="ex-tracking-mode" class="settings-select">
+                            <option value="reps" data-t="tracking_mode_reps">Repeticiones</option>
+                            <option value="time" data-t="tracking_mode_time">Tiempo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-t="load_mode_label">Peso</label>
+                        <select id="ex-load-mode" class="settings-select">
+                            <option value="external_total" data-t="load_mode_total">Total</option>
+                            <option value="external_single" data-t="load_mode_single">Por mano</option>
+                            <option value="bodyweight" data-t="load_mode_bodyweight">Corporal</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="stats-form-grid">
                     <div class="form-group">

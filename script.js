@@ -148,8 +148,8 @@ function setupGlobalUI() {
         }
     });
 
-    dom.addVitaminBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-vitamins-container');
-    dom.addMineralBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-minerals-container');
+    dom.addVitaminBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-vitamins-container', '', '', 'vitamin-suggestions');
+    dom.addMineralBtn.onclick = () => Nutrients.addNutrientRowToContainer('db-minerals-container', '', '', 'mineral-suggestions');
     const addConvBtn = document.getElementById('add-conversion-btn');
     if (addConvBtn) addConvBtn.onclick = () => {
         // Default to the current base amount as the weight for new conversion rows

@@ -128,5 +128,8 @@ export const dom = {
     // Meal Prompt Modal
     get mealPromptModal() { return document.getElementById('meal-prompt-modal'); },
     get mealPromptInput() { return document.getElementById('meal-prompt-input'); },
-    get confirmMealBtn() { return document.getElementById('confirm-meal-btn'); }
+    get confirmMealBtn() { return document.getElementById('confirm-meal-btn'); },
+    get routinePromptModal() { return document.getElementById('routine-prompt-modal'); },
+    get routinePromptInput() { return document.getElementById('routine-prompt-input'); },
+    get confirmRoutineBtn() { return document.getElementById('confirm-routine-btn'); }
 };

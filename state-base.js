@@ -30,9 +30,14 @@ export const state = {
     weightEntries: [],
     foodConversions: {}, // Format: { foodId: [{name, grams, originalQty, totalWeight}, ...] }
     routines: [], // Array of routine objects
+    exercisePlans: [
+        { id: 'ep1', name: 'Plan Principal' }
+    ],
+    currentExercisePlanId: 'ep1',
     workoutLogs: [], // Historical workout sessions
     activeWorkout: null, // Current session data if active
     selectedRoutineId: null, // ID of the currently active routine
+    lastFinishedRoutineId: null, // ID of the routine that was just completed
     visibleMicros: [], // Array of names of micronutrients to show in summary
     timerEnabled: true,
     goals: {

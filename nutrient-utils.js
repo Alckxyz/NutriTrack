@@ -3,22 +3,157 @@ import { t } from './i18n.js';
 import * as FB from './firebase-config.js';
 import { confirmAction } from './utils.js';
 
+/**
+ * Reference Daily Intake (RDI/RDA) for Adults.
+ * Simplified for general nutritional tracking.
+ */
+export const NUTRIENT_RDA = {
+    // Vitamins
+    'Vitamina A': { male: 900, female: 700, unit: 'mcg' },
+    'Vitamina B1': { male: 1.2, female: 1.1, unit: 'mg' },
+    'Vitamina B2': { male: 1.3, female: 1.1, unit: 'mg' },
+    'Vitamina B3': { male: 16, female: 14, unit: 'mg' },
+    'Vitamina B5': { male: 5, female: 5, unit: 'mg' },
+    'Vitamina B6': { male: 1.3, female: 1.3, unit: 'mg' },
+    'Vitamina B7': { male: 30, female: 30, unit: 'mcg' },
+    'Vitamina B9': { male: 400, female: 400, unit: 'mcg' },
+    'Ácido Fólico': { male: 400, female: 400, unit: 'mcg' },
+    'Vitamina B12': { male: 2.4, female: 2.4, unit: 'mcg' },
+    'Vitamina C': { male: 90, female: 75, unit: 'mg' },
+    'Vitamina D': { male: 15, female: 15, unit: 'mcg' },
+    'Vitamina E': { male: 15, female: 15, unit: 'mg' },
+    'Vitamina K': { male: 120, female: 90, unit: 'mcg' },
+    // Minerals
+    'Calcio': { male: 1000, female: 1000, unit: 'mg' },
+    'Hierro': { male: 8, female: 18, unit: 'mg' },
+    'Magnesio': { male: 400, female: 310, unit: 'mg' },
+    'Fósforo': { male: 700, female: 700, unit: 'mg' },
+    'Potasio': { male: 3400, female: 2600, unit: 'mg' },
+    'Sodio': { male: 1500, female: 1500, unit: 'mg', limit: 2300 }, // Special case for sodium limit
+    'Zinc': { male: 11, female: 8, unit: 'mg' },
+    'Cobre': { male: 0.9, female: 0.9, unit: 'mg' },
+    'Manganeso': { male: 2.3, female: 1.8, unit: 'mg' },
+    'Selenio': { male: 55, female: 55, unit: 'mcg' },
+    'Yodo': { male: 1500, female: 150, unit: 'mcg' }
+};
+
+export const VITAMIN_NAMES = [
+    'Vitamina A', 'Vitamina B1', 'Vitamina B2', 'Vitamina B3', 'Vitamina B5', 
+    'Vitamina B6', 'Vitamina B7', 'Vitamina B9', 'Ácido Fólico', 'Vitamina B12', 
+    'Vitamina C', 'Vitamina D', 'Vitamina E', 'Vitamina K'
+];
+
+export const MINERAL_NAMES = [
+    'Calcio', 'Hierro', 'Magnesio', 'Fósforo', 'Potasio', 'Sodio', 
+    'Zinc', 'Cobre', 'Manganeso', 'Selenio', 'Yodo'
+];
+
+const MICRONUTRIENT_UNITS = {
+    'Vitamina A': 'mcg',
+    'Vitamin A': 'mcg',
+    'Vitamina B1': 'mg',
+    'Vitamina B2': 'mg',
+    'Vitamina B3': 'mg',
+    'Vitamina B5': 'mg',
+    'Vitamina B6': 'mg',
+    'Vitamina B7': 'mcg',
+    'Vitamina B9': 'mcg',
+    'Ácido Fólico': 'mcg',
+    'Folic Acid': 'mcg',
+    'Vitamina B12': 'mcg',
+    'Vitamina C': 'mg',
+    'Vitamin C': 'mg',
+    'Vitamina D': 'mcg',
+    'Vitamin D': 'mcg',
+    'Vitamina E': 'mg',
+    'Vitamin E': 'mg',
+    'Vitamina K': 'mcg',
+    'Vitamin K': 'mcg',
+    'Calcio': 'mg',
+    'Calcium': 'mg',
+    'Hierro': 'mg',
+    'Iron': 'mg',
+    'Magnesio': 'mg',
+    'Magnesium': 'mg',
+    'Fósforo': 'mg',
+    'Phosphorus': 'mg',
+    'Potasio': 'mg',
+    'Potassium': 'mg',
+    'Sodio': 'mg',
+    'Sodium': 'mg',
+    'Zinc': 'mg',
+    'Cobre': 'mg',
+    'Copper': 'mg',
+    'Manganeso': 'mg',
+    'Manganese': 'mg',
+    'Selenio': 'mcg',
+    'Selenium': 'mcg',
+    'Yodo': 'mcg',
+    'Iodine': 'mcg'
+};
+
+export function getNutrientUnit(name) {
+    if (!name) return 'mg';
+    if (name.includes('(') && (name.includes('g') || name.includes('U'))) return ''; // Unit already in name
+    
+    // Check RDA table first for exact or partial match
+    const rdaEntry = NUTRIENT_RDA[name];
+    if (rdaEntry) return rdaEntry.unit;
+
+    const lower = name.toLowerCase();
+    const entry = Object.entries(MICRONUTRIENT_UNITS).find(([k]) => lower.includes(k.toLowerCase()));
+    return entry ? entry[1] : 'mg';
+}
+
+export function getNutrientRDA(name, sex = 'male', age = 30) {
+    const entry = NUTRIENT_RDA[name];
+    if (!entry) return null;
+
+    // Age-based adjustments (simplified)
+    let val = sex === 'female' ? entry.female : entry.male;
+    
+    // Elderly calcium adjustment
+    if (name === 'Calcio' && age > 50 && sex === 'female') val = 1200;
+    if (name === 'Calcio' && age > 70) val = 1200;
+
+    // Post-menopausal iron adjustment
+    if (name === 'Hierro' && age > 50 && sex === 'female') val = 8;
+
+    return { val, unit: entry.unit, limit: entry.limit };
+}
+
 export function updateNutrientSuggestions() {
-    const suggestionsList = document.getElementById('nutrient-suggestions');
-    if (!suggestionsList) return;
+    const vitList = document.getElementById('vitamin-suggestions');
+    const minList = document.getElementById('mineral-suggestions');
+    if (!vitList || !minList) return;
 
-    const nutrientNames = new Set();
-    state.foodList.forEach(food => {
-        if (food.vitamins) Object.keys(food.vitamins).forEach(n => nutrientNames.add(n));
-        if (food.minerals) Object.keys(food.minerals).forEach(n => nutrientNames.add(n));
-    });
+    // Start with standard names from RDA table
+    const vitamins = new Set(VITAMIN_NAMES);
+    const minerals = new Set(MINERAL_NAMES);
+    
+    // Also include any custom names already present in the user's food list
+    if (state.foodList) {
+        state.foodList.forEach(food => {
+            if (food && food.vitamins) {
+                Object.keys(food.vitamins).forEach(n => vitamins.add(n));
+            }
+            if (food && food.minerals) {
+                Object.keys(food.minerals).forEach(n => minerals.add(n));
+            }
+        });
+    }
 
-    suggestionsList.innerHTML = '';
-    Array.from(nutrientNames).sort().forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        suggestionsList.appendChild(option);
-    });
+    const populate = (list, set) => {
+        list.innerHTML = '';
+        Array.from(set).sort().forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            list.appendChild(option);
+        });
+    };
+
+    populate(vitList, vitamins);
+    populate(minList, minerals);
 }
 
 export function getDynamicNutrientsFromContainer(containerId) {
@@ -38,13 +173,13 @@ export function getDynamicNutrientsFromContainer(containerId) {
     return data;
 }
 
-export function addNutrientRowToContainer(containerId, name = '', value = '') {
+export function addNutrientRowToContainer(containerId, name = '', value = '', listId = '') {
     const container = document.getElementById(containerId);
     if (!container) return;
     const row = document.createElement('div');
     row.className = 'nutrient-input-row';
     row.innerHTML = `
-        <input type="text" placeholder="Name (e.g. Vit B12)" value="${name}" required class="nutrient-name" list="nutrient-suggestions">
+        <input type="text" placeholder="Name (e.g. Vit B12)" value="${name}" required class="nutrient-name" ${listId ? `list="${listId}"` : ''}>
         <input type="number" step="0.001" placeholder="Value" value="${value}" required class="nutrient-value">
         <button type="button" class="remove-row-btn">×</button>
     `;

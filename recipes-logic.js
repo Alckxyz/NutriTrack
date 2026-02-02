@@ -128,7 +128,7 @@ export function updateRecipePreview() {
             <span class="nutrient-badge kcal">${Math.round(kcalPortion)} kcal / ${t('portions_unit', state.language)}</span>
             <span class="nutrient-badge">P: ${pPortion.toFixed(1)}g</span>
             <span class="nutrient-badge">C: ${cPortion.toFixed(1)}g</span>
-            <span class="nutrient-badge">F: ${fPortion.toFixed(1)}g</span>
+            <span class="nutrient-badge">G: ${fPortion.toFixed(1)}g</span>
             <span class="nutrient-badge" style="background:#444">Total: ${Math.round(totals.weight)}g</span>
         `;
     } else {

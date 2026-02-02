@@ -93,6 +93,8 @@ export function openFinishWorkoutModal() {
  * Prepares and displays the set editor popup.
  */
 export function setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, onSetInfoAssigned) {
+    if (!state.activeWorkout || !state.activeWorkout.exercises || exIndex === -1) return;
+    
     const routine = state.routines.find(r => r.id === routineId);
     if (!routine || !routine.exercises) return;
     const exercise = routine.exercises.find(e => e.id === exerciseId);
@@ -107,18 +109,23 @@ export function setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, onSet
     const notesCont = document.getElementById('set-log-notes-container');
     const saveBtn = document.getElementById('set-log-save-btn');
 
+    if (!popup || !title || !saveBtn) return;
+
     onSetInfoAssigned({ routineId, exerciseId, setIndex, exIndex });
 
     title.textContent = t('set_x_of_y', state.language)
         .replace('{x}', setIndex + 1)
         .replace('{y}', exercise.sets);
-    exName.textContent = exercise.name;
+    
+    if (exName) exName.textContent = exercise.name;
     
     const currentExSession = state.activeWorkout.exercises[exIndex];
+    if (!currentExSession) return;
+
     const lastLoggedSet = currentExSession.sets[currentExSession.sets.length - 1];
     
-    weightIn.value = lastLoggedSet ? lastLoggedSet.weightKg : exercise.weight;
-    repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
+    if (weightIn) weightIn.value = lastLoggedSet ? lastLoggedSet.weightKg : exercise.weight;
+    if (repsIn) repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
 
     const isLastSetOfEx = setIndex === exercise.sets - 1;
     if (notesIn) {

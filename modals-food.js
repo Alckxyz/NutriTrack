@@ -57,18 +57,19 @@ export const foodModals = `
             <button id="copy-prompt-btn" class="secondary-btn" style="width: 100%; margin-bottom: 1rem; font-size: 0.75rem; border: 1px solid var(--secondary); color: var(--secondary);" data-t="copy_prompt_btn">${t('copy_prompt_btn', state.language)}</button>
             <div class="paste-example-container" style="background: #111; padding: 10px; border-radius: 6px; margin-bottom: 1rem; border: 1px dashed #444;">
                 <span style="font-size: 0.7rem; color: var(--secondary); display: block; margin-bottom: 4px;" data-t="paste_example_title">${t('paste_example_title', state.language)}:</span>
-                <pre style="font-size: 0.7rem; color: #888; margin: 0; line-height: 1.2;">Arroz
-Protein: 4.4
-Carbs: 53
-Fat: 0.4
-Fiber: 0.6
-Units:
-Cup: 200
-Bag: 1000
-Vitamins:
-Vit B1: 0.3
-Minerals:
-Iron: 2.8</pre>
+                <pre style="font-size: 0.7rem; color: #888; margin: 0; line-height: 1.2;">Arroz (cocido)
+Proteína: 2.7
+Carbohidratos: 28
+Grasas: 0.3
+Fibra: 0.4
+Unidades:
+g: 100
+taza: 1
+bolsa: 5
+Vitaminas:
+Vitamina B1: 0.02
+Minerales:
+Hierro: 0.4</pre>
             </div>
             <textarea id="paste-area" placeholder="Pegar aquí..." style="width: 100%; height: 180px; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 1rem; font-family: monospace;"></textarea>
             <button id="confirm-paste-btn" class="primary-btn" style="width: 100%;" data-t="confirm">${t('confirm', state.language)}</button>

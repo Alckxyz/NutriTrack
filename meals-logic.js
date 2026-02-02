@@ -4,6 +4,7 @@ import * as Utils from './utils.js';
 import * as UI from './ui.js';
 import { t, tUnit } from './i18n.js';
 import { dom } from './dom-elements.js';
+import { getNutrientUnit } from './nutrient-utils.js';
 
 export let currentActiveMealId = null;
 export let currentSelectedFoodId = null;
@@ -338,10 +339,10 @@ export function showRecipeDetails(mealId, itemIdx) {
             let micros = [];
             const visibleList = state.visibleMicros || [];
             if (ingFood.vitamins) Object.entries(ingFood.vitamins).forEach(([n, v]) => {
-                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}${getNutrientUnit(n)}`);
             });
             if (ingFood.minerals) Object.entries(ingFood.minerals).forEach(([n, v]) => {
-                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}`);
+                if (visibleList.includes(n)) micros.push(`${n}: ${(v * ratio).toFixed(1)}${getNutrientUnit(n)}`);
             });
 
             const row = document.createElement('div');
@@ -360,7 +361,7 @@ export function showRecipeDetails(mealId, itemIdx) {
                             <span style="color: var(--primary)">${Math.round(kcal)} kcal</span>
                         </span>
                         <div class="item-nutrients-mini" style="font-size: 0.7rem; color: var(--text-light); margin-top: 2px;">
-                            P: ${protein.toFixed(1)}g | C: ${carbs.toFixed(1)}g | F: ${fat.toFixed(1)}g
+                            P: ${protein.toFixed(1)}g | C: ${carbs.toFixed(1)}g | G: ${fat.toFixed(1)}g
                             ${micros.length > 0 ? `<br><span class="micro-text" style="color: #81c784; font-style: italic; font-size: 0.65rem; display: block; margin-top: 2px;">${micros.join(' | ')}</span>` : ''}
                         </div>
                     </div>
