@@ -265,10 +265,17 @@ main {
 .exercise-item {
     padding: 1rem;
     border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.exercise-content-row {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    width: 100%;
 }
 
 .exercise-item:last-child {

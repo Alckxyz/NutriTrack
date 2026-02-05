@@ -98,33 +98,37 @@ export function getExerciseItemHTML(ex, routine, state) {
 
     return `
     <div class="exercise-item ${isCompleted ? 'completed' : ''} ${isTime ? 'time-based' : ''}" data-id="${ex.id}">
-        <div class="exercise-info">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-                <h4 class="exercise-name-trigger" style="cursor:pointer; display:inline-block; margin:0;">${ex.name}</h4>
-                <div style="font-size:0.6rem; color:var(--text-light);">${trendHtml}</div>
+        ${suggestionHtml}
+        <div class="exercise-content-row">
+            <div class="exercise-info">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <h4 class="exercise-name-trigger" style="cursor:pointer; display:inline-block; margin:0;">${ex.name}</h4>
+                    <div style="font-size:0.6rem; color:var(--text-light);">${trendHtml}</div>
+                </div>
+                <div class="exercise-config">
+                    <span><strong class="editable" data-field="sets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.sets}</strong> ${t('sets', state.language)}</span>
+                    <span><strong class="editable" data-field="reps" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.reps}</strong> ${isTime ? 'seg' : t('reps', state.language)}</span>
+                    ${ex.loadMode !== 'bodyweight' ? `<span><strong class="editable" data-field="weight" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.weight}</strong> kg</span>` : ''}
+                </div>
+                ${isUnilateral ? `<div style="font-size:0.65rem; color:var(--secondary); margin-top:2px;">🔄 ${t('time_mode_unilateral', state.language)}</div>` : ''}
+                ${lastTopSetHtml}
+                <div class="exercise-config" style="margin-top:4px; font-size:0.7rem; opacity:0.8;">
+                    <span>⏲️ <strong class="editable" data-field="restBetweenSets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenSets}</strong>s (set)</span>
+                    <span>⏲️ <strong class="editable" data-field="restBetweenExercises" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenExercises}</strong>s (ex)</span>
+                </div>
+                ${ex.isVariantChange ? `<div style="font-size:0.6rem; color:var(--secondary); font-weight:bold; margin-top:4px;">✨ ${t('variant_change_msg', state.language)}</div>` : ''}
             </div>
-            <div class="exercise-config">
-                <span><strong class="editable" data-field="sets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.sets}</strong> ${t('sets', state.language)}</span>
-                <span><strong class="editable" data-field="reps" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.reps}</strong> ${isTime ? 'seg' : t('reps', state.language)}</span>
-                ${ex.loadMode !== 'bodyweight' ? `<span><strong class="editable" data-field="weight" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.weight}</strong> kg</span>` : ''}
+            <div class="series-tracker" style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    ${Array.from({length: ex.sets}).map((_, i) => `<div class="series-dot ${ex.doneSeries?.includes(i) ? 'done' : ''}" data-index="${i}">${isTime ? '⏱️' : i+1}</div>`).join('')}
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 6px;">
+                    <button class="delete-btn delete-ex" style="padding:4px 8px; font-size:0.7rem;">🗑️</button>
+                    <button class="add-mini-btn replace-ex" style="padding:4px 8px; font-size:0.7rem; border-color:var(--secondary); color:var(--secondary);" title="${t('replace_exercise', state.language)}">⇄</button>
+                    <button class="add-mini-btn view-prog" style="padding:4px 8px; font-size:0.7rem; border-color:var(--primary); color:var(--primary);" title="${t('view_progress', state.language)}">📈</button>
+                </div>
+                <span class="item-drag-handle">☰</span>
             </div>
-            ${isUnilateral ? `<div style="font-size:0.65rem; color:var(--secondary); margin-top:2px;">🔄 ${t('time_mode_unilateral', state.language)}</div>` : ''}
-            ${suggestionHtml}
-            ${lastTopSetHtml}
-            <div class="exercise-config" style="margin-top:4px; font-size:0.7rem; opacity:0.8;">
-                <span>⏲️ <strong class="editable" data-field="restBetweenSets" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenSets}</strong>s (set)</span>
-                <span>⏲️ <strong class="editable" data-field="restBetweenExercises" style="cursor:pointer; border-bottom:1px dashed var(--secondary); padding:0 2px;">${ex.restBetweenExercises}</strong>s (ex)</span>
-            </div>
-            ${ex.isVariantChange ? `<div style="font-size:0.6rem; color:var(--secondary); font-weight:bold; margin-top:4px;">✨ ${t('variant_change_msg', state.language)}</div>` : ''}
-        </div>
-        <div class="series-tracker">
-            ${Array.from({length: ex.sets}).map((_, i) => `<div class="series-dot ${ex.doneSeries?.includes(i) ? 'done' : ''}" data-index="${i}">${isTime ? '⏱️' : i+1}</div>`).join('')}
-            <div style="display:flex; flex-direction:column; gap:4px; margin-left:10px;">
-                <button class="delete-btn delete-ex" style="padding:2px 6px; font-size:0.6rem;">×</button>
-                <button class="add-mini-btn replace-ex" style="padding:2px 6px; font-size:0.5rem; border-color:var(--secondary); color:var(--secondary);" title="${t('replace_exercise', state.language)}">⇄</button>
-                <button class="add-mini-btn view-prog" style="padding:2px 6px; font-size:0.5rem; border-color:var(--primary); color:var(--primary);" title="${t('view_progress', state.language)}">📈</button>
-            </div>
-            <span class="item-drag-handle" style="margin-left:5px;">☰</span>
         </div>
     </div>`;
 }

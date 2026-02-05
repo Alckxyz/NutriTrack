@@ -88,6 +88,35 @@
     #stat-calories .value {
         font-size: 1.8rem;
     }
+
+    .exercise-item {
+        padding: 12px 8px;
+        gap: 8px;
+    }
+
+    .exercise-content-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .exercise-info {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .series-tracker {
+        width: 100%;
+        justify-content: flex-end;
+        align-items: center;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .ai-suggestion-box {
+        margin-right: 0 !important;
+        width: 100%;
+    }
     .stat-item .value {
         font-size: 0.95rem;
     }
