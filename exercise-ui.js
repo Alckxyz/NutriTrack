@@ -38,12 +38,11 @@ export function renderRoutines() {
                 <div class="routine-select-box ${isSelected ? 'active' : ''} ${isLastFinished ? 'finished' : ''}"></div>
             </div>
             <div class="routine-title-group" style="flex: 1;">
-                <h3 class="routine-name-editable" contenteditable="true" data-placeholder="${t('untitled_routine', state.language)}">${routine.name || ''}</h3>
+                <h3 class="routine-name-editable" style="cursor: pointer;" data-placeholder="${t('untitled_routine', state.language)}">${routine.name || t('untitled_routine', state.language)}</h3>
             </div>
             <div class="meal-header-actions">
                 <button class="add-mini-btn start-workout-trigger" style="background:var(--primary); color:black; border:none; padding:4px 10px;">${t('start_workout', state.language)}</button>
                 <button class="edit-btn-mini reset-routine-series" title="${t('reset_series', state.language)}">🔄</button>
-                <button class="edit-btn-mini rename-routine" title="${t('rename_btn', state.language)}">✏️</button>
                 <button class="delete-btn delete-routine" title="${t('delete_btn', state.language)}">🗑️</button>
                 <span class="drag-handle" title="Reordenar rutinas">☰</span>
             </div>
@@ -77,14 +76,8 @@ export function renderRoutines() {
 
 function attachRoutineEvents(card, routine) {
     const nameEl = card.querySelector('.routine-name-editable');
-    nameEl.onblur = () => { if (nameEl.textContent.trim() !== routine.name) Logic.renameRoutine(routine.id, nameEl.textContent.trim()); };
-    nameEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } };
-
-    card.querySelector('.rename-routine').onclick = () => {
-        nameEl.focus();
-        const range = document.createRange(); const sel = window.getSelection();
-        range.selectNodeContents(nameEl); range.collapse(false);
-        sel.removeAllRanges(); sel.addRange(range);
+    nameEl.onclick = () => {
+        Logic.openRenameRoutineModal(routine.id);
     };
 
     card.querySelector('.delete-routine').onclick = (e) => { e.stopPropagation(); Logic.deleteRoutine(routine.id); };

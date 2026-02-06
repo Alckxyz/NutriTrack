@@ -225,18 +225,15 @@ main {
 }
 
 .routine-name-editable {
-    outline: none;
-    border-bottom: 1px dashed transparent;
     display: inline-block;
     min-width: 50px;
     padding: 2px 4px;
     border-radius: 4px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s;
 }
 
-.routine-name-editable:hover, .routine-name-editable:focus {
+.routine-name-editable:hover {
     background: rgba(100, 181, 246, 0.05);
-    border-bottom-color: var(--secondary);
 }
 
 .routine-name-editable:empty:before, .meal-name-editable:empty:before {
@@ -248,18 +245,15 @@ main {
 }
 
 .meal-name-editable {
-    outline: none;
-    border-bottom: 1px dashed transparent;
     display: inline-block;
     min-width: 50px;
     padding: 2px 4px;
     border-radius: 4px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s;
 }
 
-.meal-name-editable:hover, .meal-name-editable:focus {
+.meal-name-editable:hover {
     background: rgba(129, 199, 132, 0.05);
-    border-bottom-color: var(--primary);
 }
 
 .exercise-item {

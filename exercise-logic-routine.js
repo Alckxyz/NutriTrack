@@ -6,33 +6,57 @@ import * as Utils from './utils.js';
 export async function createNewRoutine(refreshUI) {
     if (!state.user) return alert("Inicia sesión para crear rutinas");
     
+    openRoutinePromptModal({
+        title: t('add_routine', state.language),
+        label: t('prompt_new_routine', state.language),
+        button: state.language === 'es' ? 'Crear' : 'Create',
+        initialValue: '',
+        onConfirm: (name) => performRoutineCreation(name, refreshUI)
+    });
+}
+
+export async function openRenameRoutineModal(routineId) {
+    if (!state.user) return;
+    const routine = state.routines.find(r => r.id === routineId);
+    if (!routine) return;
+
+    openRoutinePromptModal({
+        title: state.language === 'es' ? 'Renombrar Rutina' : 'Rename Routine',
+        label: t('prompt_rename_routine', state.language),
+        button: state.language === 'es' ? 'Guardar' : 'Save',
+        initialValue: routine.name || '',
+        onConfirm: (newName) => renameRoutine(routineId, newName)
+    });
+}
+
+function openRoutinePromptModal({ title, label, button, initialValue, onConfirm }) {
     const modal = document.getElementById('routine-prompt-modal');
+    const titleEl = document.getElementById('routine-prompt-title');
+    const labelEl = document.getElementById('routine-prompt-label');
     const input = document.getElementById('routine-prompt-input');
     const confirmBtn = document.getElementById('confirm-routine-btn');
-    
-    if (!modal || !input || !confirmBtn) return;
 
-    input.value = '';
+    if (!modal || !titleEl || !labelEl || !input || !confirmBtn) return;
+
+    titleEl.textContent = title;
+    labelEl.textContent = label;
+    confirmBtn.textContent = button;
+    input.value = initialValue || '';
+    
     modal.style.display = 'block';
     setTimeout(() => input.focus(), 10);
 
-    const handleConfirm = async () => {
-        const name = input.value.trim();
-        if (!name) return;
-        
+    const handleConfirm = () => {
+        const val = input.value.trim();
+        if (!val) return;
         modal.style.display = 'none';
         confirmBtn.onclick = null;
         input.onkeydown = null;
-        
-        await performRoutineCreation(name, refreshUI);
-    };
-
-    const handleKeydown = (e) => {
-        if (e.key === 'Enter') handleConfirm();
+        onConfirm(val);
     };
 
     confirmBtn.onclick = handleConfirm;
-    input.onkeydown = handleKeydown;
+    input.onkeydown = (e) => { if (e.key === 'Enter') handleConfirm(); };
 }
 
 async function performRoutineCreation(name, refreshUI) {

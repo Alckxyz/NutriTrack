@@ -25,7 +25,7 @@ export function renderMeals(options = {}) {
         mealCard.innerHTML = `
             <div class="meal-header">
                 <div class="meal-title-group">
-                    <h3 class="meal-name-editable" contenteditable="true" data-placeholder="${t('untitled_meal', state.language)}">${meal.name || ''}</h3>
+                    <h3 class="meal-name-editable" style="cursor: pointer;" data-placeholder="${t('untitled_meal', state.language)}">${meal.name || t('untitled_meal', state.language)}</h3>
                     <div class="meal-nutrients-grid">
                         <span class="nutrient-badge kcal">${Math.round(mealSummary.calories)} kcal</span>
                         <span class="nutrient-badge macro">P: ${mealSummary.protein.toFixed(1)}g</span>
@@ -36,7 +36,6 @@ export function renderMeals(options = {}) {
                     </div>
                 </div>
                 <div class="meal-header-actions">
-                    <button class="edit-btn-mini rename-meal-trigger" title="${t('rename_btn', state.language)}">✏️</button>
                     <button class="edit-btn-mini copy-meal-trigger" title="${t('copy_btn', state.language)}">📋</button>
                     <button class="edit-btn-mini paste-meal-trigger ${!state.clipboard ? 'hidden' : ''}" title="${t('paste_btn', state.language)}">📥</button>
                     <button class="delete-btn delete-meal-trigger" title="${t('delete_btn', state.language)}">🗑️</button>
@@ -117,25 +116,11 @@ export function renderMeals(options = {}) {
             <div class="meal-footer"><button class="add-btn add-food-trigger" data-meal-id="${meal.id}">${t('add_food_btn', state.language)}</button></div>
         `;
         const nameEl = mealCard.querySelector('.meal-name-editable');
-        nameEl.onblur = () => {
-            const newName = nameEl.textContent.trim();
-            import('./meals-logic.js').then(m => m.renameMeal(meal.id, newName, onRenderAll));
-        };
-        nameEl.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                nameEl.blur();
+        nameEl.onclick = () => {
+            const newName = prompt(t('prompt_rename_meal', state.language), meal.name || '');
+            if (newName !== null) {
+                import('./meals-logic.js').then(m => m.renameMeal(meal.id, newName.trim(), onRenderAll));
             }
-        };
-
-        mealCard.querySelector('.rename-meal-trigger').onclick = () => {
-            nameEl.focus();
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(nameEl);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
         };
         mealCard.querySelector('.copy-meal-trigger').onclick = () => onCopyMeal(meal.id);
         const pasteBtn = mealCard.querySelector('.paste-meal-trigger');

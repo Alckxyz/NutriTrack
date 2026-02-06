@@ -6,9 +6,9 @@ export const exerciseModals = `
     <div id="routine-prompt-modal" class="modal">
         <div class="modal-content" style="max-width: 350px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;">
             <span class="close-btn">&times;</span>
-            <h2 data-t="add_routine">Nueva Rutina</h2>
+            <h2 id="routine-prompt-title" data-t="add_routine">Nueva Rutina</h2>
             <div class="form-group" style="margin-top: 1rem;">
-                <label data-t="prompt_new_routine">Nombre de la rutina:</label>
+                <label id="routine-prompt-label" data-t="prompt_new_routine">Nombre de la rutina:</label>
                 <input type="text" id="routine-prompt-input" placeholder="Ej: Empuje A">
             </div>
             <button id="confirm-routine-btn" class="primary-btn" style="width: 100%;">Crear</button>
