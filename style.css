@@ -272,6 +272,25 @@ main {
     width: 100%;
 }
 
+.exercise-info {
+    flex: 1;
+}
+
+.series-dots-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+
+.exercise-actions-group {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+}
+
 .exercise-item:last-child {
     border-bottom: none;
 }
@@ -306,10 +325,16 @@ main {
     border-color: rgba(100, 181, 246, 0.4);
 }
 
-.series-tracker {
-    display: flex;
-    gap: 8px;
+.series-dots-container {
+    display: flex; 
+    gap: 4px; 
     align-items: center;
+}
+
+.exercise-actions-group {
+    display: flex; 
+    align-items: center; 
+    gap: 6px;
 }
 
 .series-dot {

@@ -29,6 +29,8 @@ export function renderWorkoutSession() {
         div.className = 'meal-card';
         div.style.marginBottom = '15px';
         
+        const unitLabel = ex.weightUnit === 'plates' ? t('unit_plates', state.language) : 'kg';
+        const weightPerPlate = ex.weightPerPlate || 0;
         div.innerHTML = `
             <div class="meal-header">
                 <h3 style="font-size:0.9rem;">${ex.exerciseName}</h3>
@@ -36,14 +38,25 @@ export function renderWorkoutSession() {
             </div>
             <div class="sets-list" style="padding:10px;">
                 ${ex.notes ? `<div style="font-size: 0.75rem; background: rgba(100, 181, 246, 0.05); padding: 6px; border-radius: 4px; margin-bottom: 8px; border-left: 2px solid var(--secondary); color: var(--text-light);">📝 ${ex.notes}</div>` : ''}
+                <div style="display: flex; gap: 6px; margin-bottom: 6px; font-size: 0.65rem; color: var(--text-light); font-weight: bold; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;">
+                    <div style="min-width: 18px;">#</div>
+                    <div style="width: 48px; text-align: center;">${unitLabel}</div>
+                    <div style="width: 12px;"></div>
+                    <div style="width: 48px; text-align: center;">Reps</div>
+                </div>
                 ${ex.sets.sort((a,b) => (a.setIndex??999) - (b.setIndex??999)).map((set, setIdx) => `
-                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:0.7rem; color:var(--text-light); width:20px;">${(set.setIndex !== undefined ? set.setIndex + 1 : 'S')}</span>
-                        <input type="number" class="set-weight" data-ex="${exIdx}" data-set="${setIdx}" value="${set.weightKg}" style="width:70px; padding:4px;">
-                        <span style="font-size:0.8rem;">kg x</span>
-                        <input type="number" class="set-reps" data-ex="${exIdx}" data-set="${setIdx}" value="${set.reps}" style="width:60px; padding:4px;">
-                        <span style="font-size:0.8rem;">reps</span>
-                        <button class="delete-btn delete-set-btn" data-ex="${exIdx}" data-set="${setIdx}" style="padding:2px 6px;">×</button>
+                    <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.7rem; color:var(--text-light); min-width:18px;">${(set.setIndex !== undefined ? set.setIndex + 1 : 'S')}</span>
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <input type="number" class="set-weight" data-ex="${exIdx}" data-set="${setIdx}" value="${set.weightKg}" style="width:48px; padding:4px;">
+                                <span style="font-size:0.75rem;">${unitLabel} x</span>
+                            </div>
+                            ${(ex.weightUnit === 'plates' && weightPerPlate > 0) ? `<small style="font-size:0.55rem; color:var(--primary); font-weight:bold;">(${ (set.weightKg * weightPerPlate).toFixed(1).replace(/\.0$/, '') } kg)</small>` : ''}
+                        </div>
+                        <input type="number" class="set-reps" data-ex="${exIdx}" data-set="${setIdx}" value="${set.reps}" style="width:48px; padding:4px;">
+                        <span style="font-size:0.75rem;">${ex.loadMode === 'time' || ex.trackingMode === 'time' ? 'seg' : 'reps'}</span>
+                        <button class="delete-btn delete-set-btn" data-ex="${exIdx}" data-set="${setIdx}" style="padding:2px 6px; margin-left: auto;">×</button>
                     </div>
                 `).join('')}
                 ${ex.sets.length === 0 ? `<p style="font-size:0.7rem; color:var(--text-light); text-align:center; padding:10px;">Sin series registradas</p>` : ''}
@@ -104,6 +117,7 @@ export function setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, onSet
     const title = document.getElementById('set-log-title');
     const exName = document.getElementById('set-log-ex-name');
     const weightIn = document.getElementById('set-log-weight');
+    const weightLabel = document.getElementById('set-log-weight-label');
     const repsIn = document.getElementById('set-log-reps');
     const notesIn = document.getElementById('set-log-notes');
     const notesCont = document.getElementById('set-log-notes-container');
@@ -124,8 +138,36 @@ export function setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, onSet
 
     const lastLoggedSet = currentExSession.sets[currentExSession.sets.length - 1];
     
-    if (weightIn) weightIn.value = lastLoggedSet ? lastLoggedSet.weightKg : exercise.weight;
-    if (repsIn) repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
+    const unitLabel = exercise.weightUnit === 'plates' ? t('unit_plates', state.language) : 'kg';
+    if (weightLabel) weightLabel.textContent = `${t('weight', state.language)} (${unitLabel})`;
+    
+    const updateTotalWeightDisplay = () => {
+        const plates = parseFloat(weightIn.value) || 0;
+        const perPlate = exercise.weightPerPlate || 0;
+        const total = (plates * perPlate).toFixed(1).replace(/\.0$/, '');
+        const displayEl = document.getElementById('set-log-total-weight-display');
+        if (displayEl) {
+            if (exercise.weightUnit === 'plates' && perPlate > 0) {
+                displayEl.textContent = `Total: ${total} kg`;
+                displayEl.classList.remove('hidden');
+            } else {
+                displayEl.classList.add('hidden');
+            }
+        }
+    };
+
+    if (weightIn) {
+        weightIn.value = lastLoggedSet ? lastLoggedSet.weightKg : exercise.weight;
+        weightIn.oninput = updateTotalWeightDisplay;
+        updateTotalWeightDisplay();
+    }
+    if (repsIn) {
+        repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
+        const repsLabel = document.querySelector('label[for="set-log-reps"]') || repsIn.closest('.form-group').querySelector('label');
+        if (repsLabel) {
+            repsLabel.textContent = exercise.trackingMode === 'time' ? 'Segundos' : 'Repeticiones';
+        }
+    }
 
     const isLastSetOfEx = setIndex === exercise.sets - 1;
     if (notesIn) {

@@ -134,22 +134,42 @@
     }
 
     .exercise-content-row {
-        flex-direction: column;
-        align-items: stretch;
+        display: grid;
+        grid-template-areas: 
+            "info handle"
+            "tracker tracker";
+        grid-template-columns: 1fr auto;
+        align-items: center;
         gap: 12px;
     }
 
     .exercise-info {
+        grid-area: info;
         min-width: 0;
         width: 100%;
+        flex: none; /* Reset flex from PC */
     }
 
-    .series-tracker {
-        width: 100%;
-        justify-content: flex-end;
-        align-items: center;
+    .item-drag-handle {
+        grid-area: handle;
+        margin-left: 8px;
+    }
+
+    .series-dots-container {
+        grid-area: tracker;
+        justify-self: start;
         padding-top: 8px;
         border-top: 1px solid rgba(255,255,255,0.05);
+        flex: none; /* Reset flex from PC */
+    }
+
+    .exercise-actions-group {
+        grid-area: tracker;
+        justify-self: end;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        flex: none; /* Reset flex from PC */
+        width: auto;
     }
 
     .ai-suggestion-box {

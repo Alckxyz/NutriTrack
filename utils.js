@@ -1,3 +1,8 @@
+export function normalizeString(str) {
+    if (!str) return "";
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 export function parsePastedFood(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     let name = "Nuevo Alimento";

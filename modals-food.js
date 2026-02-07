@@ -29,6 +29,7 @@ export const foodModals = `
                 <div id="food-results" class="food-results"></div>
             </div>
             <div id="food-details-form" class="hidden">
+                <button id="back-to-search-btn" class="secondary-btn" style="margin-bottom: 1rem; width: auto; padding: 4px 10px; font-size: 0.8rem;" data-t="back_to_search">${t('back_to_search', state.language)}</button>
                 <p id="selected-food-display"><span data-t="selected_food">${t('selected_food', state.language)}</span> <strong id="selected-food-name"></strong></p>
                 <p id="default-conv-hint" class="hidden" style="font-size: 0.7rem; color: var(--secondary); margin-bottom: 0.5rem; background: rgba(100, 181, 246, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(100, 181, 246, 0.2);"></p>
                 <div class="stats-form-grid">

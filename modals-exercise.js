@@ -62,9 +62,20 @@ export const exerciseModals = `
                         <input type="number" id="ex-reps" value="10" min="1" placeholder="Reps">
                     </div>
                     <div class="form-group">
-                        <label data-t="weight">${t('weight', state.language)} (kg)</label>
-                        <input type="number" id="ex-weight" value="0" step="any" min="0">
+                        <label data-t="weight">${t('weight', state.language)}</label>
+                        <div style="display: flex; gap: 4px;">
+                            <input type="number" id="ex-weight" value="0" step="any" min="0" style="flex: 1;">
+                            <select id="ex-weight-unit" class="settings-select" style="width: 85px; padding: 10px;">
+                                <option value="kg">kg</option>
+                                <option value="plates" data-t="unit_plates">${t('unit_plates', state.language)}</option>
+                            </select>
+                        </div>
                     </div>
+                </div>
+
+                <div id="ex-weight-per-plate-group" class="form-group hidden">
+                    <label data-t="weight_per_plate_label">Peso por placa (opcional)</label>
+                    <input type="number" id="ex-weight-per-plate" placeholder="Ej: 5" step="0.5" min="0">
                 </div>
 
                 <div class="stats-form-grid">
@@ -94,11 +105,11 @@ export const exerciseModals = `
                 <div class="stats-form-grid">
                     <div class="form-group">
                         <label data-t="rest_between_sets">${t('rest_between_sets', state.language)}</label>
-                        <input type="number" id="ex-rest-sets" value="60" min="0">
+                        <input type="number" id="ex-rest-sets" value="1" min="0" step="0.1">
                     </div>
                     <div class="form-group">
                         <label data-t="rest_between_exercises">${t('rest_between_exercises', state.language)}</label>
-                        <input type="number" id="ex-rest-exercises" value="120" min="0">
+                        <input type="number" id="ex-rest-exercises" value="2" min="0" step="0.1">
                     </div>
                 </div>
                 <button type="submit" id="ex-save-btn" class="primary-btn" style="width: 100%; margin-top: 10px;" data-t="confirm">${t('confirm', state.language)}</button>
@@ -149,12 +160,13 @@ export const exerciseModals = `
             </div>
             
             <div class="form-group">
-                <label style="font-size: 0.75rem;">Peso (kg)</label>
+                <label id="set-log-weight-label" style="font-size: 0.75rem;">Peso (kg)</label>
                 <div style="display: flex; gap: 5px; align-items: center;">
                     <button class="secondary-btn quick-adj" data-delta="-2.5" style="padding: 8px;">-2.5</button>
                     <input type="number" id="set-log-weight" step="0.5" style="text-align: center; font-size: 1.1rem; font-weight: bold; flex: 1;">
                     <button class="secondary-btn quick-adj" data-delta="2.5" style="padding: 8px;">+2.5</button>
                 </div>
+                <div id="set-log-total-weight-display" class="hidden" style="font-size: 0.7rem; color: var(--primary); text-align: center; margin-top: 4px; font-weight: bold;"></div>
             </div>
 
             <div class="form-group">
@@ -210,11 +222,16 @@ export const exerciseModals = `
         <div class="modal-content" style="max-width: 650px;">
             <span class="close-btn">&times;</span>
             <h2 data-t="progression_chart_title">${t('progression_chart_title', state.language)}</h2>
-            <div class="form-group" style="margin-top: 1rem;">
-                <label>Ejercicio / Grupo de Progresión</label>
-                <select id="progression-group-select" class="settings-select"></select>
+            
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 1rem;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Ejercicio / Grupo de Progresión</label>
+                    <select id="progression-group-select" class="settings-select"></select>
+                </div>
+                <button id="add-manual-log-btn" class="add-mini-btn" style="height: 38px; padding: 0 12px; border-color: var(--secondary); color: var(--secondary);">+ Añadir sesión pasada</button>
             </div>
-            <div class="modal-tabs" style="margin-bottom: 10px;">
+
+            <div class="modal-tabs" style="margin-top: 15px; margin-bottom: 10px;">
                 <button class="tab-btn active" data-metric="topSet">Top Set</button>
                 <button class="tab-btn" data-metric="volume">Volumen</button>
                 <button class="tab-btn" data-metric="sets">Series</button>
@@ -228,6 +245,40 @@ export const exerciseModals = `
                     <!-- History and notes will be injected here -->
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal for Manual Log Entry (Past data) -->
+    <div id="manual-log-modal" class="modal" style="z-index: 1600;">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-btn">&times;</span>
+            <h2 id="manual-log-title">Registrar Sesión Pasada</h2>
+            <input type="hidden" id="manual-log-id">
+            
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>Fecha</label>
+                <input type="date" id="manual-log-date" class="settings-select">
+            </div>
+
+            <div id="manual-log-sets-container" style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-light);">Series</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 4px; font-size: 0.65rem; color: var(--text-light); font-weight: bold; text-transform: uppercase; padding-left: 2px;">
+                    <div style="width: 58px; text-align: center;">Peso</div>
+                    <div style="width: 10px;"></div>
+                    <div style="width: 58px; text-align: center;">Reps</div>
+                </div>
+                <div id="manual-log-sets-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Manual sets go here -->
+                </div>
+                <button id="manual-log-add-set" class="add-mini-btn" style="margin-top: 10px; width: 100%;">+ Añadir Serie</button>
+            </div>
+
+            <div class="form-group">
+                <label>Notas</label>
+                <textarea id="manual-log-notes" rows="2" style="width: 100%; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.85rem; resize: none;"></textarea>
+            </div>
+
+            <button id="manual-log-save-btn" class="primary-btn" style="width: 100%; margin-top: 10px;">Guardar Registro</button>
         </div>
     </div>
 `;

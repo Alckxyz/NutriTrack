@@ -1,12 +1,13 @@
 import { state, calculateCalories } from './state.js';
 import { t } from './i18n.js';
+import { normalizeString } from './utils.js';
 
 export function renderLibraryList(container, searchInput, sortSelect, onEdit, onDelete) {
     if (!container) return;
-    const query = searchInput.value.toLowerCase();
+    const query = normalizeString(searchInput.value);
     const sortVal = sortSelect.value;
     // Exclude recipes from the general food list library
-    let filtered = state.foodList.filter(f => f && f.type !== 'recipe' && f.name && f.name.toLowerCase().includes(query));
+    let filtered = state.foodList.filter(f => f && f.type !== 'recipe' && f.name && normalizeString(f.name).includes(query));
     filtered.sort((a, b) => {
         if (sortVal === 'name') return a.name.localeCompare(b.name);
         if (sortVal === 'newest') return (b.created_at || 0) - (a.created_at || 0);
@@ -45,8 +46,8 @@ export function renderLibraryList(container, searchInput, sortSelect, onEdit, on
 export function renderFoodResults(container, query, activeTab, onSelect) {
     if (!container) return;
     container.innerHTML = '';
-    const queryLower = query.toLowerCase();
-    const results = state.foodList.filter(f => f && f.name && f.name.toLowerCase().includes(queryLower));
+    const normalizedQuery = normalizeString(query);
+    const results = state.foodList.filter(f => f && f.name && normalizeString(f.name).includes(normalizedQuery));
     
     if (activeTab === 'recipes') {
         const recipes = results.filter(f => f.type === 'recipe');
@@ -79,8 +80,8 @@ export function renderFoodResults(container, query, activeTab, onSelect) {
 
 export function renderRecipeLibraryList(container, query, onEdit, onDelete) {
     if (!container) return;
-    const queryLower = query.toLowerCase();
-    let filtered = state.foodList.filter(f => f && f.type === 'recipe' && f.name && f.name.toLowerCase().includes(queryLower));
+    const normalizedQuery = normalizeString(query);
+    let filtered = state.foodList.filter(f => f && f.type === 'recipe' && f.name && normalizeString(f.name).includes(normalizedQuery));
     container.innerHTML = '';
     filtered.forEach(recipe => {
         const item = document.createElement('div');

@@ -63,7 +63,8 @@ export function initWorkoutLogic(refreshUI) {
             const targetInput = btn.previousElementSibling?.tagName === 'INPUT' ? btn.previousElementSibling : btn.nextElementSibling;
             if (targetInput) {
                 let val = (parseFloat(targetInput.value) || 0) + delta;
-                targetInput.value = val > 0 ? val : 0;
+                targetInput.value = val > 0 ? (Number.isInteger(val) ? val : parseFloat(val.toFixed(2))) : 0;
+                targetInput.dispatchEvent(new Event('input'));
             }
         };
     });
@@ -87,6 +88,7 @@ export function startWorkout(routineId, refreshUI) {
             type: ex.loadMode === 'bodyweight' ? 'bodyweight' : 'weighted',
             loadMode: ex.loadMode || 'external_total',
             loadMultiplier: ex.loadMultiplier || 1,
+            weightUnit: ex.weightUnit || 'kg',
             bodyweightKg: state.weightEntries[0]?.weightKg || 70,
             sets: [],
             notes: '',

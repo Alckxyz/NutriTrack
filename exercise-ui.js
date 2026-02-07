@@ -42,6 +42,7 @@ export function renderRoutines() {
             </div>
             <div class="meal-header-actions">
                 <button class="add-mini-btn start-workout-trigger" style="background:var(--primary); color:black; border:none; padding:4px 10px;">${t('start_workout', state.language)}</button>
+                <button class="edit-btn-mini edit-routine-trigger" title="${t('edit_btn', state.language)}">✏️</button>
                 <button class="edit-btn-mini reset-routine-series" title="${t('reset_series', state.language)}">🔄</button>
                 <button class="delete-btn delete-routine" title="${t('delete_btn', state.language)}">🗑️</button>
                 <span class="drag-handle" title="Reordenar rutinas">☰</span>
@@ -75,8 +76,8 @@ export function renderRoutines() {
 }
 
 function attachRoutineEvents(card, routine) {
-    const nameEl = card.querySelector('.routine-name-editable');
-    nameEl.onclick = () => {
+    card.querySelector('.edit-routine-trigger').onclick = (e) => {
+        e.stopPropagation();
         Logic.openRenameRoutineModal(routine.id);
     };
 
@@ -171,22 +172,9 @@ function attachExerciseEvents(card, routine) {
             };
         });
 
-        item.querySelectorAll('.editable').forEach(el => {
-            el.onclick = () => {
-                if (el.querySelector('input')) return;
-                const field = el.dataset.field;
-                const currentVal = el.textContent;
-                const input = document.createElement('input');
-                input.type = 'number'; input.step = field === 'weight' ? '0.1' : '1';
-                input.value = currentVal; input.className = 'inline-amount-input';
-                input.style.width = '45px';
-                input.onblur = () => { if (!isNaN(parseFloat(input.value))) Logic.updateExercise(routine.id, exId, { [field]: parseFloat(input.value) }); };
-                input.onkeydown = (ev) => { if (ev.key === 'Enter') input.blur(); if (ev.key === 'Escape') { input.onblur = null; el.textContent = currentVal; } };
-                el.textContent = ''; el.appendChild(input); input.focus(); input.select();
-            };
-        });
 
-        item.querySelector('.exercise-name-trigger').onclick = () => Logic.editExercise(routine.id, exId);
+
+        item.querySelector('.edit-ex').onclick = () => Logic.editExercise(routine.id, exId);
         item.querySelector('.delete-ex').onclick = () => Logic.deleteExercise(routine.id, exId);
         item.querySelector('.view-prog').onclick = () => import('./progression-logic.js').then(m => m.showProgression(ex.exerciseGroupId || ex.id));
         item.querySelector('.replace-ex').onclick = () => {

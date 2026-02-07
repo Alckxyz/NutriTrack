@@ -162,7 +162,20 @@ export async function selectFoodForMeal(food) {
         dom.foodAmountInput.value = 100;
     }
     
+    // Switch views to show a dedicated "quantity window"
+    const searchSection = document.getElementById('food-search-section');
+    if (searchSection) searchSection.classList.add('hidden');
     dom.foodDetailsForm.classList.remove('hidden');
+
+    // Setup back button to return to search
+    const backBtn = document.getElementById('back-to-search-btn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            dom.foodDetailsForm.classList.add('hidden');
+            if (searchSection) searchSection.classList.remove('hidden');
+        };
+    }
+
     setTimeout(() => {
         dom.foodAmountInput.focus();
         dom.foodAmountInput.select();

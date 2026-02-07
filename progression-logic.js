@@ -13,6 +13,11 @@ export function initProgressionUI() {
     const modal = document.getElementById('progression-modal');
     const select = document.getElementById('progression-group-select');
     const tabs = document.querySelectorAll('#progression-modal .tab-btn');
+    const addManualBtn = document.getElementById('add-manual-log-btn');
+
+    if (addManualBtn) {
+        addManualBtn.onclick = () => openManualLogModal();
+    }
 
     if (select) {
         select.onchange = (e) => {
@@ -170,7 +175,10 @@ function renderHistoryList(history) {
 
         entry.innerHTML = `
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">${date}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">${date}</span>
+                    <button class="edit-btn-mini edit-log-btn" style="padding: 2px 6px; font-size: 0.65rem;">✏️</button>
+                </div>
                 <span style="font-size: 0.75rem;">${bestSetText} (${ex.sets.length} sets)</span>
             </div>
             ${ex.notes ? `
@@ -179,6 +187,138 @@ function renderHistoryList(history) {
                 </div>
             ` : ''}
         `;
+
+        entry.querySelector('.edit-log-btn').onclick = () => openManualLogModal(log.id);
+
         listCont.appendChild(entry);
     });
+}
+
+async function openManualLogModal(logId = null) {
+    if (!state.user) return;
+
+    // Find exercise from current group to know its tracking mode
+    let targetExDef = null;
+    state.routines.forEach(r => {
+        const found = r.exercises.find(e => (e.exerciseGroupId || e.id) === currentGroupId);
+        if (found) targetExDef = found;
+    });
+    const isTimeBased = targetExDef?.trackingMode === 'time';
+
+    const modal = document.getElementById('manual-log-modal');
+    const titleEl = document.getElementById('manual-log-title');
+    const dateIn = document.getElementById('manual-log-date');
+    const setsList = document.getElementById('manual-log-sets-list');
+    const notesIn = document.getElementById('manual-log-notes');
+    const saveBtn = document.getElementById('manual-log-save-btn');
+    const addSetBtn = document.getElementById('manual-log-add-set');
+    const idIn = document.getElementById('manual-log-id');
+
+    idIn.value = logId || '';
+    setsList.innerHTML = '';
+    
+    let logData = null;
+    let exData = null;
+
+    if (logId) {
+        logData = state.workoutLogs.find(l => l.id === logId);
+        exData = logData?.exercises.find(e => e.exerciseGroupId === currentGroupId);
+        titleEl.textContent = "Editar Sesión";
+        dateIn.value = Utils.toLocalDate(logData.createdAt).toISOString().split('T')[0];
+        notesIn.value = exData?.notes || '';
+        const repsHeader = setsList.previousElementSibling?.children[2];
+        if (repsHeader) repsHeader.textContent = (exData?.trackingMode === 'time' || isTimeBased) ? 'Seg' : 'Reps';
+    } else {
+        titleEl.textContent = "Registrar Sesión Pasada";
+        dateIn.value = new Date().toISOString().split('T')[0];
+        notesIn.value = '';
+        const repsHeader = setsList.previousElementSibling?.children[2];
+        if (repsHeader) repsHeader.textContent = isTimeBased ? 'Seg' : 'Reps';
+    }
+
+    const renderSetRow = (weight = 0, reps = 0) => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '8px';
+        row.style.alignItems = 'center';
+        row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="number" class="manual-weight" value="${weight}" style="width: 58px; padding: 6px; font-size: 0.85rem;" placeholder="0">
+                <span style="font-size: 0.7rem; color: var(--text-light);">kg</span>
+            </div>
+            <span style="font-size: 0.8rem;">x</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="number" class="manual-reps" value="${reps}" style="width: 58px; padding: 6px; font-size: 0.85rem;" placeholder="0">
+                <span style="font-size: 0.7rem; color: var(--text-light);">${isTimeBased ? 'seg' : 'reps'}</span>
+            </div>
+            <button class="delete-btn remove-set" style="padding: 4px 8px; margin-left: auto;">×</button>
+        `;
+        row.querySelector('.remove-set').onclick = () => row.remove();
+        setsList.appendChild(row);
+    };
+
+    if (exData && exData.sets) {
+        exData.sets.forEach(s => renderSetRow(s.weightKg, s.reps));
+    } else {
+        renderSetRow();
+    }
+
+    addSetBtn.onclick = () => renderSetRow();
+
+    saveBtn.onclick = async () => {
+        const dateStr = dateIn.value;
+        const notes = notesIn.value.trim();
+        const timestamp = new Date(dateStr + 'T12:00:00').getTime();
+        
+        const sets = Array.from(setsList.children).map((row, idx) => ({
+            weightKg: parseFloat(row.querySelector('.manual-weight').value) || 0,
+            reps: parseInt(row.querySelector('.manual-reps').value) || 0,
+            setIndex: idx
+        })).filter(s => s.reps > 0 || s.weightKg > 0);
+
+        if (sets.length === 0) return alert("Agrega al menos una serie.");
+
+        // Find exercise name from current group
+        let exName = "Ejercicio";
+        state.routines.forEach(r => {
+            const found = r.exercises.find(e => (e.exerciseGroupId || e.id) === currentGroupId);
+            if (found) exName = found.name;
+        });
+
+        const exercises = [{
+            exerciseId: currentGroupId,
+            exerciseName: exName,
+            exerciseGroupId: currentGroupId,
+            sets: sets,
+            notes: notes,
+            loadMode: 'external_total',
+            loadMultiplier: 1
+        }];
+
+        const workoutData = {
+            routineId: 'manual',
+            routineName: 'Registro Manual',
+            exercises: exercises,
+            createdAt: timestamp,
+            startedAt: timestamp
+        };
+
+        try {
+            const FB = await import('./firebase-config.js');
+            if (logId) {
+                const docRef = FB.doc(FB.db, 'users', state.user.uid, 'workoutLogs', logId);
+                await FB.updateDoc(docRef, workoutData);
+            } else {
+                const colRef = FB.collection(FB.db, 'users', state.user.uid, 'workoutLogs');
+                await FB.addDoc(colRef, workoutData);
+            }
+            modal.style.display = 'none';
+            Utils.showToast("✅ Registro guardado");
+            renderChart(); // Refresh progression view
+        } catch (e) {
+            console.error("Error saving manual log:", e);
+        }
+    };
+
+    modal.style.display = 'block';
 }

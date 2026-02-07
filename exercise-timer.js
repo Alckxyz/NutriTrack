@@ -5,6 +5,7 @@ let timerInterval = null;
 let remainingSeconds = 0;
 let isPaused = false;
 let onTimerComplete = null;
+let skipResolver = null;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -58,20 +59,20 @@ export function startTimer(config, type = 'sets', onFinishCallback = null) {
 }
 
 async function runExerciseSequence(duration, mode, label) {
-    // 1. First Preparation (5s)
+    // 1. First Preparation (10s)
     label.textContent = `[1/1] ${t('prep_countdown', state.language)}`;
     if (mode === 'unilateral') label.textContent = `[1/2] ${t('prep_countdown', state.language)}`;
     
-    await countdown(5);
+    await countdown(10);
     
     // 2. First Side / Single Side
     label.textContent = mode === 'unilateral' ? t('limb_left', state.language) : t('timer_exercise', state.language);
     await countdown(duration);
     
     if (mode === 'unilateral') {
-        // 3. Second Preparation (5s)
+        // 3. Second Preparation (10s)
         label.textContent = `[2/2] ${t('prep_countdown', state.language)}`;
-        await countdown(5);
+        await countdown(10);
         
         // 4. Second Side
         label.textContent = t('limb_right', state.language);
@@ -86,6 +87,12 @@ function countdown(seconds) {
         remainingSeconds = seconds;
         updateDisplay();
         
+        skipResolver = () => {
+            clearInterval(timerInterval);
+            skipResolver = null;
+            resolve();
+        };
+
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (!isPaused) {
@@ -93,6 +100,7 @@ function countdown(seconds) {
                 updateDisplay();
                 if (remainingSeconds <= 0) {
                     clearInterval(timerInterval);
+                    skipResolver = null;
                     playBeep();
                     resolve();
                 }
@@ -136,6 +144,7 @@ function finishTimer() {
 
 export function initTimerUI() {
     const toggleBtn = document.getElementById('timer-toggle-btn');
+    const skipBtn = document.getElementById('timer-skip-btn');
     const resetBtn = document.getElementById('timer-reset-btn');
     const closeBtn = document.getElementById('timer-close-btn');
 
@@ -143,6 +152,16 @@ export function initTimerUI() {
         isPaused = !isPaused;
         toggleBtn.textContent = isPaused ? '▶' : '⏸';
     };
+
+    if (skipBtn) {
+        skipBtn.onclick = () => {
+            if (skipResolver) {
+                skipResolver();
+            } else if (remainingSeconds > 0) {
+                finishTimer();
+            }
+        };
+    }
 
     resetBtn.onclick = () => {
         // Just hide for now on reset or we could restart with previous val

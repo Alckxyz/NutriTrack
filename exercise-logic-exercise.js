@@ -47,11 +47,22 @@ export function addExercise(routineId) {
     }
 
     if (loadModeSelect && weightGroup) {
-        loadModeSelect.onchange = () => {
-            weightGroup.classList.toggle('hidden', loadModeSelect.value === 'bodyweight');
+        const weightUnitSelect = document.getElementById('ex-weight-unit');
+        const weightPerPlateGroup = document.getElementById('ex-weight-per-plate-group');
+        
+        const updateVisibility = () => {
+            const isBodyweight = loadModeSelect.value === 'bodyweight';
+            weightGroup.classList.toggle('hidden', isBodyweight);
+            if (weightUnitSelect && weightPerPlateGroup) {
+                weightPerPlateGroup.classList.toggle('hidden', isBodyweight || weightUnitSelect.value !== 'plates');
+            }
         };
+
+        loadModeSelect.onchange = updateVisibility;
+        if (weightUnitSelect) weightUnitSelect.onchange = updateVisibility;
+        
         loadModeSelect.value = 'external_total';
-        weightGroup.classList.remove('hidden');
+        updateVisibility();
     }
 
     dom.exRoutineId.value = routineId;
@@ -72,21 +83,34 @@ export function editExercise(routineId, exerciseId) {
     dom.exSets.value = ex.sets;
     dom.exReps.value = ex.reps;
     dom.exWeight.value = ex.weight;
-    dom.exRestSets.value = ex.restBetweenSets;
-    dom.exRestExercises.value = ex.restBetweenExercises;
+    dom.exRestSets.value = (ex.restBetweenSets / 60).toFixed(1).replace(/\.0$/, '');
+    dom.exRestExercises.value = (ex.restBetweenExercises / 60).toFixed(1).replace(/\.0$/, '');
     const loadModeSelect = document.getElementById('ex-load-mode');
+    const weightUnitSelect = document.getElementById('ex-weight-unit');
     const trackingModeSelect = document.getElementById('ex-tracking-mode');
     const timeModeGroup = document.getElementById('time-mode-group');
     const repsLabel = document.getElementById('ex-reps-label');
     const weightGroup = dom.exWeight.closest('.form-group');
 
     if (loadModeSelect && weightGroup) {
+        const weightPerPlateGroup = document.getElementById('ex-weight-per-plate-group');
+        const weightPerPlateIn = document.getElementById('ex-weight-per-plate');
+        
         loadModeSelect.value = ex.loadMode || 'external_total';
-        const updateWeightVisibility = () => {
-            weightGroup.classList.toggle('hidden', loadModeSelect.value === 'bodyweight');
+        if (weightUnitSelect) weightUnitSelect.value = ex.weightUnit || 'kg';
+        if (weightPerPlateIn) weightPerPlateIn.value = ex.weightPerPlate || '';
+        
+        const updateVisibility = () => {
+            const isBodyweight = loadModeSelect.value === 'bodyweight';
+            weightGroup.classList.toggle('hidden', isBodyweight);
+            if (weightUnitSelect && weightPerPlateGroup) {
+                weightPerPlateGroup.classList.toggle('hidden', isBodyweight || weightUnitSelect.value !== 'plates');
+            }
         };
-        loadModeSelect.onchange = updateWeightVisibility;
-        updateWeightVisibility();
+        
+        loadModeSelect.onchange = updateVisibility;
+        if (weightUnitSelect) weightUnitSelect.onchange = updateVisibility;
+        updateVisibility();
     }
     
     if (trackingModeSelect && repsLabel) {
@@ -123,17 +147,20 @@ export async function handleExerciseSubmit(e, refreshUI) {
     const editId = dom.exEditId.value;
     
     const name = dom.exName.value.trim();
+    const weightPerPlateVal = parseFloat(document.getElementById('ex-weight-per-plate')?.value);
     const data = {
         name: name,
         sets: parseInt(dom.exSets.value) || 0,
         reps: parseInt(dom.exReps.value) || 0,
         weight: document.getElementById('ex-load-mode').value === 'bodyweight' ? 0 : (parseFloat(dom.exWeight.value) || 0),
+        weightUnit: document.getElementById('ex-weight-unit').value || 'kg',
+        weightPerPlate: isNaN(weightPerPlateVal) ? null : weightPerPlateVal,
         trackingMode: document.getElementById('ex-tracking-mode').value,
         timeMode: document.getElementById('ex-time-mode').value,
         loadMode: document.getElementById('ex-load-mode').value,
         loadMultiplier: document.getElementById('ex-load-mode').value === 'external_single' ? 2 : 1,
-        restBetweenSets: parseInt(dom.exRestSets.value) || 60,
-        restBetweenExercises: parseInt(dom.exRestExercises.value) || 120,
+        restBetweenSets: Math.round(parseFloat(dom.exRestSets.value) * 60) || 60,
+        restBetweenExercises: Math.round(parseFloat(dom.exRestExercises.value) * 60) || 120,
         updatedAt: FB.serverTimestamp()
     };
 
