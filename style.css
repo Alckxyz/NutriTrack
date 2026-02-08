@@ -173,6 +173,34 @@ main {
     box-shadow: 0 0 15px rgba(100, 181, 246, 0.2);
 }
 
+.routine-card.collapsed .exercise-items,
+.routine-card.collapsed .meal-footer {
+    display: none;
+}
+
+.routine-header {
+    cursor: pointer;
+}
+
+.routine-header .meal-header-actions button,
+.routine-header .meal-header-actions .drag-handle,
+.routine-header .routine-name-editable {
+    cursor: auto;
+}
+
+.routine-toggle-icon {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-right: 8px;
+    transition: transform 0.2s;
+    display: inline-block;
+    width: 12px;
+}
+
+.routine-card.collapsed .routine-toggle-icon {
+    transform: rotate(-90deg);
+}
+
 .routine-selector-container {
     padding-right: 12px;
     display: flex;

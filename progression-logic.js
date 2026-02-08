@@ -204,6 +204,7 @@ async function openManualLogModal(logId = null) {
         if (found) targetExDef = found;
     });
     const isTimeBased = targetExDef?.trackingMode === 'time';
+    const isPlates = targetExDef?.weightUnit === 'plates';
 
     const modal = document.getElementById('manual-log-modal');
     const titleEl = document.getElementById('manual-log-title');
@@ -226,13 +227,17 @@ async function openManualLogModal(logId = null) {
         titleEl.textContent = "Editar Sesión";
         dateIn.value = Utils.toLocalDate(logData.createdAt).toISOString().split('T')[0];
         notesIn.value = exData?.notes || '';
+        const weightHeader = setsList.previousElementSibling?.children[0];
         const repsHeader = setsList.previousElementSibling?.children[2];
+        if (weightHeader) weightHeader.textContent = isPlates ? (state.language === 'es' ? 'Placas' : 'Plates') : (state.language === 'es' ? 'Peso' : 'Weight');
         if (repsHeader) repsHeader.textContent = (exData?.trackingMode === 'time' || isTimeBased) ? 'Seg' : 'Reps';
     } else {
         titleEl.textContent = "Registrar Sesión Pasada";
         dateIn.value = new Date().toISOString().split('T')[0];
         notesIn.value = '';
+        const weightHeader = setsList.previousElementSibling?.children[0];
         const repsHeader = setsList.previousElementSibling?.children[2];
+        if (weightHeader) weightHeader.textContent = isPlates ? (state.language === 'es' ? 'Placas' : 'Plates') : (state.language === 'es' ? 'Peso' : 'Weight');
         if (repsHeader) repsHeader.textContent = isTimeBased ? 'Seg' : 'Reps';
     }
 
@@ -241,10 +246,11 @@ async function openManualLogModal(logId = null) {
         row.style.display = 'flex';
         row.style.gap = '8px';
         row.style.alignItems = 'center';
+        const weightUnitLabel = isPlates ? (state.language === 'es' ? 'placas' : 'plates') : 'kg';
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 4px;">
                 <input type="number" class="manual-weight" value="${weight}" style="width: 58px; padding: 6px; font-size: 0.85rem;" placeholder="0">
-                <span style="font-size: 0.7rem; color: var(--text-light);">kg</span>
+                <span style="font-size: 0.7rem; color: var(--text-light);">${weightUnitLabel}</span>
             </div>
             <span style="font-size: 0.8rem;">x</span>
             <div style="display: flex; align-items: center; gap: 4px;">
@@ -291,8 +297,9 @@ async function openManualLogModal(logId = null) {
             exerciseGroupId: currentGroupId,
             sets: sets,
             notes: notes,
-            loadMode: 'external_total',
-            loadMultiplier: 1
+            loadMode: targetExDef?.loadMode || 'external_total',
+            loadMultiplier: targetExDef?.loadMultiplier || 1,
+            weightUnit: targetExDef?.weightUnit || 'kg'
         }];
 
         const workoutData = {

@@ -72,6 +72,12 @@ async function performRoutineCreation(name, refreshUI) {
             order: maxOrder + 1,
             createdAt: FB.serverTimestamp()
         });
+
+        // Auto-expand the new routine so the user can immediately add exercises
+        if (state.expandedRoutines) {
+            state.expandedRoutines.add(newDoc.id);
+        }
+
         await import('./state.js').then(m => m.saveState(() => {
             Utils.showToast("✅ " + (state.language === 'es' ? "Rutina creada" : "Routine created"));
             if (refreshUI) refreshUI();

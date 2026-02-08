@@ -7,6 +7,7 @@ import { getExerciseItemHTML } from './exercise-ui-components.js';
 
 export function renderRoutines() {
     const list = document.getElementById('routines-list');
+    const expandedRoutines = state.expandedRoutines;
     const routineSelect = document.getElementById('routine-select');
     const planSelect = document.getElementById('exercise-plan-select');
     const managePlansBtn = document.getElementById('manage-exercise-plans-btn');
@@ -28,13 +29,16 @@ export function renderRoutines() {
     routinesOfPlan.forEach(routine => {
         const isSelected = state.selectedRoutineId === routine.id;
         const isLastFinished = state.lastFinishedRoutineId === routine.id;
+        const isCollapsed = !expandedRoutines.has(routine.id);
+        
         const card = document.createElement('div');
-        card.className = `routine-card ${isSelected ? 'selected' : ''}`;
+        card.className = `routine-card ${isSelected ? 'selected' : ''} ${isCollapsed ? 'collapsed' : ''}`;
         card.style.marginBottom = '2rem';
         card.dataset.id = routine.id;
         card.innerHTML = `
         <div class="routine-header">
             <div class="routine-selector-container">
+                <span class="routine-toggle-icon">▼</span>
                 <div class="routine-select-box ${isSelected ? 'active' : ''} ${isLastFinished ? 'finished' : ''}"></div>
             </div>
             <div class="routine-title-group" style="flex: 1;">
@@ -76,16 +80,39 @@ export function renderRoutines() {
 }
 
 function attachRoutineEvents(card, routine) {
+    const expandedRoutines = state.expandedRoutines;
     card.querySelector('.edit-routine-trigger').onclick = (e) => {
         e.stopPropagation();
         Logic.openRenameRoutineModal(routine.id);
     };
 
     card.querySelector('.delete-routine').onclick = (e) => { e.stopPropagation(); Logic.deleteRoutine(routine.id); };
-    card.addEventListener('click', (e) => {
-        if (e.target.closest('button, input, .series-dot, .drag-handle, .item-drag-handle, [contenteditable]')) return;
-        if (state.selectedRoutineId !== routine.id) Logic.selectRoutine(routine.id, renderRoutines);
-    });
+    
+    // Toggle Collapse / Expand
+    const header = card.querySelector('.routine-header');
+    header.onclick = (e) => {
+        // Prevent toggling if user clicks an action button, drag handle, or editable name
+        // We also allow the select circle to handle its own selection logic
+        if (e.target.closest('button, .drag-handle, .routine-name-editable, .routine-select-box')) return;
+        
+        e.stopPropagation();
+        if (expandedRoutines.has(routine.id)) {
+            expandedRoutines.delete(routine.id);
+            card.classList.add('collapsed');
+        } else {
+            expandedRoutines.add(routine.id);
+            card.classList.remove('collapsed');
+        }
+    };
+
+    // Selection logic only when clicking the selector circle
+    const selectBox = card.querySelector('.routine-select-box');
+    selectBox.onclick = (e) => {
+        e.stopPropagation();
+        if (state.selectedRoutineId !== routine.id) {
+            Logic.selectRoutine(routine.id, renderRoutines);
+        }
+    };
 
     card.querySelector('.add-ex-trigger').onclick = () => Logic.addExercise(routine.id);
     const workoutBtn = card.querySelector('.start-workout-trigger');

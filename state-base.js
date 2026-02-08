@@ -40,6 +40,7 @@ export const state = {
     lastFinishedRoutineId: null, // ID of the routine that was just completed
     visibleMicros: [], // Array of names of micronutrients to show in summary
     timerEnabled: true,
+    expandedRoutines: new Set(), // In-memory tracking of which routines are currently expanded
     goals: {
         calories: 0,
         protein: 0,
