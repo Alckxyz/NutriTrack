@@ -20,6 +20,27 @@ import { initTimerUI } from './exercise-timer.js';
 // --- DOM Injection ---
 if (dom.modalsOutlet) {
     dom.modalsOutlet.innerHTML = modalsHtml;
+    initModalScrollLock();
+}
+
+/**
+ * Prevents background scrolling when any modal is open.
+ */
+function initModalScrollLock() {
+    const observer = new MutationObserver(() => {
+        const anyModalVisible = Array.from(document.querySelectorAll('.modal'))
+            .some(m => m.style.display === 'block');
+        
+        if (anyModalVisible) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+    });
+
+    document.querySelectorAll('.modal').forEach(modal => {
+        observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+    });
 }
 
 // UI Options object for renderAll to pass callbacks

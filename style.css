@@ -26,6 +26,10 @@ body {
     font-size: 14px; /* Reduced base font size */
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 header {
     background: var(--card-bg);
     padding: 0.5rem 1rem;
