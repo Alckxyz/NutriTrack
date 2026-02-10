@@ -39,7 +39,11 @@ export const recipeModals = `
                 </div>
                 <div class="form-group">
                     <label data-t="recipe_portions_label">${t('recipe_portions_label', state.language)}</label>
-                    <input type="number" id="recipe-portions-input" value="1" min="1" step="1">
+                    <input type="number" id="recipe-portions-input" value="1" min="0.01" step="any">
+                </div>
+                <div class="form-group">
+                    <label data-t="recipe_total_weight_label">${t('recipe_total_weight_label', state.language)}</label>
+                    <input type="number" id="recipe-total-weight-input" placeholder="Ej: 1200" min="0" step="any">
                 </div>
             </div>
             <div class="section-header-mini">

@@ -29,10 +29,14 @@ function calculateExerciseSuggestion(ex, state) {
     }
 
     const baseReps = ex.reps || 10;
+    const minReps = ex.minReps || baseReps;
+    const maxReps = ex.maxReps || baseReps;
     
     // Suggestion logic: 
     // If majority reached current target or more -> suggest more reps or more weight
     const allReachedTarget = lastEx.sets.every(s => s.reps >= baseReps);
+    const allReachedMax = lastEx.sets.every(s => s.reps >= maxReps);
+    const majorityBelowMin = lastEx.sets.filter(s => s.reps < minReps).length > (lastEx.sets.length / 2);
     const majorityBelowTarget = lastEx.sets.filter(s => s.reps < baseReps).length > (lastEx.sets.length / 2);
 
     let suggestion = {
@@ -42,18 +46,30 @@ function calculateExerciseSuggestion(ex, state) {
         message: ''
     };
 
-    if (allReachedTarget) {
-        // If they did all sets at target, suggest increasing reps or weight
-        suggestion.weight += 2.5; 
+    if (allReachedMax) {
+        // reached max reps in all sets: increase weight
+        suggestion.weight += 2.5;
+        // reset reps to min or current target
+        suggestion.reps = minReps;
         suggestion.type = 'increase';
         suggestion.message = t('suggest_increase', state.language);
-    } else if (majorityBelowTarget) {
+    } else if (majorityBelowMin) {
+        // failing to hit even min reps: decrease weight
         suggestion.weight = Math.max(0, dominantWeight - 2.5);
+        suggestion.reps = minReps;
         suggestion.type = 'decrease';
         suggestion.message = t('suggest_decrease', state.language);
-    } else {
+    } else if (allReachedTarget && baseReps < maxReps) {
+        // reached current target but not max yet: push reps
         suggestion.type = 'push';
-        suggestion.reps = baseReps + 1; // Suggest pushing for one more rep
+        suggestion.reps = baseReps + 1;
+        suggestion.message = t('suggest_push_reps', state.language);
+    } else if (majorityBelowTarget) {
+        // keep current weight but try to hit target reps next time
+        suggestion.type = 'maintain';
+        suggestion.message = t('suggest_push_reps', state.language);
+    } else {
+        suggestion.type = 'maintain';
         suggestion.message = t('suggest_push_reps', state.language);
     }
 
@@ -96,19 +112,22 @@ export function getExerciseItemHTML(ex, routine, state) {
         ? `<small style="opacity:0.7; font-size: 0.65rem;"> (${ex.weightPerPlate} kg/placa${totalWeightPlates !== null ? ` - Total: ${totalWeightPlates} kg` : ''})</small>` 
         : '';
 
-    const suggestionHtml = suggestion ? `
-        <div class="ai-suggestion-box ${suggestion.type}" style="margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid transparent; background: rgba(100, 181, 246, 0.05);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <span style="font-weight: 800; color: var(--secondary);">✨ Sugerencia AI:</span>
-                <span style="font-weight: bold;">${suggestion.weight}${unitLabel} x ${suggestion.reps}</span>
-            </div>
-            <div style="color: var(--text-light); font-style: italic;">${suggestion.message}</div>
-        </div>
+    const isBodyweight = ex.loadMode === 'bodyweight';
+    const suggestionBtn = suggestion ? `
+        <button class="view-suggestion-btn" 
+                style="background: rgba(100, 181, 246, 0.1); border: 1px solid var(--secondary); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; padding: 0;" 
+                title="${t('view_suggestion', state.language)}"
+                data-weight="${suggestion.weight}" 
+                data-unit="${unitLabel}"
+                data-reps="${suggestion.reps}" 
+                data-is-bodyweight="${isBodyweight}"
+                data-message="${suggestion.message}">
+            ✨
+        </button>
     ` : '';
 
     return `
     <div class="exercise-item ${isCompleted ? 'completed' : ''} ${isTime ? 'time-based' : ''}" data-id="${ex.id}">
-        ${suggestionHtml}
         <div class="exercise-content-row">
             <div class="exercise-info">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
@@ -132,12 +151,12 @@ export function getExerciseItemHTML(ex, routine, state) {
                 ${Array.from({length: ex.sets}).map((_, i) => `<div class="series-dot ${ex.doneSeries?.includes(i) ? 'done' : ''}" data-index="${i}">${isTime ? '⏱️' : i+1}</div>`).join('')}
             </div>
             <div class="exercise-actions-group">
+                ${suggestionBtn}
                 <button class="edit-btn-mini edit-ex" style="padding:4px 8px; font-size:0.7rem;" title="${t('edit_btn', state.language)}">✏️</button>
                 <button class="delete-btn delete-ex" style="padding:4px 8px; font-size:0.7rem;">🗑️</button>
                 <button class="add-mini-btn replace-ex" style="padding:4px 8px; font-size:0.7rem; border-color:var(--secondary); color:var(--secondary);" title="${t('replace_exercise', state.language)}">⇄</button>
                 <button class="add-mini-btn view-prog" style="padding:4px 8px; font-size:0.7rem; border-color:var(--primary); color:var(--primary);" title="${t('view_progress', state.language)}">📈</button>
             </div>
-            <span class="item-drag-handle">☰</span>
         </div>
     </div>`;
 }

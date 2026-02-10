@@ -58,16 +58,7 @@ export function renderRoutines() {
         attachRoutineEvents(card, routine);
         list.appendChild(card);
 
-        const exList = card.querySelector('.exercise-items');
-        if (exList) {
-            new Sortable(exList, {
-                animation: 150, handle: '.item-drag-handle',
-                onEnd: () => {
-                    const orderedIds = Array.from(exList.children).map(item => item.dataset.id);
-                    Logic.reorderExercises(routine.id, orderedIds);
-                }
-            });
-        }
+
     });
 
     new Sortable(list, {
@@ -83,7 +74,9 @@ function attachRoutineEvents(card, routine) {
     const expandedRoutines = state.expandedRoutines;
     card.querySelector('.edit-routine-trigger').onclick = (e) => {
         e.stopPropagation();
-        Logic.openRenameRoutineModal(routine.id);
+        import('./exercise-logic-routine.js').then(m => {
+            m.openRoutineEditor(routine.id, () => renderRoutines());
+        });
     };
 
     card.querySelector('.delete-routine').onclick = (e) => { e.stopPropagation(); Logic.deleteRoutine(routine.id); };
@@ -204,6 +197,28 @@ function attachExerciseEvents(card, routine) {
         item.querySelector('.edit-ex').onclick = () => Logic.editExercise(routine.id, exId);
         item.querySelector('.delete-ex').onclick = () => Logic.deleteExercise(routine.id, exId);
         item.querySelector('.view-prog').onclick = () => import('./progression-logic.js').then(m => m.showProgression(ex.exerciseGroupId || ex.id));
+        
+        const suggestionBtn = item.querySelector('.view-suggestion-btn');
+        if (suggestionBtn) {
+            suggestionBtn.onclick = (e) => {
+                e.stopPropagation();
+                const modal = document.getElementById('suggestion-modal');
+                const targetInfo = document.getElementById('suggestion-target-info');
+                const message = document.getElementById('suggestion-modal-message');
+                const closeBtn = modal.querySelector('.close-suggestion-btn');
+
+                if (suggestionBtn.dataset.isBodyweight === 'true') {
+                    targetInfo.textContent = `${suggestionBtn.dataset.reps} reps`;
+                } else {
+                    targetInfo.textContent = `${suggestionBtn.dataset.weight}${suggestionBtn.dataset.unit} x ${suggestionBtn.dataset.reps}`;
+                }
+                message.textContent = suggestionBtn.dataset.message;
+                
+                modal.style.display = 'block';
+                closeBtn.onclick = () => modal.style.display = 'none';
+            };
+        }
+
         item.querySelector('.replace-ex').onclick = () => {
             const modal = document.getElementById('replace-exercise-modal');
             const nameIn = document.getElementById('replace-ex-name');

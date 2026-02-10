@@ -160,3 +160,60 @@ export function renderRoutinesManagementList(refreshUI) {
         list.appendChild(item);
     });
 }
+
+export async function openRoutineEditor(routineId, refreshUI) {
+    const routine = state.routines.find(r => r.id === routineId);
+    if (!routine) return;
+
+    const modal = document.getElementById('routine-editor-modal');
+    const list = document.getElementById('routine-editor-exercises-list');
+    const title = document.getElementById('routine-editor-title');
+    const closeBtn = modal.querySelector('.close-routine-editor-btn');
+
+    if (!modal || !list || !title) return;
+
+    title.textContent = `${routine.name}: Reordenar`;
+    renderRoutineEditorExercises(routine, list, refreshUI);
+    
+    modal.style.display = 'block';
+    closeBtn.onclick = () => modal.style.display = 'none';
+}
+
+function renderRoutineEditorExercises(routine, container, refreshUI) {
+    container.innerHTML = '';
+    if (!routine.exercises || routine.exercises.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-light);">No hay ejercicios en esta rutina.</div>';
+        return;
+    }
+
+    routine.exercises.forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        item.dataset.id = ex.id;
+        item.innerHTML = `
+            <div class="library-item-info">
+                <strong>${ex.name}</strong><br>
+                <small style="color:var(--text-light);">${ex.sets} series x ${ex.reps} reps</small>
+            </div>
+            <div class="library-item-actions">
+                <span class="drag-handle" style="font-size: 1.2rem; cursor: grab; padding: 4px 8px;">☰</span>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+
+    import('sortablejs').then(({ default: Sortable }) => {
+        new Sortable(container, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: () => {
+                const orderedIds = Array.from(container.children).map(child => child.dataset.id);
+                import('./exercise-logic-exercise.js').then(m => {
+                    m.reorderExercises(routine.id, orderedIds).then(() => {
+                        if (refreshUI) refreshUI();
+                    });
+                });
+            }
+        });
+    });
+}

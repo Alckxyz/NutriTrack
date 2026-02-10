@@ -18,6 +18,8 @@ export function initRecipesUI(refreshUI) {
     dom.createNewRecipeBtn.onclick = () => openRecipeEditor();
     dom.recipeLibrarySearch.oninput = () => refreshRecipeLibrary();
     dom.recipePortionsInput.oninput = () => updateRecipePreview();
+    const totalWeightIn = document.getElementById('recipe-total-weight-input');
+    if (totalWeightIn) totalWeightIn.oninput = () => updateRecipePreview();
     dom.recipeAddIngredientBtn.onclick = () => addIngredientToRecipeContext();
     dom.saveRecipeBtn.onclick = () => saveRecipe(refreshUI);
 }
@@ -35,6 +37,8 @@ export function openRecipeEditor(recipeId = null) {
         if (recipe) {
             dom.recipeNameInput.value = recipe.name || '';
             dom.recipePortionsInput.value = recipe.portions || 1;
+            const totalWeightIn = document.getElementById('recipe-total-weight-input');
+            if (totalWeightIn) totalWeightIn.value = recipe.totalWeight || '';
             // Load existing ingredients into temp state
             tempRecipeItems = JSON.parse(JSON.stringify(recipe.items || []));
             const titleEl = document.getElementById('recipe-editor-title');
@@ -43,6 +47,8 @@ export function openRecipeEditor(recipeId = null) {
     } else {
         dom.recipeNameInput.value = '';
         dom.recipePortionsInput.value = 1;
+        const totalWeightIn = document.getElementById('recipe-total-weight-input');
+        if (totalWeightIn) totalWeightIn.value = '';
         tempRecipeItems = [];
         const titleEl = document.getElementById('recipe-editor-title');
         if (titleEl) titleEl.textContent = t('recipe_editor_title', state.language);
@@ -104,6 +110,9 @@ export function renderRecipeEditorItems() {
 export function updateRecipePreview() {
     const totals = { protein: 0, carbs: 0, fat: 0, weight: 0 };
     const portions = parseFloat(dom.recipePortionsInput.value) || 1;
+    const totalWeightIn = document.getElementById('recipe-total-weight-input');
+    const totalWeight = totalWeightIn ? (parseFloat(totalWeightIn.value) || 0) : 0;
+
     tempRecipeItems.forEach(item => {
         if (!item) return;
         let food = state.foodList.find(f => f && f.id === item.foodId);
@@ -119,18 +128,40 @@ export function updateRecipePreview() {
         totals.weight += isRecipe ? 0 : item.amount;
     });
 
-    if (totals.weight > 0) {
+    if (totals.protein > 0 || totals.carbs > 0 || totals.fat > 0) {
         const pPortion = totals.protein / portions;
         const cPortion = totals.carbs / portions;
         const fPortion = totals.fat / portions;
         const kcalPortion = (pPortion * 4) + (cPortion * 4) + (fPortion * 9);
-        dom.recipeSummaryPreview.innerHTML = `
-            <span class="nutrient-badge kcal">${Math.round(kcalPortion)} kcal / ${t('portions_unit', state.language)}</span>
-            <span class="nutrient-badge">P: ${pPortion.toFixed(1)}g</span>
-            <span class="nutrient-badge">C: ${cPortion.toFixed(1)}g</span>
-            <span class="nutrient-badge">G: ${fPortion.toFixed(1)}g</span>
-            <span class="nutrient-badge" style="background:#444">Total: ${Math.round(totals.weight)}g</span>
+
+        let html = `
+            <div style="margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 4px;">
+                <span class="nutrient-badge kcal">${Math.round(kcalPortion)} kcal / ${t('portions_unit', state.language)}</span>
+                <span class="nutrient-badge">P: ${pPortion.toFixed(1)}g</span>
+                <span class="nutrient-badge">C: ${cPortion.toFixed(1)}g</span>
+                <span class="nutrient-badge">G: ${fPortion.toFixed(1)}g</span>
+            </div>
         `;
+
+        if (totalWeight > 0) {
+            const p100 = (totals.protein / totalWeight) * 100;
+            const c100 = (totals.carbs / totalWeight) * 100;
+            const f100 = (totals.fat / totalWeight) * 100;
+            const kcal100 = (p100 * 4) + (c100 * 4) + (f100 * 9);
+            html += `
+                <div>
+                    <span class="nutrient-badge kcal" style="border-color: var(--secondary); color: var(--secondary);">${Math.round(kcal100)} kcal / 100g</span>
+                    <span class="nutrient-badge">P: ${p100.toFixed(1)}g</span>
+                    <span class="nutrient-badge">C: ${c100.toFixed(1)}g</span>
+                    <span class="nutrient-badge">G: ${f100.toFixed(1)}g</span>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--text-light); margin-top: 4px;">
+                    Peso por porción: <strong>${(totalWeight / portions).toFixed(1)}g</strong>
+                </div>
+            `;
+        }
+
+        dom.recipeSummaryPreview.innerHTML = html;
     } else {
         dom.recipeSummaryPreview.innerHTML = '<span style="color:var(--text-light); font-size:0.8rem">Add ingredients to see nutritional info</span>';
     }
@@ -178,6 +209,9 @@ export async function updateRecipe(recipeId, recipeData, refreshCallback) {
 export async function saveRecipe(refreshCallback) {
     const name = dom.recipeNameInput.value.trim();
     const portions = parseFloat(dom.recipePortionsInput.value) || 1;
+    const totalWeightIn = document.getElementById('recipe-total-weight-input');
+    const totalWeight = totalWeightIn ? (parseFloat(totalWeightIn.value) || 0) : 0;
+
     if (!name) return alert('Please enter a recipe name');
     if (tempRecipeItems.length === 0) return alert('Add at least one ingredient');
 
@@ -207,6 +241,7 @@ export async function saveRecipe(refreshCallback) {
         type: 'recipe',
         name,
         portions,
+        totalWeight,
         items: tempRecipeItems,
         protein: totals.protein / portions,
         carbs: totals.carbs / portions,

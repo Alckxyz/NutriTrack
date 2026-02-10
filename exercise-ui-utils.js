@@ -33,13 +33,24 @@ export function updateRoutineSelector(routineSelect, routinesOfPlan, renderRouti
         if (state.selectedRoutineId === r.id) opt.selected = true;
         routineSelect.appendChild(opt);
     });
+
     const selectedIsIncluded = routinesOfPlan.some(r => r.id === state.selectedRoutineId);
-    if (!selectedIsIncluded && routinesOfPlan.length > 0) {
-        state.selectedRoutineId = routinesOfPlan[0].id;
-        import('./state.js').then(m => m.saveState());
-    } else if (routinesOfPlan.length === 0) {
-        state.selectedRoutineId = null;
+    
+    // Improved Persistence Logic:
+    // We only set a default if we have routines available and the current selection 
+    // is truly empty or invalid for the current plan.
+    // Importantly, we don't set it to null if routinesOfPlan is empty, 
+    // because that usually means data is just still loading from Firebase.
+    if (routinesOfPlan.length > 0) {
+        if (!state.selectedRoutineId) {
+            state.selectedRoutineId = routinesOfPlan[0].id;
+        } else if (!selectedIsIncluded) {
+            // Keep the selectedRoutineId as is, unless we explicitly want to force 
+            // the first one of the current plan.
+            state.selectedRoutineId = routinesOfPlan[0].id;
+        }
     }
+
     routineSelect.onchange = (e) => {
         Logic.selectRoutine(e.target.value, renderRoutines);
     };

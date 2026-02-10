@@ -82,6 +82,8 @@ export function editExercise(routineId, exerciseId) {
     dom.exName.value = ex.name;
     dom.exSets.value = ex.sets;
     dom.exReps.value = ex.reps;
+    if (document.getElementById('ex-min-reps')) document.getElementById('ex-min-reps').value = ex.minReps || '';
+    if (document.getElementById('ex-max-reps')) document.getElementById('ex-max-reps').value = ex.maxReps || '';
     dom.exWeight.value = ex.weight;
     dom.exRestSets.value = (ex.restBetweenSets / 60).toFixed(1).replace(/\.0$/, '');
     dom.exRestExercises.value = (ex.restBetweenExercises / 60).toFixed(1).replace(/\.0$/, '');
@@ -148,10 +150,15 @@ export async function handleExerciseSubmit(e, refreshUI) {
     
     const name = dom.exName.value.trim();
     const weightPerPlateVal = parseFloat(document.getElementById('ex-weight-per-plate')?.value);
+    const minReps = parseInt(document.getElementById('ex-min-reps')?.value);
+    const maxReps = parseInt(document.getElementById('ex-max-reps')?.value);
+    
     const data = {
         name: name,
         sets: parseInt(dom.exSets.value) || 0,
         reps: parseInt(dom.exReps.value) || 0,
+        minReps: isNaN(minReps) ? null : minReps,
+        maxReps: isNaN(maxReps) ? null : maxReps,
         weight: document.getElementById('ex-load-mode').value === 'bodyweight' ? 0 : (parseFloat(dom.exWeight.value) || 0),
         weightUnit: document.getElementById('ex-weight-unit').value || 'kg',
         weightPerPlate: isNaN(weightPerPlateVal) ? null : weightPerPlateVal,

@@ -55,7 +55,14 @@ export function renderExercisePlansManagementList(refreshUI) {
 
 export function selectExercisePlan(planId, refreshUI) {
     state.currentExercisePlanId = planId;
+    // When changing plans, we check if the current selection is in the new plan.
+    // If not, we pick the first one of the new plan to ensure a valid routine is active.
     const routinesOfPlan = state.routines.filter(r => r.planId === planId || (!r.planId && planId === 'ep1'));
-    state.selectedRoutineId = routinesOfPlan.length > 0 ? routinesOfPlan[0].id : null;
+    const isStillValid = routinesOfPlan.some(r => r.id === state.selectedRoutineId);
+    
+    if (!isStillValid && routinesOfPlan.length > 0) {
+        state.selectedRoutineId = routinesOfPlan[0].id;
+    }
+    
     import('./state.js').then(m => m.saveState(refreshUI));
 }
