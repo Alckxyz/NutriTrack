@@ -196,6 +196,7 @@ export const translations = {
         coach_apply_btn: "Aplicar ajuste: {delta} kcal",
         coach_no_data: "Se requieren al menos 14 días de registros para el coach.",
         conv_btn_short: "📏 Conv.",
+        to_recipe_btn: "👨‍🍳 Receta",
         save_conversions: "Guardar Conversiones",
         confirm_delete_conversion: "¿Seguro que quieres borrar esta conversión?",
         chart_range_7d: "7 días",
@@ -280,6 +281,9 @@ export const translations = {
         time_mode_unilateral: "Dos cronómetros (Unilateral)",
         prep_countdown: "Prepárate",
         limb_left: "Izquierda / Lado 1",
-        limb_right: "Derecha / Lado 2"
+        limb_right: "Derecha / Lado 2",
+        partial_reps_label: "Repeticiones Parciales",
+        partial_reps_short: "Parciales",
+        partial_reps_hint: "Permitir registrar parciales"
     }
 };

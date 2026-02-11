@@ -153,7 +153,7 @@ export function getExerciseItemHTML(ex, routine, state) {
             <div class="exercise-actions-group">
                 ${suggestionBtn}
                 <button class="edit-btn-mini edit-ex" style="padding:4px 8px; font-size:0.7rem;" title="${t('edit_btn', state.language)}">✏️</button>
-                <button class="delete-btn delete-ex" style="padding:4px 8px; font-size:0.7rem;">🗑️</button>
+
                 <button class="add-mini-btn replace-ex" style="padding:4px 8px; font-size:0.7rem; border-color:var(--secondary); color:var(--secondary);" title="${t('replace_exercise', state.language)}">⇄</button>
                 <button class="add-mini-btn view-prog" style="padding:4px 8px; font-size:0.7rem; border-color:var(--primary); color:var(--primary);" title="${t('view_progress', state.language)}">📈</button>
             </div>

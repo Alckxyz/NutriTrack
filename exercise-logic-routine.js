@@ -2,6 +2,7 @@ import * as FB from './firebase-config.js';
 import { state } from './state.js';
 import { t } from './i18n.js';
 import * as Utils from './utils.js';
+import { deleteExercise } from './exercise-logic-exercise.js';
 
 export async function createNewRoutine(refreshUI) {
     if (!state.user) return alert("Inicia sesión para crear rutinas");
@@ -89,12 +90,16 @@ async function performRoutineCreation(name, refreshUI) {
 }
 
 export async function deleteRoutine(routineId) {
-    if (!state.user) return;
-    if (!(await Utils.confirmAction(t('confirm_delete_routine', state.language), t('confirm', state.language), { okText: t('delete_btn', state.language), isDanger: true }))) return;
+    if (!state.user) return false;
+    if (!(await Utils.confirmAction(t('confirm_delete_routine', state.language), t('confirm', state.language), { okText: t('delete_btn', state.language), isDanger: true }))) return false;
     try {
         const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId);
         await FB.deleteDoc(docRef);
-    } catch (e) { console.error("Error deleting routine:", e); }
+        return true;
+    } catch (e) { 
+        console.error("Error deleting routine:", e); 
+        return false;
+    }
 }
 
 export async function renameRoutine(routineId, newName) {
@@ -167,14 +172,35 @@ export async function openRoutineEditor(routineId, refreshUI) {
 
     const modal = document.getElementById('routine-editor-modal');
     const list = document.getElementById('routine-editor-exercises-list');
-    const title = document.getElementById('routine-editor-title');
+    const nameIn = document.getElementById('routine-editor-name-input');
     const closeBtn = modal.querySelector('.close-routine-editor-btn');
 
-    if (!modal || !list || !title) return;
+    if (!modal || !list || !nameIn) return;
 
-    title.textContent = `${routine.name}: Reordenar`;
+    nameIn.value = routine.name || '';
+    nameIn.onblur = () => {
+        const newName = nameIn.value.trim();
+        if (newName && newName !== routine.name) {
+            renameRoutine(routineId, newName).then(() => {
+                if (refreshUI) refreshUI();
+            });
+        }
+    };
+
     renderRoutineEditorExercises(routine, list, refreshUI);
     
+    const delRoutineBtn = modal.querySelector('.delete-routine-btn-editor');
+    if (delRoutineBtn) {
+        delRoutineBtn.onclick = () => {
+            deleteRoutine(routineId).then((success) => {
+                if (success === true) {
+                    modal.style.display = 'none';
+                    if (refreshUI) refreshUI();
+                }
+            });
+        };
+    }
+
     modal.style.display = 'block';
     closeBtn.onclick = () => modal.style.display = 'none';
 }
@@ -196,9 +222,24 @@ function renderRoutineEditorExercises(routine, container, refreshUI) {
                 <small style="color:var(--text-light);">${ex.sets} series x ${ex.reps} reps</small>
             </div>
             <div class="library-item-actions">
+                <button class="delete-btn remove-ex-btn" style="padding: 4px 8px; margin-right: 4px;" title="${t('delete_btn', state.language)}">🗑️</button>
                 <span class="drag-handle" style="font-size: 1.2rem; cursor: grab; padding: 4px 8px;">☰</span>
             </div>
         `;
+
+        item.querySelector('.remove-ex-btn').onclick = (e) => {
+            e.stopPropagation();
+            deleteExercise(routine.id, ex.id).then((success) => {
+                if (success !== false) {
+                    // Find updated routine data and re-render the list
+                    const updatedRoutine = state.routines.find(r => r.id === routine.id);
+                    if (updatedRoutine) {
+                        renderRoutineEditorExercises(updatedRoutine, container, refreshUI);
+                    }
+                    if (refreshUI) refreshUI();
+                }
+            });
+        };
         container.appendChild(item);
     });
 

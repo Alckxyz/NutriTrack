@@ -57,6 +57,7 @@ export const dom = {
     get dbMineralsContainer() { return document.getElementById('db-minerals-container'); },
     get newFoodForm() { return document.getElementById('new-food-form'); },
     get dbSaveBtn() { return document.getElementById('db-save-btn'); },
+    get dbToRecipeBtn() { return document.getElementById('db-to-recipe-btn'); },
     // Goals elements
     get goalCalories() { return document.getElementById('goal-calories'); },
     get goalCaloriesDisplay() { return document.getElementById('goal-calories-display'); },

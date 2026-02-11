@@ -28,6 +28,43 @@ export function refreshRecipeLibrary() {
     UI.renderRecipeLibraryList(dom.recipeLibraryList, dom.recipeLibrarySearch.value, openRecipeEditor, deleteRecipe);
 }
 
+export function openRecipeEditorWithFood(foodId) {
+    const food = state.foodList.find(f => f.id === foodId);
+    if (!food) return;
+
+    currentEditingRecipeId = null;
+    dom.recipeNameInput.value = food.name;
+    dom.recipePortionsInput.value = 1;
+    const totalWeightIn = document.getElementById('recipe-total-weight-input');
+    if (totalWeightIn) totalWeightIn.value = food.baseAmount || 100;
+
+    const snapshot = {
+        name: food.name,
+        brand: food.brand || '',
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        vitamins: food.vitamins || {},
+        minerals: food.minerals || {},
+        baseAmount: food.baseAmount || (food.defaultUnit === 'g' || food.defaultUnit === 'ml' ? 100 : 1),
+        defaultUnit: food.defaultUnit || 'g',
+        type: food.type || 'standard',
+        conversions: food.conversions || []
+    };
+
+    tempRecipeItems = [{
+        foodId: food.id,
+        amount: food.baseAmount || (food.defaultUnit === 'g' || food.defaultUnit === 'ml' ? 100 : 1),
+        snapshot: snapshot
+    }];
+
+    const titleEl = document.getElementById('recipe-editor-title');
+    if (titleEl) titleEl.textContent = t('recipe_editor_title', state.language) + ` (Basado en ${food.name})`;
+
+    renderRecipeEditorItems();
+    dom.recipeEditorModal.style.display = 'block';
+}
+
 export function openRecipeEditor(recipeId = null) {
     currentEditingRecipeId = recipeId;
     dom.recipeIngredientsList.innerHTML = '';

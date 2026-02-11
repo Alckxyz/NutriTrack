@@ -86,6 +86,7 @@ export function startWorkout(routineId, refreshUI) {
             exerciseGroupId: ex.exerciseGroupId || ex.id,
             createdAt: FB.Timestamp.now(),
             type: ex.loadMode === 'bodyweight' ? 'bodyweight' : 'weighted',
+            partialRepsEnabled: ex.partialRepsEnabled || false,
             loadMode: ex.loadMode || 'external_total',
             loadMultiplier: ex.loadMultiplier || 1,
             weightUnit: ex.weightUnit || 'kg',
@@ -136,6 +137,7 @@ async function saveCurrentSet(refreshUI) {
 
     const weight = parseFloat(document.getElementById('set-log-weight')?.value) || 0;
     const reps = parseInt(document.getElementById('set-log-reps').value) || 0;
+    const partialReps = parseInt(document.getElementById('set-log-partial-reps')?.value) || 0;
     const notesIn = document.getElementById('set-log-notes');
 
     const currentExSession = state.activeWorkout.exercises[exIndex];
@@ -146,7 +148,13 @@ async function saveCurrentSet(refreshUI) {
     }
     
     // 1. Record the set in activeWorkout
-    const setRecord = { weightKg: weight, reps: reps, createdAt: FB.Timestamp.now(), setIndex };
+    const setRecord = { 
+        weightKg: weight, 
+        reps: reps, 
+        partialReps: currentExSession.partialRepsEnabled ? partialReps : 0,
+        createdAt: FB.Timestamp.now(), 
+        setIndex 
+    };
     // Update or add
     const existingIdx = currentExSession.sets.findIndex(s => s.setIndex === setIndex);
     if (existingIdx !== -1) currentExSession.sets[existingIdx] = setRecord;

@@ -48,7 +48,7 @@ export function renderRoutines() {
                 <button class="add-mini-btn start-workout-trigger" style="background:var(--primary); color:black; border:none; padding:4px 10px;">${t('start_workout', state.language)}</button>
                 <button class="edit-btn-mini edit-routine-trigger" title="${t('edit_btn', state.language)}">✏️</button>
                 <button class="edit-btn-mini reset-routine-series" title="${t('reset_series', state.language)}">🔄</button>
-                <button class="delete-btn delete-routine" title="${t('delete_btn', state.language)}">🗑️</button>
+
                 <span class="drag-handle" title="Reordenar rutinas">☰</span>
             </div>
         </div>
@@ -79,7 +79,7 @@ function attachRoutineEvents(card, routine) {
         });
     };
 
-    card.querySelector('.delete-routine').onclick = (e) => { e.stopPropagation(); Logic.deleteRoutine(routine.id); };
+
     
     // Toggle Collapse / Expand
     const header = card.querySelector('.routine-header');
@@ -195,7 +195,7 @@ function attachExerciseEvents(card, routine) {
 
 
         item.querySelector('.edit-ex').onclick = () => Logic.editExercise(routine.id, exId);
-        item.querySelector('.delete-ex').onclick = () => Logic.deleteExercise(routine.id, exId);
+
         item.querySelector('.view-prog').onclick = () => import('./progression-logic.js').then(m => m.showProgression(ex.exerciseGroupId || ex.id));
         
         const suggestionBtn = item.querySelector('.view-suggestion-btn');

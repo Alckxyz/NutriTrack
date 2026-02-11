@@ -44,6 +44,15 @@ export const sessionModals = `
                 </div>
             </div>
 
+            <div id="set-log-partial-reps-container" class="form-group hidden">
+                <label style="font-size: 0.75rem;" data-t="partial_reps_label">Repeticiones Parciales</label>
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <button class="secondary-btn quick-adj" data-delta="-1" style="padding: 8px;">-1</button>
+                    <input type="number" id="set-log-partial-reps" style="text-align: center; font-size: 1.1rem; font-weight: bold; flex: 1;">
+                    <button class="secondary-btn quick-adj" data-delta="1" style="padding: 8px;">+1</button>
+                </div>
+            </div>
+
             <div id="set-log-notes-container" class="form-group hidden" style="margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: 1rem;">
                 <label style="font-size: 0.75rem;" data-t="exercise_notes_label">Notas del ejercicio (opcional)</label>
                 <textarea id="set-log-notes" rows="2" style="width: 100%; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.85rem; resize: none;" data-t-placeholder="exercise_notes_placeholder" placeholder="¿Cómo te sentiste?"></textarea>

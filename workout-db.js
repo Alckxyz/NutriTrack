@@ -26,6 +26,7 @@ export async function saveWorkout() {
                     .map(s => ({
                         weightKg: Number(s.weightKg) || 0,
                         reps: Number(s.reps) || 0,
+                        partialReps: Number(s.partialReps) || 0,
                         setIndex: Number(s.setIndex) || 0,
                         createdAt: s.createdAt || FB.Timestamp.now()
                     }))
@@ -39,6 +40,7 @@ export async function saveWorkout() {
                     exerciseGroupId: String(ex.exerciseGroupId || ex.exerciseId || ''),
                     loadMode: String(ex.loadMode || 'external_total'),
                     loadMultiplier: Number(ex.loadMultiplier) || 1,
+                    partialRepsEnabled: !!ex.partialRepsEnabled,
                     createdAt: ex.createdAt || FB.Timestamp.now(),
                     notes: String(ex.notes || ''),
                     sets: cleanSets

@@ -43,12 +43,24 @@ export const routineModals = `
     <div id="routine-editor-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-btn">&times;</span>
-            <h2 id="routine-editor-title">Editar Ejercicios</h2>
-            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0.5rem 0 1rem 0;">Arrastra los ejercicios para cambiar su orden en la rutina.</p>
-            <div id="routine-editor-exercises-list" class="library-list" style="margin: 1rem 0; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2);">
+            <h2 id="routine-editor-title">Editar Rutina</h2>
+            
+            <div class="form-group" style="margin-top: 1rem; margin-bottom: 1.5rem;">
+                <label>Nombre de la Rutina</label>
+                <input type="text" id="routine-editor-name-input" style="width: 100%; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px;">
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-light); margin: 0.5rem 0 0.5rem 0; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <strong>Reordenar ejercicios</strong><br>
+                <small>Arrastra los ejercicios para cambiar su orden.</small>
+            </p>
+            <div id="routine-editor-exercises-list" class="library-list" style="margin-bottom: 1rem; max-height: 350px; overflow-y: auto; background: rgba(0,0,0,0.2);">
                 <!-- Exercises with drag handles -->
             </div>
-            <button class="primary-btn close-routine-editor-btn" style="width: 100%; margin-top: 10px;">Hecho</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="delete-btn delete-routine-btn-editor" style="flex: 1; padding: 12px;">Borrar Rutina</button>
+                <button class="primary-btn close-routine-editor-btn" style="flex: 2; padding: 12px;">Hecho</button>
+            </div>
         </div>
     </div>
 `;

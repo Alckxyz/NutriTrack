@@ -3,6 +3,7 @@ import * as UI from './ui.js';
 import { dom } from './dom-elements.js';
 import { t } from './i18n.js';
 import * as Nutrients from './nutrient-utils.js';
+import * as RecipesLogic from './recipes-logic.js';
 import { handleNewFoodSubmit, deleteFromDatabase } from './database-actions.js';
 import { handlePasteFood, AI_PROMPT } from './database-paste-logic.js';
 
@@ -63,6 +64,7 @@ export function openDbModalForAdd() {
     const dbModalTitleEl = document.getElementById('db-modal-title');
     if (dbModalTitleEl) dbModalTitleEl.textContent = t('db_modal_title_add', state.language);
     if (dom.pasteFoodBtn) dom.pasteFoodBtn.classList.remove('hidden');
+    if (dom.dbToRecipeBtn) dom.dbToRecipeBtn.classList.add('hidden');
     dom.dbSaveBtn.textContent = t('save_to_list', state.language);
     dom.dbEditId.value = '';
     
@@ -98,6 +100,14 @@ export async function openDbModalForEdit(foodId) {
     const dbModalTitleEl = document.getElementById('db-modal-title');
     if (dbModalTitleEl) dbModalTitleEl.textContent = isOwner ? t('db_modal_title_edit', state.language) : t('conversions_title', state.language);
     if (dom.pasteFoodBtn) dom.pasteFoodBtn.classList.add('hidden');
+    
+    if (dom.dbToRecipeBtn) {
+        dom.dbToRecipeBtn.classList.remove('hidden');
+        dom.dbToRecipeBtn.onclick = () => {
+            dom.dbModal.style.display = 'none';
+            RecipesLogic.openRecipeEditorWithFood(foodId);
+        };
+    }
     
     dom.dbSaveBtn.textContent = isOwner ? t('update_food', state.language) : t('save_conversions', state.language);
     dom.dbEditId.value = food.id;
@@ -155,7 +165,17 @@ export async function openDbModalForEdit(foodId) {
 }
 
 export function refreshLibrary() {
-    UI.renderLibraryList(dom.libraryList, dom.librarySearchInput, dom.librarySortSelect, openDbModalForEdit, deleteFromDatabase);
+    UI.renderLibraryList(
+        dom.libraryList, 
+        dom.librarySearchInput, 
+        dom.librarySortSelect, 
+        openDbModalForEdit, 
+        deleteFromDatabase,
+        (foodId) => {
+            dom.libraryModal.style.display = 'none';
+            RecipesLogic.openRecipeEditorWithFood(foodId);
+        }
+    );
 }
 
 // removed function deleteFromDatabase() {}

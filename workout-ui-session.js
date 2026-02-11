@@ -56,6 +56,13 @@ export function renderWorkoutSession() {
                         </div>
                         <input type="number" class="set-reps" data-ex="${exIdx}" data-set="${setIdx}" value="${set.reps}" style="width:48px; padding:4px;">
                         <span style="font-size:0.75rem;">${ex.loadMode === 'time' || ex.trackingMode === 'time' ? 'seg' : 'reps'}</span>
+                        ${ex.partialRepsEnabled ? `
+                            <div style="display:flex; align-items:center; gap:3px; margin-left:4px;">
+                                <span style="font-size:0.75rem;">+</span>
+                                <input type="number" class="set-partial-reps" data-ex="${exIdx}" data-set="${setIdx}" value="${set.partialReps || 0}" style="width:38px; padding:4px; border-color:var(--secondary);">
+                                <small style="font-size:0.6rem; color:var(--secondary);">part.</small>
+                            </div>
+                        ` : ''}
                         <button class="delete-btn delete-set-btn" data-ex="${exIdx}" data-set="${setIdx}" style="padding:2px 6px; margin-left: auto;">×</button>
                     </div>
                 `).join('')}
@@ -87,6 +94,9 @@ export function renderWorkoutSession() {
         });
         div.querySelectorAll('.set-reps').forEach(input => {
             input.onchange = () => ex.sets[parseInt(input.dataset.set)].reps = parseInt(input.value) || 0;
+        });
+        div.querySelectorAll('.set-partial-reps').forEach(input => {
+            input.onchange = () => ex.sets[parseInt(input.dataset.set)].partialReps = parseInt(input.value) || 0;
         });
 
         list.appendChild(div);
@@ -161,11 +171,23 @@ export function setupSetEditorUI(routineId, exerciseId, setIndex, exIndex, onSet
         weightIn.oninput = updateTotalWeightDisplay;
         updateTotalWeightDisplay();
     }
+    const partialRepsIn = document.getElementById('set-log-partial-reps');
+    const partialRepsCont = document.getElementById('set-log-partial-reps-container');
+
     if (repsIn) {
         repsIn.value = lastLoggedSet ? lastLoggedSet.reps : exercise.reps;
         const repsLabel = document.querySelector('label[for="set-log-reps"]') || repsIn.closest('.form-group').querySelector('label');
         if (repsLabel) {
             repsLabel.textContent = exercise.trackingMode === 'time' ? 'Segundos' : 'Repeticiones';
+        }
+    }
+
+    if (partialRepsCont) {
+        if (exercise.partialRepsEnabled) {
+            partialRepsCont.classList.remove('hidden');
+            if (partialRepsIn) partialRepsIn.value = lastLoggedSet ? (lastLoggedSet.partialReps || 0) : 0;
+        } else {
+            partialRepsCont.classList.add('hidden');
         }
     }
 

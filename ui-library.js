@@ -2,7 +2,7 @@ import { state, calculateCalories } from './state.js';
 import { t } from './i18n.js';
 import { normalizeString } from './utils.js';
 
-export function renderLibraryList(container, searchInput, sortSelect, onEdit, onDelete) {
+export function renderLibraryList(container, searchInput, sortSelect, onEdit, onDelete, onToRecipe) {
     if (!container) return;
     const query = normalizeString(searchInput.value);
     const sortVal = sortSelect.value;

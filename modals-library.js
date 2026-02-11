@@ -81,7 +81,10 @@ export const libraryModals = `
                     <p style="font-size:0.7rem; color:var(--text-light); margin-top:5px; font-style:italic;">* Estas conversiones son públicas y visibles para todos los usuarios.</p>
                 </div>
 
-                <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%; margin-top: 20px;" data-t="save_to_list">${t('save_to_list', state.language)}</button>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                    <button type="submit" id="db-save-btn" class="primary-btn" style="width: 100%;" data-t="save_to_list">${t('save_to_list', state.language)}</button>
+                    <button type="button" id="db-to-recipe-btn" class="secondary-btn hidden" style="width: 100%; color: var(--primary); border: 1px solid var(--primary);" data-t="to_recipe_btn">👨‍🍳 Convertir en Receta</button>
+                </div>
             </form>
         </div>
     </div>

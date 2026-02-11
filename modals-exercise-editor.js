@@ -47,6 +47,12 @@ export const editorModals = `
                     <input type="number" id="ex-weight-per-plate" placeholder="Ej: 5" step="0.5" min="0">
                 </div>
 
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(100, 181, 246, 0.05); padding: 10px; border-radius: 6px; border: 1px solid rgba(100, 181, 246, 0.1);">
+                        <input type="checkbox" id="ex-partial-reps-enabled">
+                        <span data-t="partial_reps_hint">Permitir registrar repeticiones parciales</span>
+                    </label>
+                </div>
                 <div class="stats-form-grid">
                     <div class="form-group">
                         <label data-t="tracking_mode_label">Modo seguimiento</label>

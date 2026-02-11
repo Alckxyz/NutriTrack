@@ -167,22 +167,28 @@ function renderHistoryList(history) {
         entry.style.gap = '4px';
         entry.style.padding = '10px 12px';
 
-        let bestSetText = '';
-        if (ex.sets.length > 0) {
-            const bestSet = ex.sets.reduce((prev, curr) => (curr.weightKg * curr.reps > prev.weightKg * prev.reps) ? curr : prev);
-            bestSetText = `<span style="color: var(--primary); font-weight: bold;">${bestSet.weightKg}kg x ${bestSet.reps}</span>`;
-        }
+        const isBodyweight = ex.loadMode === 'bodyweight';
+        const isTime = ex.trackingMode === 'time';
+        const setsHtml = ex.sets.map((s, i) => {
+            const weightPart = isBodyweight ? '' : `${s.weightKg}kg x `;
+            const repsPart = `${s.reps}${isTime ? 's' : ''}`;
+            const partialsPart = s.partialReps ? `<small style="color:var(--secondary); font-weight:bold;"> (+${s.partialReps}p)</small>` : '';
+            return `<span style="background: rgba(129, 199, 132, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(129, 199, 132, 0.2); white-space: nowrap; font-size: 0.75rem; color: var(--primary);"><small style="opacity:0.6; margin-right:3px;">${i+1}:</small>${weightPart}${repsPart}${partialsPart}</span>`;
+        }).join('');
 
         entry.innerHTML = `
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 6px;">
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 600;">${date}</span>
                     <button class="edit-btn-mini edit-log-btn" style="padding: 2px 6px; font-size: 0.65rem;">✏️</button>
                 </div>
-                <span style="font-size: 0.75rem;">${bestSetText} (${ex.sets.length} sets)</span>
+                <span style="font-size: 0.65rem; color: var(--text-light); opacity: 0.8;">${ex.sets.length} ${t('sets', state.language)}</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; width: 100%;">
+                ${setsHtml}
             </div>
             ${ex.notes ? `
-                <div style="width: 100%; background: rgba(100, 181, 246, 0.08); padding: 8px; border-radius: 6px; border-left: 3px solid var(--secondary); margin-top: 4px;">
+                <div style="width: 100%; background: rgba(100, 181, 246, 0.08); padding: 8px; border-radius: 6px; border-left: 3px solid var(--secondary); margin-top: 6px;">
                     <span style="font-size: 0.8rem; color: var(--text); font-style: italic; display: block;">" ${ex.notes} \"</span>
                 </div>
             ` : ''}
@@ -241,30 +247,38 @@ async function openManualLogModal(logId = null) {
         if (repsHeader) repsHeader.textContent = isTimeBased ? 'Seg' : 'Reps';
     }
 
-    const renderSetRow = (weight = 0, reps = 0) => {
+    const renderSetRow = (weight = 0, reps = 0, partialReps = 0) => {
         const row = document.createElement('div');
         row.style.display = 'flex';
         row.style.gap = '8px';
         row.style.alignItems = 'center';
+        row.style.flexWrap = 'wrap';
         const weightUnitLabel = isPlates ? (state.language === 'es' ? 'placas' : 'plates') : 'kg';
         row.innerHTML = `
             <div style="display: flex; align-items: center; gap: 4px;">
-                <input type="number" class="manual-weight" value="${weight}" style="width: 58px; padding: 6px; font-size: 0.85rem;" placeholder="0">
-                <span style="font-size: 0.7rem; color: var(--text-light);">${weightUnitLabel}</span>
+                <input type="number" class="manual-weight" value="${weight}" style="width: 50px; padding: 6px; font-size: 0.8rem;" placeholder="0">
+                <span style="font-size: 0.65rem; color: var(--text-light);">${weightUnitLabel}</span>
             </div>
-            <span style="font-size: 0.8rem;">x</span>
+            <span style="font-size: 0.7rem;">x</span>
             <div style="display: flex; align-items: center; gap: 4px;">
-                <input type="number" class="manual-reps" value="${reps}" style="width: 58px; padding: 6px; font-size: 0.85rem;" placeholder="0">
-                <span style="font-size: 0.7rem; color: var(--text-light);">${isTimeBased ? 'seg' : 'reps'}</span>
+                <input type="number" class="manual-reps" value="${reps}" style="width: 50px; padding: 6px; font-size: 0.8rem;" placeholder="0">
+                <span style="font-size: 0.65rem; color: var(--text-light);">${isTimeBased ? 'seg' : 'reps'}</span>
             </div>
-            <button class="delete-btn remove-set" style="padding: 4px 8px; margin-left: auto;">×</button>
+            ${(exData?.partialRepsEnabled || targetExDef?.partialRepsEnabled) ? `
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 0.7rem;">+</span>
+                    <input type="number" class="manual-partial-reps" value="${partialReps}" style="width: 45px; padding: 6px; font-size: 0.8rem; border-color: var(--secondary);" placeholder="0">
+                    <span style="font-size: 0.65rem; color: var(--secondary);">${t('partial_reps_short', state.language)}</span>
+                </div>
+            ` : ''}
+            <button class="delete-btn remove-set" style="padding: 2px 6px; margin-left: auto; font-size: 0.7rem;">×</button>
         `;
         row.querySelector('.remove-set').onclick = () => row.remove();
         setsList.appendChild(row);
     };
 
     if (exData && exData.sets) {
-        exData.sets.forEach(s => renderSetRow(s.weightKg, s.reps));
+        exData.sets.forEach(s => renderSetRow(s.weightKg, s.reps, s.partialReps || 0));
     } else {
         renderSetRow();
     }
@@ -276,11 +290,15 @@ async function openManualLogModal(logId = null) {
         const notes = notesIn.value.trim();
         const timestamp = new Date(dateStr + 'T12:00:00').getTime();
         
-        const sets = Array.from(setsList.children).map((row, idx) => ({
-            weightKg: parseFloat(row.querySelector('.manual-weight').value) || 0,
-            reps: parseInt(row.querySelector('.manual-reps').value) || 0,
-            setIndex: idx
-        })).filter(s => s.reps > 0 || s.weightKg > 0);
+        const sets = Array.from(setsList.children).map((row, idx) => {
+            const partialInput = row.querySelector('.manual-partial-reps');
+            return {
+                weightKg: parseFloat(row.querySelector('.manual-weight').value) || 0,
+                reps: parseInt(row.querySelector('.manual-reps').value) || 0,
+                partialReps: partialInput ? (parseInt(partialInput.value) || 0) : 0,
+                setIndex: idx
+            };
+        }).filter(s => s.reps > 0 || s.weightKg > 0);
 
         if (sets.length === 0) return alert("Agrega al menos una serie.");
 
