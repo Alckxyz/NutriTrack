@@ -1,0 +1,260 @@
+import * as FB from './firebase-config.js';
+import { state } from './state.js';
+import { t } from './i18n.js';
+import * as Utils from './utils.js';
+import { deleteExercise } from './exercise-logic-exercise.js';
+
+export async function createNewRoutine(refreshUI) {
+    if (!state.user) return alert("Inicia sesión para crear rutinas");
+    
+    openRoutinePromptModal({
+        title: t('add_routine', state.language),
+        label: t('prompt_new_routine', state.language),
+        button: state.language === 'es' ? 'Crear' : 'Create',
+        initialValue: '',
+        onConfirm: (name) => performRoutineCreation(name, refreshUI)
+    });
+}
+
+export async function openRenameRoutineModal(routineId) {
+    if (!state.user) return;
+    const routine = state.routines.find(r => r.id === routineId);
+    if (!routine) return;
+
+    openRoutinePromptModal({
+        title: state.language === 'es' ? 'Renombrar Rutina' : 'Rename Routine',
+        label: t('prompt_rename_routine', state.language),
+        button: state.language === 'es' ? 'Guardar' : 'Save',
+        initialValue: routine.name || '',
+        onConfirm: (newName) => renameRoutine(routineId, newName)
+    });
+}
+
+function openRoutinePromptModal({ title, label, button, initialValue, onConfirm }) {
+    const modal = document.getElementById('routine-prompt-modal');
+    const titleEl = document.getElementById('routine-prompt-title');
+    const labelEl = document.getElementById('routine-prompt-label');
+    const input = document.getElementById('routine-prompt-input');
+    const confirmBtn = document.getElementById('confirm-routine-btn');
+
+    if (!modal || !titleEl || !labelEl || !input || !confirmBtn) return;
+
+    titleEl.textContent = title;
+    labelEl.textContent = label;
+    confirmBtn.textContent = button;
+    input.value = initialValue || '';
+    
+    modal.style.display = 'block';
+    setTimeout(() => input.focus(), 10);
+
+    const handleConfirm = () => {
+        const val = input.value.trim();
+        if (!val) return;
+        modal.style.display = 'none';
+        confirmBtn.onclick = null;
+        input.onkeydown = null;
+        onConfirm(val);
+    };
+
+    confirmBtn.onclick = handleConfirm;
+    input.onkeydown = (e) => { if (e.key === 'Enter') handleConfirm(); };
+}
+
+async function performRoutineCreation(name, refreshUI) {
+    try {
+        const maxOrder = state.routines.length > 0 
+            ? Math.max(0, ...state.routines.map(r => r.order || 0)) 
+            : -1;
+
+        const colRef = FB.collection(FB.db, 'users', state.user.uid, 'routines');
+        const newDoc = await FB.addDoc(colRef, {
+            name: name,
+            planId: state.currentExercisePlanId,
+            order: maxOrder + 1,
+            createdAt: FB.serverTimestamp()
+        });
+
+        // Auto-expand the new routine so the user can immediately add exercises
+        if (state.expandedRoutines) {
+            state.expandedRoutines.add(newDoc.id);
+        }
+
+        await import('./state.js').then(m => m.saveState(() => {
+            Utils.showToast("✅ " + (state.language === 'es' ? "Rutina creada" : "Routine created"));
+            if (refreshUI) refreshUI();
+        }));
+    } catch (e) { 
+        console.error("Error creating routine:", e); 
+        Utils.showToast("❌ Error");
+    }
+}
+
+export async function deleteRoutine(routineId) {
+    if (!state.user) return false;
+    if (!(await Utils.confirmAction(t('confirm_delete_routine', state.language), t('confirm', state.language), { okText: t('delete_btn', state.language), isDanger: true }))) return false;
+    try {
+        const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId);
+        await FB.deleteDoc(docRef);
+        return true;
+    } catch (e) { 
+        console.error("Error deleting routine:", e); 
+        return false;
+    }
+}
+
+export async function renameRoutine(routineId, newName) {
+    if (!state.user) return;
+    try {
+        const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId);
+        await FB.updateDoc(docRef, { name: newName });
+    } catch (e) { console.error("Error renaming routine:", e); }
+}
+
+export async function resetRoutineSeries(routineId, refreshUI, silent = false) {
+    if (!state.user) return;
+    const routine = state.routines.find(r => r.id === routineId);
+    if (!routine || !routine.exercises) return;
+    
+    if (!silent) {
+        if (!(await Utils.confirmAction(t('confirm_reset_series', state.language), t('confirm', state.language), { okText: t('reset_series', state.language), isDanger: true }))) return;
+    }
+
+    try {
+        const promises = routine.exercises.map(ex => {
+            const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', routineId, 'exercises', ex.id);
+            return FB.updateDoc(docRef, { doneSeries: [] });
+        });
+        await Promise.all(promises);
+        if (refreshUI) refreshUI();
+    } catch (e) { console.error("Error resetting series:", e); }
+}
+
+export async function reorderRoutines(orderedIds) {
+    if (!state.user) return;
+    try {
+        const batch = orderedIds.map((id, index) => {
+            const docRef = FB.doc(FB.db, 'users', state.user.uid, 'routines', id);
+            return FB.updateDoc(docRef, { order: index });
+        });
+        await Promise.all(batch);
+    } catch (e) { console.error("Error reordering routines:", e); }
+}
+
+export function openManageRoutinesModal(refreshUI) {
+    const modal = document.getElementById('manage-routines-modal');
+    if (!modal) return;
+    modal.style.display = 'block';
+    renderRoutinesManagementList(refreshUI);
+    const addBtn = document.getElementById('add-routine-modal-btn');
+    addBtn.onclick = () => createNewRoutine(refreshUI);
+}
+
+export function renderRoutinesManagementList(refreshUI) {
+    const list = document.getElementById('manage-routines-list');
+    if (!list) return;
+    list.innerHTML = '';
+    state.routines.forEach(routine => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        item.innerHTML = `
+            <div style="flex: 1;"><input type="text" class="routine-name-input" value="${routine.name || ''}" style="background: transparent; border: none; color: white; width: 100%;"></div>
+            <div class="library-item-actions"><button class="delete-btn" style="padding: 4px 8px;">×</button></div>`;
+        const nameInput = item.querySelector('.routine-name-input');
+        nameInput.onblur = () => { if (nameInput.value.trim() && nameInput.value.trim() !== routine.name) renameRoutine(routine.id, nameInput.value.trim()).then(() => { if (refreshUI) refreshUI(); }); };
+        item.querySelector('.delete-btn').onclick = () => deleteRoutine(routine.id).then(() => { renderRoutinesManagementList(refreshUI); if (refreshUI) refreshUI(); });
+        list.appendChild(item);
+    });
+}
+
+export async function openRoutineEditor(routineId, refreshUI) {
+    const routine = state.routines.find(r => r.id === routineId);
+    if (!routine) return;
+
+    const modal = document.getElementById('routine-editor-modal');
+    const list = document.getElementById('routine-editor-exercises-list');
+    const nameIn = document.getElementById('routine-editor-name-input');
+    const closeBtn = modal.querySelector('.close-routine-editor-btn');
+
+    if (!modal || !list || !nameIn) return;
+
+    nameIn.value = routine.name || '';
+    nameIn.onblur = () => {
+        const newName = nameIn.value.trim();
+        if (newName && newName !== routine.name) {
+            renameRoutine(routineId, newName).then(() => {
+                if (refreshUI) refreshUI();
+            });
+        }
+    };
+
+    renderRoutineEditorExercises(routine, list, refreshUI);
+    
+    const delRoutineBtn = modal.querySelector('.delete-routine-btn-editor');
+    if (delRoutineBtn) {
+        delRoutineBtn.onclick = () => {
+            deleteRoutine(routineId).then((success) => {
+                if (success === true) {
+                    modal.style.display = 'none';
+                    if (refreshUI) refreshUI();
+                }
+            });
+        };
+    }
+
+    modal.style.display = 'block';
+    closeBtn.onclick = () => modal.style.display = 'none';
+}
+
+function renderRoutineEditorExercises(routine, container, refreshUI) {
+    container.innerHTML = '';
+    if (!routine.exercises || routine.exercises.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-light);">No hay ejercicios en esta rutina.</div>';
+        return;
+    }
+
+    routine.exercises.forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'library-item';
+        item.dataset.id = ex.id;
+        item.innerHTML = `
+            <div class="library-item-info">
+                <strong>${ex.name}</strong><br>
+                <small style="color:var(--text-light);">${ex.sets} series x ${ex.reps} reps</small>
+            </div>
+            <div class="library-item-actions">
+                <button class="delete-btn remove-ex-btn" style="padding: 4px 8px; margin-right: 4px;" title="${t('delete_btn', state.language)}">🗑️</button>
+                <span class="drag-handle" style="font-size: 1.2rem; cursor: grab; padding: 4px 8px;">☰</span>
+            </div>
+        `;
+
+        item.querySelector('.remove-ex-btn').onclick = (e) => {
+            e.stopPropagation();
+            deleteExercise(routine.id, ex.id).then((success) => {
+                if (success !== false) {
+                    // Find updated routine data and re-render the list
+                    const updatedRoutine = state.routines.find(r => r.id === routine.id);
+                    if (updatedRoutine) {
+                        renderRoutineEditorExercises(updatedRoutine, container, refreshUI);
+                    }
+                    if (refreshUI) refreshUI();
+                }
+            });
+        };
+        container.appendChild(item);
+    });
+
+    import('sortablejs').then(({ default: Sortable }) => {
+        new Sortable(container, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: () => {
+                const orderedIds = Array.from(container.children).map(child => child.dataset.id);
+                import('./exercise-logic-exercise.js').then(m => {
+                    m.reorderExercises(routine.id, orderedIds).then(() => {
+                        if (refreshUI) refreshUI();
+                    });
+                });
+            }
+        });
+    });
+}

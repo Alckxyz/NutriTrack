@@ -1,0 +1,210 @@
+/* Mobile Responsive Overrides */
+
+@media (max-width: 600px) {
+    body {
+        font-size: 12px;
+    }
+    header {
+        position: relative;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+    }
+    .header-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .header-tools-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        width: 100%;
+    }
+    .logo-container h1 {
+        font-size: 1.1rem;
+    }
+    .logo {
+        width: 24px;
+        height: 24px;
+    }
+    .main-nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: #252525;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .nav-btn {
+        padding: 10px 5px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        border-bottom: none !important;
+        color: var(--text-light);
+    }
+
+    .nav-btn.active {
+        background: var(--primary);
+        color: #000;
+    }
+
+    #login-btn, #user-profile {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+    }
+
+    .weight-dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .header-actions button {
+        padding: 6px 4px !important;
+        font-size: 0.7rem !important;
+        height: 38px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+    #stat-calories .value {
+        font-size: 1.8rem;
+    }
+
+    .routine-header {
+        display: grid !important;
+        grid-template-areas: 
+            "selector actions"
+            "title title";
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 8px;
+        padding: 12px !important;
+    }
+
+    .routine-selector-container {
+        grid-area: selector;
+    }
+
+    .routine-header .meal-header-actions {
+        grid-area: actions;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .routine-header .routine-title-group {
+        grid-area: title;
+        width: 100%;
+        margin-top: 4px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 8px;
+    }
+
+    .routine-name-editable {
+        display: block !important;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 1rem;
+    }
+
+    .exercise-item {
+        padding: 12px 8px;
+        gap: 8px;
+    }
+
+    .exercise-content-row {
+        display: grid;
+        grid-template-areas: 
+            "info handle"
+            "tracker tracker";
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .exercise-info {
+        grid-area: info;
+        min-width: 0;
+        width: 100%;
+        flex: none; /* Reset flex from PC */
+    }
+
+    .item-drag-handle {
+        grid-area: handle;
+        margin-left: 8px;
+    }
+
+    .series-dots-container {
+        grid-area: tracker;
+        justify-self: start;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        flex: none; /* Reset flex from PC */
+    }
+
+    .exercise-actions-group {
+        grid-area: tracker;
+        justify-self: end;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        flex: none; /* Reset flex from PC */
+        width: auto;
+    }
+
+    .ai-suggestion-box {
+        margin-right: 0 !important;
+        width: 100%;
+    }
+    .stat-item .value {
+        font-size: 0.95rem;
+    }
+
+    .meal-header h3 {
+        font-size: 0.9rem;
+    }
+    .meal-item {
+        min-height: 50px;
+    }
+    
+    .modal-content {
+        padding: 1.25rem;
+        width: 95%;
+    }
+    .fab {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .rest-timer-ui {
+        bottom: 30px;
+        padding: 8px 16px;
+    }
+
+    .timer-display {
+        font-size: 1.2rem;
+        min-width: 60px;
+    }
+}
